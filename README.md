@@ -32,22 +32,22 @@
 ## Bereiche
 
 ### Recherche (3.1, s.3):
-- übliche Größenn
-- direkt vs 4-fach
-- Speicherzugriffsverhalten eines speicherintensiven Algorithmus -> .csv Dateien mit Beispielen
-- Mit eigener Simulation Verhalten in Bezug auf Zugriffszeiten beobachten
-- Ergebnisse in Readme dokumentieren
+- [ ] übliche Größen
+- [ ] direkt vs 4-fach
+- [ ] Speicherzugriffsverhalten eines speicherintensiven Algorithmus -> .csv Dateien mit Beispielen
+- [ ] Mit eigener Simulation Verhalten in Bezug auf Zugriffszeiten beobachten
+- [ ] Ergebnisse in Readme dokumentieren
 
 
 ### C Rahmenprogramm (3.2, s.4):
-- Parameter aus Konsole lesen
-- .csv mit Anfragen lesen & auswerten
-- Fehlerhafte Optionen korrekt abfangen und entsp. `stderr` ausgeben
+- [x] Parameter aus Konsole lesen
+- [ ] Fehlerhafte Optionen korrekt abfangen und entsp. `stderr` ausgeben
+- [ ] .csv mit Anfragen lesen & auswerten
 
 
 ### SystemC Programm (3.3, s.5):
-- Makefile erstellen, welches eine klare ausführbare main datei erstellt
-- Tracefile während der Simulation erstellen
+- [ ] Makefile erstellen, welches eine klare ausführbare main datei erstellt
+- [ ] Tracefile während der Simulation erstellen
 
 ### Abzugebende Dateien (4, s.7):
 - `Readme.md` : Dokumentation/Bericht + persönliche Abschnitte
