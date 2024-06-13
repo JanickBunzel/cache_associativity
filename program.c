@@ -71,7 +71,7 @@ void read_options(int argc, char *argv[]) {
         //     cachelines:  > 0
         //     cache_latency:  > 0
         //     memory_latency:  > 0 && > cache_latency
-        //     tracefile:  optional
+        //     tracefile:  optional, length < 255
         //     eingabedatei:  valid path
         switch (c) {
             case 'c':
@@ -131,6 +131,11 @@ void read_options(int argc, char *argv[]) {
                 memory_latency = atoi(optarg);
                 break;
             case 't':
+                if (strlen(optarg) > 255) {
+                    fprintf(stderr, "Error: Der Dateiname für das Tracefile darf maximal 255 Zeichen lang sein\n");
+                    print_help();
+                    exit(1);
+                }
                 tracefile = optarg;
                 break;
             case 'h':
