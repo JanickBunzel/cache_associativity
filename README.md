@@ -29,8 +29,6 @@
 
 # TODO
 
-## Bereiche
-
 ### Recherche (3.1, s.3):
 - [ ] übliche Größen
 - [ ] direkt vs 4-fach
@@ -41,8 +39,9 @@
 
 ### C Rahmenprogramm (3.2, s.4):
 - [x] Parameter aus Konsole lesen
-- [ ] Fehlerhafte Optionen korrekt abfangen und entsp. `stderr` ausgeben
-- [ ] .csv mit Anfragen lesen & auswerten
+- [x] Fehlerhafte Optionen korrekt abfangen und entsp. `stderr` ausgeben
+- [ ] Default Werte für Optionen setzen
+- [ ] Cache Requests auslesen und in die Simulation speisen (.csv datei)
 
 
 ### SystemC Programm (3.3, s.5):
@@ -56,3 +55,6 @@
 - `slides/` :
 	- Präsentationsfolien und weiteres Material
 	- `slides.pdf` Einzige Datei für die Präsentation
+
+### Finish Up:
+- [ ] Checkup: Fehlerhafte Optione abfangen
