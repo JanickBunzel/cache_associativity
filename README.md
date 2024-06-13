@@ -29,8 +29,6 @@
 
 # TODO
 
-## Bereiche
-
 ### Recherche (3.1, s.3):
 - [ ] übliche Größen
 - [ ] direkt vs 4-fach
