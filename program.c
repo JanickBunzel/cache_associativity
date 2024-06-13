@@ -1,36 +1,48 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
 
-void print_help() {
-    printf("Usage: program [OPTIONS] <Dateiname>\n");
-    printf("Options:\n");
-    printf("  -c, --cycles <Zahl>         Die Anzahl der Zyklen, die simuliert werden sollen.\n");
-    printf("  --directmapped              Simuliert einen direkt assoziativen Cache.\n");
-    printf("  --fourway                   Simuliert einen vierfach assoziativen Cache.\n");
-    printf("  --cacheline-size <Zahl>     Die Größe einer Cachezeile in Byte.\n");
-    printf("  --cachelines <Zahl>         Die Anzahl der Cachezeilen.\n");
-    printf("  --cache-latency <Zahl>      Die Latenzzeit eines Caches in Zyklen.\n");
-    printf("  --memory-latency <Zahl>     Die Latenzzeit des Hauptspeichers in Zyklen.\n");
-    printf("  --tf <Dateiname>            Ausgabedatei für ein Tracefile mit allen Signalen.\n");
-    printf("  -h, --help                  Eine Beschreibung aller Optionen des Programms und Verwendung ausgeben und das Programm danach beendet.\n");
-}
+void read_options(int argc, char *argv[]);
+void print_option_variables();
+void read_requests();
+void print_help();
+int isInteger(char* str);
+
+int option_index = 0;
+
+// TODO: Specify default values
+int cycles = 0;
+int directmapped = 0;
+int fourway = 0;
+int cacheline_size = 0;
+int cachelines = 0;
+int cache_latency = 0;
+int memory_latency = 0;
+char *tracefile = NULL;
+char *eingabedatei = NULL;
 
 int main(int argc, char *argv[]) {
-    int option_index = 0;
-    int cycles = 0;
-    int cacheline_size = 0;
-    int cachelines = 0;
-    int cache_latency = 0;
-    int memory_latency = 0;
-    char *tracefile = NULL;
-    int directmapped = 0;
-    int fourway = 0;
+    // Populate the option variables
+    read_options(argc, argv);
 
+    // Feedback
+    print_option_variables();
+
+    // Process the read and write requests
+    read_requests();
+
+    // Main code (simulation start etc.)
+
+
+    return 0;
+}
+
+void read_options(int argc, char *argv[]) {
     while (1) {
         static struct option parameter[] = {
-            // Name of the option, if a parameter needs to be passed, Flag if the option is used, intern reference
+            // Format: Name of the option, if a parameter needs to be passed, Flag if the option is used, intern reference
             {"cycles", required_argument, NULL, 'c'},
             {"directmapped", no_argument, NULL, 'd'},
             {"fourway", no_argument, NULL, 'f'},
@@ -44,33 +56,78 @@ int main(int argc, char *argv[]) {
         };
 
         const char* optstring = "c:dfs:l:a:m:t:h";
-        // Bearbeitet alle Optionen mit - oder -- und speichert den Parameter als String in optarg
+        // getopt_long: Bearbeitet alle Optionen mit - oder -- und speichert den Parameter als String in optarg
         int c = getopt_long(argc, argv, optstring, parameter, &option_index);
 
         if (c == -1)
 			// No more arguments
             break;
 
+        // Check for invalid combinations
+        //     cycles:  > 0
+        //     directmapped:  fourway = 0
+        //     fourway:  directmapped = 0
+        //     cacheline_size:  > 0
+        //     cachelines:  > 0
+        //     cache_latency:  > 0
+        //     memory_latency:  > 0 && > cache_latency
+        //     tracefile:  optional
+        //     eingabedatei:  valid path
         switch (c) {
             case 'c':
+                if (!isInteger(optarg) || atoi(optarg) <= 0) {
+                    fprintf(stderr, "Error: Die Anzahl der Zyklen muss ein Integer sein und größer als 0\n");
+                    print_help();
+                    exit(1);
+                }
                 cycles = atoi(optarg);
                 break;
             case 'd':
+                if (fourway) {
+                    fprintf(stderr, "Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
+                    print_help();
+                    exit(1);
+                }
                 directmapped = 1;
                 break;
             case 'f':
+                if (directmapped) {
+                    fprintf(stderr, "Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
+                    print_help();
+                    exit(1);
+                }
                 fourway = 1;
                 break;
             case 's':
+                if (!isInteger(optarg) || atoi(optarg) <= 0) {
+                    fprintf(stderr, "Error: Die Größe einer Cachezeile muss ein Integer sein und größer als 0\n");
+                    print_help();
+                    exit(1);
+                }
                 cacheline_size = atoi(optarg);
                 break;
             case 'l':
+                if (!isInteger(optarg) || atoi(optarg) <= 0) {
+                    fprintf(stderr, "Error: Die Anzahl der Cachelines muss ein Integer sein und größer als 0\n");
+                    print_help();
+                    exit(1);
+                }
                 cachelines = atoi(optarg);
                 break;
             case 'a':
+                if (!isInteger(optarg) || atoi(optarg) <= 0) {
+                    fprintf(stderr, "Error: Die Cache Latency muss ein Integer sein und größer als 0\n");
+                    print_help();
+                    exit(1);
+                }
                 cache_latency = atoi(optarg);
                 break;
             case 'm':
+                if (!isInteger(optarg) || atoi(optarg) <= 0) {
+                    fprintf(stderr, "Error: Die Memory Latency muss ein Integer sein und größer als 0 und die Cache Latency sein\n");
+                    print_help();
+                    exit(1);
+                }
                 memory_latency = atoi(optarg);
                 break;
             case 't':
@@ -88,15 +145,20 @@ int main(int argc, char *argv[]) {
     }
 
     if (optind < argc) {
-        char *filename = argv[optind];
-        printf("Processing file: %s\n", filename);
+        eingabedatei = argv[optind];
+        if (access(eingabedatei, F_OK) != 0) {
+            fprintf(stderr, "Error: Die Eingabedatei wurde nicht gefunden\n");
+            print_help();
+            exit(1);
+        }
     } else {
-        fprintf(stderr, "Error: No input file specified\n");
+        fprintf(stderr, "Error: Keine Eingabedatei angegeben\n");
         print_help();
         exit(1);
     }
+}
 
-    // Debug Feddback
+void print_option_variables() {
     printf("Cycles: %d\n", cycles);
     printf("Direct mapped: %d\n", directmapped);
     printf("Four way: %d\n", fourway);
@@ -105,19 +167,38 @@ int main(int argc, char *argv[]) {
     printf("Cache latency: %d\n", cache_latency);
     printf("Memory latency: %d\n", memory_latency);
     printf("Tracefile: %s\n", tracefile ? tracefile : "None");
+    printf("Eingabedatei: %s\n", eingabedatei);
+}
 
-    // Check for invalid combinations
-    if (directmapped && fourway) {
-        fprintf(stderr, "Error: Direct mapped and four way cache cannot be used together\n");
-        exit(1);
+void read_requests() {
+    // Read the requests from the file
+    // Format: <R/W>,<address_hex>,<value_hex
+    // Error: If W, value has to be present, if R field value has to be empty
+}
+
+void print_help() {
+    printf("\nUsage: program [OPTIONS] <Dateiname>\n");
+    printf("Options:\n");
+    printf("  -c, --cycles <Zahl>         Die Anzahl der Zyklen, die simuliert werden sollen.\n");
+    printf("  --directmapped              Simuliert einen direkt assoziativen Cache.\n");
+    printf("  --fourway                   Simuliert einen vierfach assoziativen Cache.\n");
+    printf("  --cacheline-size <Zahl>     Die Größe einer Cachezeile in Byte.\n");
+    printf("  --cachelines <Zahl>         Die Anzahl der Cachezeilen.\n");
+    printf("  --cache-latency <Zahl>      Die Latenzzeit eines Caches in Zyklen.\n");
+    printf("  --memory-latency <Zahl>     Die Latenzzeit des Hauptspeichers in Zyklen.\n");
+    printf("  --tf <Dateiname>            Ausgabedatei für ein Tracefile mit allen Signalen.\n");
+    printf("  -h, --help                  Eine Beschreibung aller Optionen des Programms und Verwendung ausgeben und das Programm danach beendet.\n");
+}
+
+// Helper function
+int isInteger(char* str) {
+    while (*str != '\0') {
+        if (!isdigit(*str)) {
+            return 0;
+        }
+        str++;
     }
-    // TODO
-    // ...
-    
-
-    // Main code (simulation start etc.)
-
-    return 0;
+    return 1;
 }
 
 /*
