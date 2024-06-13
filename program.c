@@ -106,6 +106,15 @@ int main(int argc, char *argv[]) {
     printf("Memory latency: %d\n", memory_latency);
     printf("Tracefile: %s\n", tracefile ? tracefile : "None");
 
+    // Check for invalid combinations
+    if (directmapped && fourway) {
+        fprintf(stderr, "Error: Direct mapped and four way cache cannot be used together\n");
+        exit(1);
+    }
+    // TODO
+    // ...
+    
+
     // Main code (simulation start etc.)
 
     return 0;

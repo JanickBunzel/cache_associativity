@@ -42,6 +42,7 @@
 ### C Rahmenprogramm (3.2, s.4):
 - [x] Parameter aus Konsole lesen
 - [ ] Fehlerhafte Optionen korrekt abfangen und entsp. `stderr` ausgeben
+- [ ] Cache Requests auslesen und in die Simulation speisen
 - [ ] .csv mit Anfragen lesen & auswerten
 
 
