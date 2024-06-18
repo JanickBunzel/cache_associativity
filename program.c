@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <string.h>
 
 void read_options(int argc, char *argv[]);
 void print_option_variables();
@@ -27,12 +28,12 @@ char *eingabedatei = NULL;
 int numRequests = 0;
 const int MAX_REQUESTS = 1000;
 
-struct Request requests[MAX_REQUESTS];
 struct Request {
     uint32_t addr;
     uint32_t data;
     int we;
 };
+struct Request requests[MAX_REQUESTS];
 
 int main(int argc, char *argv[]) {
     // Populate the option variables
@@ -204,14 +205,28 @@ void read_requests() {
             break;
         }
 
-        char rw;
-        if (sscanf(line, "%c,%x,%x", &rw, &requests[numRequests].addr, &requests[numRequests].data) == 3) {
-            requests[numRequests].we = (rw == 'W') ? 1 : 0;
-            if (rw == 'R' && requests[numRequests].data != 0) {
-                fprintf(stderr, "Error: In Zeile %d: Bei einem Lesezugriff darf kein Wert übergeben werden\n", numRequests + 1);
+        char rw, rest[256];
+        if (sscanf(line, "%c,%x,%x,%s", &rw, &requests[numRequests].addr, &requests[numRequests].data, rest) == 4) {
+            fprintf(stderr, "Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", numRequests + 1, line);
+            return;
+        } else if (sscanf(line, "%c,%x,%x", &rw, &requests[numRequests].addr, &requests[numRequests].data) == 3) {
+            // 3 arguments -> Write request
+            if (rw == 'R') {
+                fprintf(stderr, "Error in Zeile %d: Bei einem Lesezugriff darf kein Wert übergeben werden\n", numRequests + 1);
                 return;
             }
+
             numRequests++;
+            requests[numRequests].we = 1;
+        } else if (sscanf(line, "%c,%x", &rw, &requests[numRequests].addr) == 2) {
+            // 2 arguments -> Read request
+            if (rw == 'W') {
+                fprintf(stderr, "Error in Zeile %d: Bei einem Schreibzugriff muss ein Wert übergeben werden\n", numRequests + 1);
+                return;
+            }
+
+            numRequests++;
+            requests[numRequests].we = 0;
         } else {
             fprintf(stderr, "Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", numRequests + 1, line);
             return;
