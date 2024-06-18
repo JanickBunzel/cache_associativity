@@ -25,6 +25,10 @@ CXX := $(shell command -v g++ || command -v clang++)
 ifeq ($(strip $(CXX)),)
     $(error Neither clang++ nor g++ is available. Exiting.)
 endif
+CC := $(shell command -v gcc || command -v clang)
+ifeq ($(strip $(CC)),)
+    $(error Neither gcc nor clang is available. Exiting.)
+endif
 
 # Add rpath except for MacOS
 # Diese Zeilen fügen -rpath zu den Linker-Flags hinzu, außer wenn das Betriebssystem macOS (Darwin) ist. -rpath gibt dem Linker an, wo er zur Laufzeit nach Bibliotheken suchen soll.
@@ -34,10 +38,14 @@ ifneq ($(UNAME_S), Darwin)
     CXXFLAGS += -Wl,-rpath=$(SCPATH)/lib
 endif
 
-all: cache_simulator
+all: cache_simulator rahmenprogramm
+	$(CXX) cache_simulator.o rahmenprogramm.o -o cache-simulator
+
+rahmenprogramm:
+	$(CC) -c rahmenprogramm.c -o rahmenprogramm.o
 
 cache_simulator: CXXFLAGS += -g
-cache_simulator: $(TARGET)
+cachesimulator: $(TARGET)
 
 $(TARGET): $(MAIN) $(CACHE_SRCS)
 	$(CXX) $(CXXFLAGS) -o $@ $^

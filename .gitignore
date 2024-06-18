@@ -4,4 +4,4 @@
 *.o
 
 # ignore compiled executable
-program
+cache-simulator
