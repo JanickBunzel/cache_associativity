@@ -40,13 +40,15 @@
 ### C Rahmenprogramm (3.2, s.4):
 - [x] Parameter aus Konsole lesen
 - [x] Fehlerhafte Optionen korrekt abfangen und entsp. `stderr` ausgeben
+- [x] Requests aus .csv eingabedatei in Request array lesen
 - [ ] Default Werte für Optionen setzen
-- [ ] Cache Requests auslesen und in die Simulation speisen (.csv datei)
+- [ ] Simulation starten (run_simulation in c++)
 
 
 ### SystemC Programm (3.3, s.5):
 - [ ] Makefile erstellen, welches eine klare ausführbare main datei erstellt
 - [ ] Tracefile während der Simulation erstellen
+- [ ] run_simulation implementieren und cache mit requests bearbeiten
 
 ### Abzugebende Dateien (4, s.7):
 - `Readme.md` : Dokumentation/Bericht + persönliche Abschnitte
