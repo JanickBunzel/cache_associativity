@@ -3,7 +3,6 @@
 #include "cache.hpp"
 #include "testbench.hpp"
 
-
 int sc_main(int argc, char *argv[])
 {
 
