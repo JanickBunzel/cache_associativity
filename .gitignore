@@ -2,6 +2,7 @@
 
 # ignore compiled object file
 *.o
+cache.cpp
 
 # ignore compiled executable
 program

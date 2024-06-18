@@ -58,3 +58,8 @@
 
 ### Finish Up:
 - [ ] Checkup: Fehlerhafte Optione abfangen
+
+### Offene Fragen Julian
+- Wie groß ist eine Cachzeile?
+- Was muss im Tracefile angeziegt werden?
+- Wie muss ein write funktioneren, es werden ja keine Daten gespeichert, da wir ja keine Hintergrundspeicher haben, aus dem bei einem Cachmiss Daten geladen werden können.
