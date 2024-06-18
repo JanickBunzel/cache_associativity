@@ -30,7 +30,7 @@
 # TODO
 
 ### Recherche (3.1, s.3):
-- [ ] übliche Größen
+- [x] übliche Größen
 - [ ] direkt vs 4-fach
 - [ ] Speicherzugriffsverhalten eines speicherintensiven Algorithmus -> .csv Dateien mit Beispielen
 - [ ] Mit eigener Simulation Verhalten in Bezug auf Zugriffszeiten beobachten
