@@ -1,16 +1,13 @@
-# Setting the compiler to gcc
-CC = gcc
+all: rahmenprogramm simulation
+	g++ simulation.o rahmenprogramm.o -o cache-simulator
 
-# Setting the object file to be generated
-OBJ = program.o
+# Compiling the simulation
+simulation:
+	g++ -c simulation.cpp -o simulation.o
 
-# Rule for building the program
-program: $(OBJ)
-	$(CC) -o program $(OBJ)
-
-# Rule for building the object file
-$(OBJ): program.c
-	$(CC) -c program.c
+# Compiling the Rahmenprogramm
+rahmenprogramm:
+	gcc -c rahmenprogramm.c -o rahmenprogramm.o
 
 clean:
-	rm -f $(OBJ) program
+	rm -f *.o cache-simulator

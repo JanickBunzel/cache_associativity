@@ -14,6 +14,7 @@ int isInteger(char* str);
 int option_index = 0;
 
 // TODO: Specify default values
+// Cache parameters
 int cycles = 0;
 int directmapped = 0;
 int fourway = 0;
@@ -24,7 +25,7 @@ int memory_latency = 0;
 char *tracefile = NULL;
 char *eingabedatei = NULL;
 
-
+// Request
 int numRequests = 0;
 const int MAX_REQUESTS = 1000;
 
@@ -35,7 +36,25 @@ struct Request {
 };
 struct Request requests[MAX_REQUESTS];
 
+// Deklaration der externen C++ Funktion
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void run_simulation();
+
+#ifdef __cplusplus
+}
+#endif
+
 int main(int argc, char *argv[]) {
+    // TESTING
+    printf("Runing simulation...\n");
+    run_simulation();
+
+    return 0;
+    // TESTING END
+    
     // Populate the option variables
     read_options(argc, argv);
 
@@ -239,7 +258,7 @@ void read_requests() {
 }
 
 void print_help() {
-    printf("\nUsage: program [OPTIONS] <Dateiname>\n");
+    printf("\nUsage: rahmenprogramm [OPTIONS] <Eingabedatei>\n");
     printf("Options:\n");
     printf("  -c, --cycles <Zahl>         Die Anzahl der Zyklen, die simuliert werden sollen.\n");
     printf("  --directmapped              Simuliert einen direkt assoziativen Cache.\n");
@@ -249,7 +268,7 @@ void print_help() {
     printf("  --cache-latency <Zahl>      Die Latenzzeit eines Caches in Zyklen.\n");
     printf("  --memory-latency <Zahl>     Die Latenzzeit des Hauptspeichers in Zyklen.\n");
     printf("  --tf <Dateiname>            Ausgabedatei für ein Tracefile mit allen Signalen.\n");
-    printf("  -h, --help                  Eine Beschreibung aller Optionen des Programms und Verwendung ausgeben und das Programm danach beendet.\n");
+    printf("  -h, --help                  Eine Beschreibung aller Optionen des Rahmenprogramms und Verwendung ausgeben und das Programm danach beendet.\n");
 }
 
 // Helper function
@@ -265,5 +284,5 @@ int isInteger(char* str) {
 
 /*
     Beispiel:
-    ./program -c 1000 --directmapped --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd requests.csv
+    ./rahmenprogramm -c 1000 --directmapped --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd requests.csv
 */ 
