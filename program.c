@@ -23,6 +23,17 @@ int memory_latency = 0;
 char *tracefile = NULL;
 char *eingabedatei = NULL;
 
+
+int numRequests = 0;
+const int MAX_REQUESTS = 1000;
+
+struct Request requests[MAX_REQUESTS];
+struct Request {
+    uint32_t addr;
+    uint32_t data;
+    int we;
+};
+
 int main(int argc, char *argv[]) {
     // Populate the option variables
     read_options(argc, argv);
@@ -177,8 +188,39 @@ void print_option_variables() {
 
 void read_requests() {
     // Read the requests from the file
-    // Format: <R/W>,<address_hex>,<value_hex
+    // Format: <R/W>,<address_hexordec>,<value_hexordec>
     // Error: If W, value has to be present, if R field value has to be empty
+
+    FILE *file = fopen(eingabedatei, "r");
+    if (file == NULL) {
+        fprintf(stderr, "Error: Fehler beim Öffnen der Datei: %s\n",  eingabedatei);
+        return;
+    }
+
+    char line[256];
+    while (fgets(line, sizeof(line), file)) {
+        if (numRequests >= MAX_REQUESTS) {
+            fprintf(stderr, "Error: Zu viele Requests, die ersten %d wurden verarbeitet.\n", MAX_REQUESTS);
+            break;
+        }
+
+        char rw;
+        if (sscanf(line, "%c,%x,%x", &rw, &requests[numRequests].addr, &requests[numRequests].data) == 3) {
+            requests[numRequests].we = (rw == 'W') ? 1 : 0;
+            if (rw == 'R' && requests[numRequests].data != 0) {
+                fprintf(stderr, "Error: In Zeile %d: Bei einem Lesezugriff darf kein Wert übergeben werden\n", numRequests + 1);
+                return;
+            }
+            numRequests++;
+        } else {
+            fprintf(stderr, "Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", numRequests + 1, line);
+            return;
+        }
+    }
+
+    fclose(file);
+
+    printf("Done reading %d requests.\n", numRequests); 
 }
 
 void print_help() {
