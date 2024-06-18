@@ -1,16 +1,48 @@
-# Setting the compiler to gcc
-CC = gcc
+# ---------------------------------------
+# CONFIGURATION BEGIN
+# ---------------------------------------
 
-# Setting the object file to be generated
-OBJ = program.o
+# entry point for the program and target name
+MAIN := main.cpp
 
-# Rule for building the program
-program: $(OBJ)
-	$(CC) -o program $(OBJ)
+CACHE_SRCS := cache.cpp testbench.cpp
 
-# Rule for building the object file
-$(OBJ): program.c
-	$(CC) -c program.c
+
+# target name
+TARGET := cache_simulator
+
+# Path to your systemc installation
+SCPATH = ../systemc
+
+# Additional flags for the compiler
+CXXFLAGS := -std=c++14  -I$(SCPATH)/include -L$(SCPATH)/lib -lsystemc -lm
+
+# ---------------------------------------
+# CONFIGURATION END
+# ---------------------------------------
+# Determine if clang or gcc is available else exit
+CXX := $(shell command -v g++ || command -v clang++)
+ifeq ($(strip $(CXX)),)
+    $(error Neither clang++ nor g++ is available. Exiting.)
+endif
+
+# Add rpath except for MacOS
+# Diese Zeilen fügen -rpath zu den Linker-Flags hinzu, außer wenn das Betriebssystem macOS (Darwin) ist. -rpath gibt dem Linker an, wo er zur Laufzeit nach Bibliotheken suchen soll.
+UNAME_S := $(shell uname -s)
+
+ifneq ($(UNAME_S), Darwin)
+    CXXFLAGS += -Wl,-rpath=$(SCPATH)/lib
+endif
+
+all: cache_simulator
+
+cache_simulator: CXXFLAGS += -g
+cache_simulator: $(TARGET)
+
+$(TARGET): $(MAIN) $(CACHE_SRCS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
 clean:
-	rm -f $(OBJ) program
+	rm -f $(TARGET) *.o
+
+.PHONY: cache_simulator clean

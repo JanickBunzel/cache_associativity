@@ -29,13 +29,13 @@
 
 # TODO
 
+
 ### Recherche (3.1, s.3):
 - [x] übliche Größen
 - [ ] direkt vs 4-fach
 - [ ] Speicherzugriffsverhalten eines speicherintensiven Algorithmus -> .csv Dateien mit Beispielen
 - [ ] Mit eigener Simulation Verhalten in Bezug auf Zugriffszeiten beobachten
 - [ ] Ergebnisse in Readme dokumentieren
-
 
 ### C Rahmenprogramm (3.2, s.4):
 - [x] Parameter aus Konsole lesen
