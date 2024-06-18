@@ -41,7 +41,7 @@ struct Request requests[MAX_REQUESTS];
 extern "C" {
 #endif
 
-void run_simulation();
+void run_simulation(int numRequests, struct Request requests[]);
 
 #ifdef __cplusplus
 }
@@ -49,8 +49,11 @@ void run_simulation();
 
 int main(int argc, char *argv[]) {
     // TESTING
+    eingabedatei = "r.csv";
+    read_requests();
+    
     printf("Runing simulation...\n");
-    run_simulation();
+    run_simulation(numRequests, requests);
 
     return 0;
     // TESTING END
@@ -64,8 +67,8 @@ int main(int argc, char *argv[]) {
     // Process the read and write requests
     read_requests();
 
-    // Main code (simulation start etc.)
-
+    // Run the SystemC simulation
+    // run_simulation();
 
     return 0;
 }
