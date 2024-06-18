@@ -9,9 +9,12 @@ SC_MODULE(testbench) {
     sc_out<sc_uint<32>> wdata;
     sc_out<bool> we;
 
-    Request requests[5];
+    Request* requests;
+    int numRequests;
 
     void process();
+
+    testbench(sc_module_name name, int numReqs, Request* reqs);  
 
     SC_CTOR(testbench);
 };

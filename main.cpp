@@ -4,28 +4,14 @@
 #include "testbench.hpp"
 #include <sstream>
 
+extern Request* requestsGlobal;
+
 int sc_main(int argc, char *argv[])
 {
 
     int numRequests = argc;
 
-    // Allocate memory for the requests array
-    Request* requests = new Request[numRequests];
-    
-    // Parse the request data from the arguments
-    for (int i = 0; i < numRequests; ++i) {
-        // Convert the argument to a string
-        std::string arg = argv[i + 1];
-
-        // Split the string into tokens
-        std::istringstream iss(arg);
-        std::vector<std::string> tokens(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
-
-        // Assign the tokens to the request fields
-        requests[i].addr = std::stoi(tokens[0]);
-        requests[i].data = std::stoi(tokens[1]);
-        requests[i].we = std::stoi(tokens[2]) != 0;
-    }
+    Request* requests = requestsGlobal;
 
     sc_signal<bool> we;
     sc_clock clk("clk", 1, SC_NS);
@@ -33,7 +19,7 @@ int sc_main(int argc, char *argv[])
     cache cache_inst("cache_inst");
     cache_inst.clk(clk);
 
-    testbench testbench_inst("testbench_inst");
+    testbench testbench_inst("testbench_inst", numRequests, requests);
     testbench_inst.clk(clk);
 
     sc_signal<sc_uint<32>> addr_tb;
@@ -49,9 +35,7 @@ int sc_main(int argc, char *argv[])
     testbench_inst.we(we_tb);
     cache_inst.we(we_tb);
 
-    sc_start(5, SC_NS);
-
-    delete[] requests;
+    sc_start(7, SC_NS);
 
     return 0;
 }

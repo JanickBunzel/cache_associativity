@@ -238,8 +238,8 @@ void read_requests() {
                 return;
             }
 
-            numRequests++;
             requests[numRequests].we = 1;
+            numRequests++;
         } else if (sscanf(line, "%c,%x", &rw, &requests[numRequests].addr) == 2) {
             // 2 arguments -> Read request
             if (rw == 'W') {
@@ -247,8 +247,8 @@ void read_requests() {
                 return;
             }
 
-            numRequests++;
             requests[numRequests].we = 0;
+            numRequests++;
         } else {
             fprintf(stderr, "Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", numRequests + 1, line);
             return;

@@ -1,10 +1,14 @@
 #include <iostream>
 #include <systemc.h>
+#include "requestStruct.hpp"
+// Deklarieren und initialisieren Sie die globale Variable
+Request* requestsGlobal;
 
 extern "C" void run_simulation(int numRequests, struct Request requests[]) {
     std::cout << "Hallo von der C++ simulation!" << std::endl;
 
-    char *argv = reinterpret_cast<char*>(requests);
+    requestsGlobal = requests;
 
-    sc_main(numRequests, &argv);
+    sc_main(numRequests, NULL);
+
 }

@@ -29,7 +29,6 @@
 
 # TODO
 
-
 ### Recherche (3.1, s.3):
 - [x] übliche Größen
 - [ ] direkt vs 4-fach
@@ -41,14 +40,17 @@
 - [x] Parameter aus Konsole lesen
 - [x] Fehlerhafte Optionen korrekt abfangen und entsp. `stderr` ausgeben
 - [x] Requests aus .csv eingabedatei in Request array lesen
+- [x] Simulation starten (run_simulation in c++)
 - [ ] Default Werte für Optionen setzen
-- [ ] Simulation starten (run_simulation in c++)
+- [ ] Hex oder Dezimal als Adresse oder Wert in CSV richtig verarbeiten
 
 
 ### SystemC Programm (3.3, s.5):
+- [ ] run_simulation implementieren und cache mit requests bearbeiten
 - [ ] Makefile erstellen, welches eine klare ausführbare main datei erstellt
 - [ ] Tracefile während der Simulation erstellen
-- [ ] run_simulation implementieren und cache mit requests bearbeiten
+- [ ] Cache dynamisch aufbauen
+- [ ] 4-fach Cache implementieren 
 
 ### Abzugebende Dateien (4, s.7):
 - `Readme.md` : Dokumentation/Bericht + persönliche Abschnitte
