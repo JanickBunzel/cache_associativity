@@ -35,7 +35,7 @@ ifneq ($(UNAME_S), Darwin)
 endif
 
 all: cache_simulator rahmenprogramm
-	g++ cache_simulator.o rahmenprogramm.o -o cache-simulator
+	$(CXX) cache_simulator.o rahmenprogramm.o -o cache-simulator
 
 rahmenprogramm:
 	$(CXX) -c rahmenprogramm.c -o rahmenprogramm.o
