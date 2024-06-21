@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <string.h>
+#include <stdarg.h>
 
 // Struct to store properties of the cache
 typedef struct {
@@ -31,7 +32,7 @@ CacheConfig arguments_to_cache_config(int argc, char *argv[]);
 void print_cache_config(CacheConfig cacheConfig);
 int count_lines_in_file(char* filename);
 struct Request* read_requests_from_file(int number_of_requests, char* filename);
-void print_and_exit_with_error(char* error_message);
+void print_help_and_exit_with_error(char* errorMessage, ...);
 void print_help();
 int is_integer(char* str);
 
@@ -113,56 +114,56 @@ CacheConfig arguments_to_cache_config(int argc, char *argv[]) {
             case 'c':
                 // Argument: Cycles, Expected: int > 0
                 if (!is_integer(optarg) || atoi(optarg) <= 0) {
-                    print_and_exit_with_error("Error: Die Anzahl der Zyklen muss ein Integer sein und größer als 0\n");
+                    print_help_and_exit_with_error("Error: Die Anzahl der Zyklen muss ein Integer sein und größer als 0\n");
                 }
                 cache_config.cycles = atoi(optarg);
                 break;
             case 'd':
                 // Argument: foruway, Expected: bool (Can't be used with directmapped)
                 if (cache_config.fourway) {
-                    print_and_exit_with_error("Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
+                    print_help_and_exit_with_error("Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
                 }
                 cache_config.directmapped = 1;
                 break;
             case 'f':
                 // Argument: fourway, Expected: bool (Can't be used with directmapped)
                 if (cache_config.directmapped) {
-                    print_and_exit_with_error("Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
+                    print_help_and_exit_with_error("Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
                 }
                 cache_config.fourway = 1;
                 break;
             case 's':
                 // Argument: Cacheline size, Expected: int > 0
                 if (!is_integer(optarg) || atoi(optarg) <= 0) {
-                    print_and_exit_with_error("Error: Die Größe einer Cachezeile muss ein Integer sein und größer als 0\n");
+                    print_help_and_exit_with_error("Error: Die Größe einer Cachezeile muss ein Integer sein und größer als 0\n");
                 }
                 cache_config.cacheline_size = atoi(optarg);
                 break;
             case 'l':
                 // Argument: Cachelines, Expected: int > 0
                 if (!is_integer(optarg) || atoi(optarg) <= 0) {
-                    print_and_exit_with_error("Error: Die Anzahl der Cachelines muss ein Integer sein und größer als 0\n");
+                    print_help_and_exit_with_error("Error: Die Anzahl der Cachelines muss ein Integer sein und größer als 0\n");
                 }
                 cache_config.cachelines = atoi(optarg);
                 break;
             case 'a':
                 // Argument: Cache Latency, Expected: int > 0
                 if (!is_integer(optarg) || atoi(optarg) <= 0) {
-                    print_and_exit_with_error("Error: Die Cache Latency muss ein Integer sein und größer als 0\n");
+                    print_help_and_exit_with_error("Error: Die Cache Latency muss ein Integer sein und größer als 0\n");
                 }
                 cache_config.cache_latency = atoi(optarg);
                 break;
             case 'm':
                 // Argument: Memory Latency, Expected: int > 0 && > cache_latency
                 if (!is_integer(optarg) || atoi(optarg) <= 0) {
-                    print_and_exit_with_error("Error: Die Memory Latency muss ein Integer sein und größer als 0 und die Cache Latency sein\n");
+                    print_help_and_exit_with_error("Error: Die Memory Latency muss ein Integer sein und größer als 0 und die Cache Latency sein\n");
                 }
                 cache_config.memory_latency = atoi(optarg);
                 break;
             case 't':
                 // Argument: Tracefile, Expected: char* with length < 255
                 if (strlen(optarg) > 255) {
-                    print_and_exit_with_error("Error: Der Dateiname für das Tracefile darf maximal 255 Zeichen lang sein\n");
+                    print_help_and_exit_with_error("Error: Der Dateiname für das Tracefile darf maximal 255 Zeichen lang sein\n");
                 }
                 cache_config.tracefile = optarg;
                 break;
@@ -174,18 +175,18 @@ CacheConfig arguments_to_cache_config(int argc, char *argv[]) {
 
             case '?':
             default:
-                print_and_exit_with_error("Error: Unbekanntes Argument\n");
+                print_help_and_exit_with_error("Error: Unbekanntes Argument\n");
         }
     }
 
     // The last argument is the Eingabedatei (independent from its argument position)
     if (optind >= argc) {
         // If there is no more argument, the Eingabedatei is missing
-        print_and_exit_with_error("Error: Keine Eingabedatei angegeben\n");
+        print_help_and_exit_with_error("Error: Keine Eingabedatei angegeben\n");
     } else {
         if (access(argv[optind], F_OK) != 0) {
             // Check that the file with the given path exists
-            print_and_exit_with_error("Error: Die Eingabedatei wurde nicht gefunden.\n");
+            print_help_and_exit_with_error("Error: Die Eingabedatei wurde nicht gefunden.\n");
         }
         cache_config.eingabedatei = argv[optind];
     }
@@ -196,23 +197,23 @@ CacheConfig arguments_to_cache_config(int argc, char *argv[]) {
 
 // Print the given cache configuration
 void print_cache_config(CacheConfig cache_config) {
-    printf("Cycles: %d\n", cache_config.cycles);
-    printf("Direct mapped: %d\n", cache_config.directmapped);
-    printf("Four way: %d\n", cache_config.fourway);
-    printf("Cacheline size: %d\n", cache_config.cacheline_size);
-    printf("Cachelines: %d\n", cache_config.cachelines);
-    printf("Cache latency: %d\n", cache_config.cache_latency);
-    printf("Memory latency: %d\n", cache_config.memory_latency);
-    printf("Tracefile: %s\n", cache_config.tracefile ? cache_config.tracefile : "None");
-    printf("Eingabedatei: %s\n", cache_config.eingabedatei);
+    printf("Cache Configuration:\n");
+    printf("  - Cycles: %d\n", cache_config.cycles);
+    printf("  - Direct mapped: %d\n", cache_config.directmapped);
+    printf("  - Four way: %d\n", cache_config.fourway);
+    printf("  - Cacheline size: %d\n", cache_config.cacheline_size);
+    printf("  - Cachelines: %d\n", cache_config.cachelines);
+    printf("  - Cache latency: %d\n", cache_config.cache_latency);
+    printf("  - Memory latency: %d\n", cache_config.memory_latency);
+    printf("  - Tracefile: %s\n", cache_config.tracefile ? cache_config.tracefile : "None");
+    printf("  - Eingabedatei: %s\n\n", cache_config.eingabedatei);
 }
 
 // Counts the lines in the given file
 int count_lines_in_file(char* filename) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
-        fprintf(stderr, "Error: Fehler beim Öffnen der Datei: %s\n",  filename);
-        exit(1);
+        print_help_and_exit_with_error("Error: Fehler beim Öffnen der Datei: %s\n",  filename);
     }
 
     int lines = 0;
@@ -233,8 +234,7 @@ struct Request* read_requests_from_file(int number_of_requests, char* filename) 
 
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
-        fprintf(stderr, "Error: Fehler beim Öffnen der Datei: %s\n",  filename);
-        exit(1);
+        print_help_and_exit_with_error("Error: Fehler beim Öffnen der Datei: %s\n",  filename);
     }
 
     int index = 0;
@@ -242,27 +242,22 @@ struct Request* read_requests_from_file(int number_of_requests, char* filename) 
     while (fgets(line, sizeof(line), file)) {
         char rw, addr[MAX_REQUEST_LINE_LENGTH], data[MAX_REQUEST_LINE_LENGTH], rest[MAX_REQUEST_LINE_LENGTH];
         
-        // Scan the format of the current line and make sure it is valid, while storing the entries in the local variables
-        if (sscanf(line, "%c,%s,%s,%s", &rw, &addr, &data, rest) >= 4) {
-            // invalid line format for more than 3 entries
-            fprintf(stderr, "Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", index + 1, line);
-            exit(1);
-        } else if (sscanf(line, "%c,%s,%s", &rw, &addr, &data) == 3) {
-            // write request expected for 3 entries
-            if (rw == 'R') {
-                fprintf(stderr, "Error in Zeile %d: Bei einem Lesezugriff darf kein Wert übergeben werden\n", index + 1);
-                exit(1);
+        // Scan the format of the current line and store the entries in the local variables
+        int number_of_entries = sscanf(line, "%c,%[^,],%s", &rw, addr, data);
+
+        // Check if the line is in the correct format
+        if (number_of_entries == 2 || number_of_entries == 3) {
+            if (number_of_entries == 3 && rw == 'R') {
+                // write request expected for 3 entries
+                print_help_and_exit_with_error("Error in Zeile %d: Bei einem Lesezugriff darf kein Wert übergeben werden\n", index + 1);
             }
-        } else if (sscanf(line, "%c,%s", &rw, &addr) == 2) {
-            // read request expected for 2 entries
-            if (rw == 'W') {
-                fprintf(stderr, "Error in Zeile %d: Bei einem Schreibzugriff muss ein Wert übergeben werden\n", index + 1);
-                exit(1);
+            else if (number_of_entries == 2 && rw == 'W') {
+                // read request expected for 2 entries
+                print_help_and_exit_with_error("Error in Zeile %d: Bei einem Schreibzugriff muss ein Wert übergeben werden\n", index + 1);
             }
         } else {
-            // invalid line format for less than 2 entries
-            fprintf(stderr, "Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", index + 1, line);
-            exit(1);
+            // invalid line format for more than 3 or less than 2 entries
+            print_help_and_exit_with_error("Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", index + 1, line);
         }
 
         // Store the entries in the current request, converting addr and data from hex or decimal string to uint32_t
@@ -278,8 +273,16 @@ struct Request* read_requests_from_file(int number_of_requests, char* filename) 
     return requests;
 }
 
-void print_and_exit_with_error(char* error_message) {
-    fprintf(stderr, "%s\n", error_message);
+// Variadic function to print the error and help message and exits the program
+void print_help_and_exit_with_error(char *errorMessage, ...) {
+    va_list args;
+    va_start(args, errorMessage);
+
+    fprintf(stderr, "Error: ");
+    vfprintf(stderr, errorMessage, args);
+
+    va_end(args);
+
     print_help();
     exit(1);
 }
@@ -297,6 +300,8 @@ void print_help() {
     printf("  --memory-latency <Zahl>     Die Latenzzeit des Hauptspeichers in Zyklen.\n");
     printf("  --tf <Dateiname>            Ausgabedatei für ein Tracefile mit allen Signalen.\n");
     printf("  -h, --help                  Eine Beschreibung aller Optionen des Rahmenprogramms und Verwendung ausgeben und das Programm danach beendet.\n");
+    printf("  Positional Arguments:\n");
+    printf("  <Eingabedatei>              Die .csv Eingabedatei, die die zu verarbeitenden Daten enthält. Zeilenformat: <W, Adresse, Wert> oder <R, Adresse>\n");
 }
 
 // Checks if a string is an integer
