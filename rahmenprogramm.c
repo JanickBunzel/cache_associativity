@@ -5,38 +5,37 @@
 #include <getopt.h>
 #include <string.h>
 
-void read_options(int argc, char *argv[]);
-void print_option_variables();
-void read_requests();
-void print_help();
-int isInteger(char* str);
+// Struct to store properties of the cache
+typedef struct {
+    int cycles;
+    int directmapped;
+    int fourway;
+    int cacheline_size;
+    int cachelines;
+    int cache_latency;
+    int memory_latency;
+    char *tracefile;
+    char *eingabedatei;
+} CacheConfig;
 
-int option_index = 0;
-
-// TODO: Specify default values
-// Cache parameters
-int cycles = 0;
-int directmapped = 0;
-int fourway = 0;
-int cacheline_size = 0;
-int cachelines = 0;
-int cache_latency = 0;
-int memory_latency = 0;
-char *tracefile = NULL;
-char *eingabedatei = NULL;
-
-// Request
-int numRequests = 0;
-const int MAX_REQUESTS = 1000;
-
+// Struct to define cache requests
 struct Request {
     uint32_t addr;
     uint32_t data;
     int we;
 };
-struct Request requests[MAX_REQUESTS];
 
-// Deklaration der externen C++ Funktion
+int MAX_REQUEST_LINE_LENGTH = 256;
+
+CacheConfig arguments_to_cache_config(int argc, char *argv[]);
+void print_cache_config(CacheConfig cacheConfig);
+int count_lines_in_file(char* filename);
+struct Request* read_requests_from_file(int number_of_requests, char* filename);
+void print_and_exit_with_error(char* error_message);
+void print_help();
+int is_integer(char* str);
+
+// Declaration of the extern C++ function
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,36 +46,49 @@ void run_simulation(int numRequests, struct Request requests[]);
 }
 #endif
 
+/* 
+    TODO: Remove this comment, connect run_simulation
+    Beispiel:
+    ./rahmenprogramm -c 1000 --directmapped --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd r.csv
+*/ 
 int main(int argc, char *argv[]) {
-    // TESTING
-    eingabedatei = "r.csv";
-    read_requests();
+    // Process the given parameters
+    CacheConfig cacheConfig = arguments_to_cache_config(argc, argv);
     
-    printf("Runing simulation...\n");
-    run_simulation(numRequests, requests);
-
-    return 0;
-    // TESTING END
-    
-    // Populate the option variables
-    read_options(argc, argv);
-
     // Feedback
-    print_option_variables();
+    print_cache_config(cacheConfig);
+    
+    // Count the requests
+    int number_of_requests = count_lines_in_file(cacheConfig.eingabedatei);
 
     // Process the read and write requests
-    read_requests();
+    struct Request* requests = read_requests_from_file(number_of_requests, cacheConfig.eingabedatei);
 
     // Run the SystemC simulation
-    // run_simulation();
+    fprintf(stderr, "run_simulation() not connected\n"); // run_simulation();
+    exit(1);
 
     return 0;
 }
 
-void read_options(int argc, char *argv[]) {
+// Converts the given arguments to a CacheConfig struct
+CacheConfig arguments_to_cache_config(int argc, char *argv[]) {
+    // TODO: Specify default values
+    CacheConfig cache_config = {
+        .cycles = 0,
+        .directmapped = 0,
+        .fourway = 0,
+        .cacheline_size = 0,
+        .cachelines = 0,
+        .cache_latency = 0,
+        .memory_latency = 0,
+        .tracefile = NULL,
+        .eingabedatei = NULL,
+    };
+    
     while (1) {
-        static struct option parameter[] = {
-            // Format: Name of the option, if a parameter needs to be passed, Flag if the option is used, intern reference
+        const char* optstring = "c:dfs:l:a:m:t:h";
+        static struct option longopts[] = {
             {"cycles", required_argument, NULL, 'c'},
             {"directmapped", no_argument, NULL, 'd'},
             {"fourway", no_argument, NULL, 'f'},
@@ -89,177 +101,190 @@ void read_options(int argc, char *argv[]) {
             {0, 0, 0, 0} // End of arguments
         };
 
-        const char* optstring = "c:dfs:l:a:m:t:h";
-        // getopt_long: Bearbeitet alle Optionen mit - oder -- und speichert den Parameter als String in optarg
-        int c = getopt_long(argc, argv, optstring, parameter, &option_index);
+        int next_opt = getopt_long(argc, argv, optstring, longopts, NULL);
 
-        if (c == -1)
-			// No more arguments
+        if (next_opt == -1) {
+            // No more arguments
             break;
+        }
 
-        // Check for invalid combinations
-        //     cycles:  > 0
-        //     directmapped:  fourway = 0
-        //     fourway:  directmapped = 0
-        //     cacheline_size:  > 0
-        //     cachelines:  > 0
-        //     cache_latency:  > 0
-        //     memory_latency:  > 0 && > cache_latency
-        //     tracefile:  optional, length < 255
-        //     eingabedatei:  valid path
-        switch (c) {
+        // Processing each argument with getopt_long, while checking for invalid cases
+        switch (next_opt) {
             case 'c':
-                if (!isInteger(optarg) || atoi(optarg) <= 0) {
-                    fprintf(stderr, "Error: Die Anzahl der Zyklen muss ein Integer sein und größer als 0\n");
-                    print_help();
-                    exit(1);
+                // Argument: Cycles, Expected: int > 0
+                if (!is_integer(optarg) || atoi(optarg) <= 0) {
+                    print_and_exit_with_error("Error: Die Anzahl der Zyklen muss ein Integer sein und größer als 0\n");
                 }
-                cycles = atoi(optarg);
+                cache_config.cycles = atoi(optarg);
                 break;
             case 'd':
-                if (fourway) {
-                    fprintf(stderr, "Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
-                    print_help();
-                    exit(1);
+                // Argument: foruway, Expected: bool (Can't be used with directmapped)
+                if (cache_config.fourway) {
+                    print_and_exit_with_error("Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
                 }
-                directmapped = 1;
+                cache_config.directmapped = 1;
                 break;
             case 'f':
-                if (directmapped) {
-                    fprintf(stderr, "Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
-                    print_help();
-                    exit(1);
+                // Argument: fourway, Expected: bool (Can't be used with directmapped)
+                if (cache_config.directmapped) {
+                    print_and_exit_with_error("Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
                 }
-                fourway = 1;
+                cache_config.fourway = 1;
                 break;
             case 's':
-                if (!isInteger(optarg) || atoi(optarg) <= 0) {
-                    fprintf(stderr, "Error: Die Größe einer Cachezeile muss ein Integer sein und größer als 0\n");
-                    print_help();
-                    exit(1);
+                // Argument: Cacheline size, Expected: int > 0
+                if (!is_integer(optarg) || atoi(optarg) <= 0) {
+                    print_and_exit_with_error("Error: Die Größe einer Cachezeile muss ein Integer sein und größer als 0\n");
                 }
-                cacheline_size = atoi(optarg);
+                cache_config.cacheline_size = atoi(optarg);
                 break;
             case 'l':
-                if (!isInteger(optarg) || atoi(optarg) <= 0) {
-                    fprintf(stderr, "Error: Die Anzahl der Cachelines muss ein Integer sein und größer als 0\n");
-                    print_help();
-                    exit(1);
+                // Argument: Cachelines, Expected: int > 0
+                if (!is_integer(optarg) || atoi(optarg) <= 0) {
+                    print_and_exit_with_error("Error: Die Anzahl der Cachelines muss ein Integer sein und größer als 0\n");
                 }
-                cachelines = atoi(optarg);
+                cache_config.cachelines = atoi(optarg);
                 break;
             case 'a':
-                if (!isInteger(optarg) || atoi(optarg) <= 0) {
-                    fprintf(stderr, "Error: Die Cache Latency muss ein Integer sein und größer als 0\n");
-                    print_help();
-                    exit(1);
+                // Argument: Cache Latency, Expected: int > 0
+                if (!is_integer(optarg) || atoi(optarg) <= 0) {
+                    print_and_exit_with_error("Error: Die Cache Latency muss ein Integer sein und größer als 0\n");
                 }
-                cache_latency = atoi(optarg);
+                cache_config.cache_latency = atoi(optarg);
                 break;
             case 'm':
-                if (!isInteger(optarg) || atoi(optarg) <= 0) {
-                    fprintf(stderr, "Error: Die Memory Latency muss ein Integer sein und größer als 0 und die Cache Latency sein\n");
-                    print_help();
-                    exit(1);
+                // Argument: Memory Latency, Expected: int > 0 && > cache_latency
+                if (!is_integer(optarg) || atoi(optarg) <= 0) {
+                    print_and_exit_with_error("Error: Die Memory Latency muss ein Integer sein und größer als 0 und die Cache Latency sein\n");
                 }
-                memory_latency = atoi(optarg);
+                cache_config.memory_latency = atoi(optarg);
                 break;
             case 't':
+                // Argument: Tracefile, Expected: char* with length < 255
                 if (strlen(optarg) > 255) {
-                    fprintf(stderr, "Error: Der Dateiname für das Tracefile darf maximal 255 Zeichen lang sein\n");
-                    print_help();
-                    exit(1);
+                    print_and_exit_with_error("Error: Der Dateiname für das Tracefile darf maximal 255 Zeichen lang sein\n");
                 }
-                tracefile = optarg;
+                cache_config.tracefile = optarg;
                 break;
+            
             case 'h':
+                // If the help argument is passed, ignore all other arguments and print help
                 print_help();
                 exit(0);
+
             case '?':
             default:
-                printf("Something went wrong\n");
-                print_help();
-                exit(1);
+                print_and_exit_with_error("Error: Unbekanntes Argument\n");
         }
     }
 
-    if (optind < argc) {
-        eingabedatei = argv[optind];
-        if (access(eingabedatei, F_OK) != 0) {
-            fprintf(stderr, "Error: Die Eingabedatei wurde nicht gefunden\n");
-            print_help();
-            exit(1);
-        }
+    // The last argument is the Eingabedatei (independent from its argument position)
+    if (optind >= argc) {
+        // If there is no more argument, the Eingabedatei is missing
+        print_and_exit_with_error("Error: Keine Eingabedatei angegeben\n");
     } else {
-        fprintf(stderr, "Error: Keine Eingabedatei angegeben\n");
-        print_help();
+        if (access(argv[optind], F_OK) != 0) {
+            // Check that the file with the given path exists
+            print_and_exit_with_error("Error: Die Eingabedatei wurde nicht gefunden.\n");
+        }
+        cache_config.eingabedatei = argv[optind];
+    }
+
+    // All Invalid cases checked
+    return cache_config;
+}
+
+// Print the given cache configuration
+void print_cache_config(CacheConfig cache_config) {
+    printf("Cycles: %d\n", cache_config.cycles);
+    printf("Direct mapped: %d\n", cache_config.directmapped);
+    printf("Four way: %d\n", cache_config.fourway);
+    printf("Cacheline size: %d\n", cache_config.cacheline_size);
+    printf("Cachelines: %d\n", cache_config.cachelines);
+    printf("Cache latency: %d\n", cache_config.cache_latency);
+    printf("Memory latency: %d\n", cache_config.memory_latency);
+    printf("Tracefile: %s\n", cache_config.tracefile ? cache_config.tracefile : "None");
+    printf("Eingabedatei: %s\n", cache_config.eingabedatei);
+}
+
+// Counts the lines in the given file
+int count_lines_in_file(char* filename) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        fprintf(stderr, "Error: Fehler beim Öffnen der Datei: %s\n",  filename);
         exit(1);
     }
-}
 
-void print_option_variables() {
-    printf("Cycles: %d\n", cycles);
-    printf("Direct mapped: %d\n", directmapped);
-    printf("Four way: %d\n", fourway);
-    printf("Cacheline size: %d\n", cacheline_size);
-    printf("Cachelines: %d\n", cachelines);
-    printf("Cache latency: %d\n", cache_latency);
-    printf("Memory latency: %d\n", memory_latency);
-    printf("Tracefile: %s\n", tracefile ? tracefile : "None");
-    printf("Eingabedatei: %s\n", eingabedatei);
-}
-
-void read_requests() {
-    // Read the requests from the file
-    // Format: <R/W>,<address_hexordec>,<value_hexordec>
-    // Error: If W, value has to be present, if R field value has to be empty
-
-    FILE *file = fopen(eingabedatei, "r");
-    if (file == NULL) {
-        fprintf(stderr, "Error: Fehler beim Öffnen der Datei: %s\n",  eingabedatei);
-        return;
-    }
-
+    int lines = 0;
     char line[256];
     while (fgets(line, sizeof(line), file)) {
-        if (numRequests >= MAX_REQUESTS) {
-            fprintf(stderr, "Error: Zu viele Requests, die ersten %d wurden verarbeitet.\n", MAX_REQUESTS);
-            break;
-        }
-
-        char rw, rest[256];
-        if (sscanf(line, "%c,%x,%x,%s", &rw, &requests[numRequests].addr, &requests[numRequests].data, rest) == 4) {
-            fprintf(stderr, "Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", numRequests + 1, line);
-            return;
-        } else if (sscanf(line, "%c,%x,%x", &rw, &requests[numRequests].addr, &requests[numRequests].data) == 3) {
-            // 3 arguments -> Write request
-            if (rw == 'R') {
-                fprintf(stderr, "Error in Zeile %d: Bei einem Lesezugriff darf kein Wert übergeben werden\n", numRequests + 1);
-                return;
-            }
-
-            requests[numRequests].we = 1;
-            numRequests++;
-        } else if (sscanf(line, "%c,%x", &rw, &requests[numRequests].addr) == 2) {
-            // 2 arguments -> Read request
-            if (rw == 'W') {
-                fprintf(stderr, "Error in Zeile %d: Bei einem Schreibzugriff muss ein Wert übergeben werden\n", numRequests + 1);
-                return;
-            }
-
-            requests[numRequests].we = 0;
-            numRequests++;
-        } else {
-            fprintf(stderr, "Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", numRequests + 1, line);
-            return;
-        }
+        lines++;
     }
 
     fclose(file);
 
-    printf("Done reading %d requests.\n", numRequests); 
+    return lines;
 }
 
+// Reads the requests from the given .csv file
+struct Request* read_requests_from_file(int number_of_requests, char* filename) {
+    // Allocate memory for the requests array
+    struct Request* requests = malloc(number_of_requests * sizeof(struct Request));
+
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        fprintf(stderr, "Error: Fehler beim Öffnen der Datei: %s\n",  filename);
+        exit(1);
+    }
+
+    int index = 0;
+    char line[MAX_REQUEST_LINE_LENGTH];
+    while (fgets(line, sizeof(line), file)) {
+        char rw, addr[MAX_REQUEST_LINE_LENGTH], data[MAX_REQUEST_LINE_LENGTH], rest[MAX_REQUEST_LINE_LENGTH];
+        
+        // Scan the format of the current line and make sure it is valid, while storing the entries in the local variables
+        if (sscanf(line, "%c,%s,%s,%s", &rw, &addr, &data, rest) >= 4) {
+            // invalid line format for more than 3 entries
+            fprintf(stderr, "Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", index + 1, line);
+            exit(1);
+        } else if (sscanf(line, "%c,%s,%s", &rw, &addr, &data) == 3) {
+            // write request expected for 3 entries
+            if (rw == 'R') {
+                fprintf(stderr, "Error in Zeile %d: Bei einem Lesezugriff darf kein Wert übergeben werden\n", index + 1);
+                exit(1);
+            }
+        } else if (sscanf(line, "%c,%s", &rw, &addr) == 2) {
+            // read request expected for 2 entries
+            if (rw == 'W') {
+                fprintf(stderr, "Error in Zeile %d: Bei einem Schreibzugriff muss ein Wert übergeben werden\n", index + 1);
+                exit(1);
+            }
+        } else {
+            // invalid line format for less than 2 entries
+            fprintf(stderr, "Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", index + 1, line);
+            exit(1);
+        }
+
+        // Store the entries in the current request, converting addr and data from hex or decimal string to uint32_t
+        requests[index].addr = (uint32_t)strtol(addr, NULL, strncmp(addr, "0x", 2) == 0 ? 16 : 10);
+        requests[index].data = (uint32_t)strtol(data, NULL, strncmp(data, "0x", 2) == 0 ? 16 : 10);
+        requests[index].we = rw == 'W' ? 1 : 0;
+
+        index++;
+    }
+
+    fclose(file);
+
+    return requests;
+}
+
+void print_and_exit_with_error(char* error_message) {
+    fprintf(stderr, "%s\n", error_message);
+    print_help();
+    exit(1);
+}
+
+// Prints the description and usage of the arguments
 void print_help() {
     printf("\nUsage: rahmenprogramm [OPTIONS] <Eingabedatei>\n");
     printf("Options:\n");
@@ -274,8 +299,8 @@ void print_help() {
     printf("  -h, --help                  Eine Beschreibung aller Optionen des Rahmenprogramms und Verwendung ausgeben und das Programm danach beendet.\n");
 }
 
-// Helper function
-int isInteger(char* str) {
+// Checks if a string is an integer
+int is_integer(char* str) {
     while (*str != '\0') {
         if (!isdigit(*str)) {
             return 0;
@@ -284,8 +309,3 @@ int isInteger(char* str) {
     }
     return 1;
 }
-
-/*
-    Beispiel:
-    ./rahmenprogramm -c 1000 --directmapped --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd requests.csv
-*/ 

@@ -41,8 +41,8 @@
 - [x] Fehlerhafte Optionen korrekt abfangen und entsp. `stderr` ausgeben
 - [x] Requests aus .csv eingabedatei in Request array lesen
 - [x] Simulation starten (run_simulation in c++)
+- [x] Hex oder Dezimal als Adresse oder Wert in CSV richtig verarbeiten
 - [ ] Default Werte für Optionen setzen
-- [ ] Hex oder Dezimal als Adresse oder Wert in CSV richtig verarbeiten
 
 
 ### SystemC Programm (3.3, s.5):
@@ -61,7 +61,7 @@
 	- `slides.pdf` Einzige Datei für die Präsentation
 
 ### Finish Up:
-- [ ] Checkup: Fehlerhafte Optione abfangen
+- [ ]  
 
 ### Offene Fragen Julian
 - Wie groß ist eine Cachzeile?
