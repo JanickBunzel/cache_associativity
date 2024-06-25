@@ -46,11 +46,10 @@
 
 
 ### SystemC Programm (3.3, s.5):
-- [ ] run_simulation implementieren und cache mit requests bearbeiten
-- [ ] Makefile erstellen, welches eine klare ausführbare main datei erstellt
-- [ ] Tracefile während der Simulation erstellen
-- [ ] Cache dynamisch aufbauen
-- [ ] 4-fach Cache implementieren 
+- [x] run_simulation connecten
+- [ ] **Makefile** erstellen, welches eine klare ausführbare main datei erstellt
+- [ ] **Tracefile** während der Simulation erstellen
+- [ ] **Cache** implementieren: direct & fourway
 
 ### Abzugebende Dateien (4, s.7):
 - `Readme.md` : Dokumentation/Bericht + persönliche Abschnitte
@@ -61,9 +60,8 @@
 	- `slides.pdf` Einzige Datei für die Präsentation
 
 ### Finish Up:
-- [ ]  
+- [ ] Consitency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments
 
 ### Offene Fragen Julian
-- Wie groß ist eine Cachzeile?
-- Was muss im Tracefile angeziegt werden?
+- Was muss im Tracefile angezeigt werden?
 - Wie muss ein write funktioneren, es werden ja keine Daten gespeichert, da wir ja keine Hintergrundspeicher haben, aus dem bei einem Cachmiss Daten geladen werden können.
