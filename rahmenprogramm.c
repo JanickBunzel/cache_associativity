@@ -66,8 +66,9 @@ struct Result run_simulation(
 #endif
 
 /* 
-    TODO: Remove this comment, connect run_simulation
-    Beispiel:
+    TODO: Remove this comment
+    Beispiele:
+    ./linked_program -c 1000 --directmapped --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd r.csv
     ./rahmenprogramm -c 1000 --directmapped --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd r.csv
 */ 
 int main(int argc, char *argv[]) {
@@ -98,10 +99,10 @@ int main(int argc, char *argv[]) {
 
     // Print the result
     printf("Simulation Result:\n");
-    printf("  - Cache hits: %d\n", result.cycles);
-    printf("  - Cache misses: %d\n", result.misses);
-    printf("  - Cache writes: %d\n", result.hits);
-    printf("  - Memory accesses: %d\n", result.primitiveGateCount);
+    printf("  - Cache hits: %zu\n", result.cycles);
+    printf("  - Cache misses: %zu\n", result.misses);
+    printf("  - Cache writes: %zu\n", result.hits);
+    printf("  - Memory accesses: %zu\n", result.primitiveGateCount);
 
     // Free allocated space
     free(requests);
@@ -111,6 +112,12 @@ int main(int argc, char *argv[]) {
 
 // Converts the given arguments to a CacheConfig struct
 CacheConfig arguments_to_cache_config(int argc, char *argv[]) {
+    // Set cache types to 0 to read users cache type input independently from the default cache config
+    int default_directmapped = cache_config.directmapped;
+    int default_fourway = cache_config.fourway;
+    cache_config.directmapped = 0;
+    cache_config.fourway = 0;
+    
     // Loop depending on number of arguments (controlled using getopt_long)
     while (1) {
         const char* optstring = "c:dfs:l:a:m:t:h";
@@ -202,6 +209,12 @@ CacheConfig arguments_to_cache_config(int argc, char *argv[]) {
             default:
                 print_help_and_exit_with_error("Error: Unbekanntes Argument\n");
         }
+    }
+
+    // Set default cache type if no type is given
+    if (cache_config.directmapped == 0 && cache_config.fourway == 0) {
+        cache_config.directmapped = default_directmapped;
+        cache_config.fourway = default_fourway;
     }
 
     // The last argument is the Eingabedatei (independent from its argument position)
