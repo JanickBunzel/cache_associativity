@@ -69,6 +69,9 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "run_simulation() not connected\n"); // run_simulation();
     exit(1);
 
+    // Free allocated space
+    free(requests);
+
     return 0;
 }
 
