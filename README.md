@@ -42,7 +42,7 @@
 - [x] Requests aus .csv eingabedatei in Request array lesen
 - [x] Simulation starten (run_simulation in c++)
 - [x] Hex oder Dezimal als Adresse oder Wert in CSV richtig verarbeiten
-- [ ] Default Werte für Optionen setzen
+- [x] Default Werte für Optionen setzen
 
 
 ### SystemC Programm (3.3, s.5):
@@ -60,7 +60,8 @@
 	- `slides.pdf` Einzige Datei für die Präsentation
 
 ### Finish Up:
-- [ ] Consitency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments
+- [ ] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments
+- [ ] Alle TODO's im Code aufräumen
 
 ### Offene Fragen Julian
 - Was muss im Tracefile angezeigt werden?
