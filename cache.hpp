@@ -40,7 +40,7 @@ SC_MODULE(Cache) {
         cache = new sc_uint<32>[cache_lines];
 
         // LRU Speicher für 4-fach assoziativen Cache allozieren und mit -1 initialisieren
-        lru = new sc_uint<32>[cache_lines];
+        lru = new sc_int<32>[cache_lines];
         for (int i = 0; i < cache_lines; i++) {
             lru[i] = -1;
         }
@@ -83,7 +83,7 @@ private:
 
     // ################ LRU Ersetzungsstrategie ################ //
 
-    sc_uint<32>* lru;
+    sc_int<32>* lru;
 
     // ################  4-Fach assoziativer Cache ################ //
 

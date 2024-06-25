@@ -18,19 +18,14 @@ extern const char *tracefile;
 Result simulationResult;
 
 int sc_main(int argc, char *argv[]) {
-    std:cout << "sc_main Method called" << std::endl;
+    std::cout << "sc_main Method called" << std::endl;
     
     // TODO: Use the config, tracefile etc.
 
     sc_signal<bool> we;
     sc_clock clk("clk", 1, SC_NS);
 
-    Cache cache_inst(
-        "cache_inst",
-        directMapped,
-        cacheLines,
-        cacheLineSize
-    );
+    Cache cache_inst("cache_inst", directMapped, cacheLines, cacheLineSize);
     cache_inst.clk(clk);
 
     testbench testbench_inst("testbench_inst", numRequests, requests);

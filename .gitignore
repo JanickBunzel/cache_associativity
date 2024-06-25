@@ -10,3 +10,4 @@ rahmenprogramm
 
 # ignore local vscode settings
 .vscode
+.launch.json

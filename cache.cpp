@@ -3,14 +3,18 @@
 
 void Cache::lru_replacement(unsigned index_to_update)
 {
+    if (index_to_update >= cache_lines)
+    {
+        std::cerr << "Error: Invalid index_to_update: " << index_to_update << std::endl;
+        return;
+    }
 
     unsigned cache_set = index_to_update / 4;
     unsigned cache_set_index = 4 * cache_set;
 
     for (int i = 0; i < 4; i++)
     {
-
-        if (lru[cache_set_index + i] >= lru[index_to_update])
+        if (lru[cache_set_index + i] > lru[index_to_update])
         {
             lru[cache_set_index + i] = lru[cache_set_index + i] - 1;
         }

@@ -38,17 +38,17 @@ endif
 all: link_all
 
 rahmenprogramm: 
-	$(CC) -o rahmenprogramm $(RAHMENPROGRAMM_SRCS)  
+	$(CC) -g -o rahmenprogramm $(RAHMENPROGRAMM_SRCS)  
 
 cache_simulator: CXXFLAGS += -g
 cache_simulator: 
-	$(CXX) $(CXXFLAGS) -o cache_simulator $(CACHE_SRCS)
+	$(CXX) -g $(CXXFLAGS) -o cache_simulator $(CACHE_SRCS)
 
 rahmenprogramm.o: rahmenprogramm.c
-	$(CC) -c rahmenprogramm.c -o rahmenprogramm.o
+	$(CC) -g -c rahmenprogramm.c -o rahmenprogramm.o
 
 link_all: rahmenprogramm.o
-	$(CXX) $(CXXFLAGS) -o linked_program rahmenprogramm.o cache.cpp main.cpp simulation.cpp testbench.cpp
+	$(CXX) -g $(CXXFLAGS) -o linked_program rahmenprogramm.o cache.cpp main.cpp simulation.cpp testbench.cpp
 
 clean:
 	rm -f cache_simulator rahmenprogramm linked_program *.o

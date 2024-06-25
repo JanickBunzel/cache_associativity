@@ -1,0 +1,76 @@
+LLDB Debugger für C++: Wichtige Funktionen und Befehle
+
+1. Starten des Debuggers
+   Um LLDB zu starten und ein Programm zu laden:
+   lldb ./mein_programm
+
+2. Setzen von Breakpoints
+   Du kannst Breakpoints in deinem Code setzen:
+   - Nach Dateinamen und Zeilennummer:
+     (lldb) break set -f mein_programm.cpp -l 10
+   - Nach Funktionsnamen:
+     (lldb) break set -n meine_funktion
+
+3. Starten des Programms
+   Um das Programm zu starten:
+   (lldb) run
+
+4. Navigieren im Debugger
+   Du kannst den Ausführungsfluss deines Programms steuern:
+   - Weiter zur nächsten Zeile (ohne in Funktionen zu gehen):
+     (lldb) next
+   - Schritt in die nächste Zeile (einschließlich in Funktionen):
+     (lldb) step
+   - Fortsetzen der Programmausführung bis zum nächsten Breakpoint:
+     (lldb) continue
+   - Rückkehr aus der aktuellen Funktion:
+     (lldb) finish
+
+5. Untersuchen von Variablen und Speicher
+   Du kannst Variablen und Speicheradressen untersuchen:
+   - Wert einer Variablen anzeigen:
+     (lldb) print variable_name
+     oder die kürzere Form:
+     (lldb) p variable_name
+   - Lokale Variablen und deren Werte anzeigen:
+     (lldb) frame variable
+     oder die kürzere Form:
+     (lldb) fr v
+   - Den Wert an einer bestimmten Speicheradresse anzeigen:
+     (lldb) memory read address
+     oder die kürzere Form:
+     (lldb) x address
+
+6. Verwalten von Breakpoints
+   Du kannst Breakpoints auflisten, deaktivieren, aktivieren oder löschen:
+   - Breakpoints auflisten:
+     (lldb) breakpoint list
+     oder die kürzere Form:
+     (lldb) br list
+   - Breakpoints deaktivieren:
+     (lldb) breakpoint disable breakpoint_id
+     oder die kürzere Form:
+     (lldb) br di breakpoint_id
+   - Breakpoints aktivieren:
+     (lldb) breakpoint enable breakpoint_id
+     oder die kürzere Form:
+     (lldb) br en breakpoint_id
+   - Breakpoints löschen:
+     (lldb) breakpoint delete breakpoint_id
+     oder die kürzere Form:
+     (lldb) br del breakpoint_id
+
+7. Stack-Frames und Rückverfolgung
+   Du kannst den Aufruf-Stack anzeigen und zwischen den verschiedenen Stack-Frames navigieren:
+   - Stack-Trace anzeigen:
+     (lldb) thread backtrace
+     oder die kürzere Form:
+     (lldb) bt
+   - Zu einem bestimmten Frame wechseln:
+     (lldb) frame select frame_number
+     oder die kürzere Form:
+     (lldb) f frame_number
+
+8. Beenden von LLDB
+   Um LLDB zu beenden:
+   (lldb) quit
