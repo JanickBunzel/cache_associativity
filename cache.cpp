@@ -17,7 +17,7 @@ void Cache::cache_access() {
         sc_uint<32> tag = address.range(31, offset_bits + index_bits);
 
         // Cache-Zugriff für direkt abgebildeten Cache simulieren
-        if (direct_mapped == 1) {
+        if (direct_mapped) {
 
             // Lese Zugriff
             if (we.read() == 0) {
@@ -49,7 +49,23 @@ void Cache::cache_access() {
 
             // Lese Zugriff
             if (we.read() == 0) {
-                
+
+                // Index für das Set berechnen
+                sc_uint<32> set_index = index * 4;
+
+                // Suche nach dem Tag im Set
+                bool hit = false;
+                for (int i = 0; i < 4; i++) {
+                    if (cache[set_index + i] == tag) {
+                        hit = true;
+                        break;
+                    }
+                }
+
+                if (hit) {
+                    std::cout << "Cache hit" << std::endl;
+                }
+
             }
 
             // Schreib Zugriff
