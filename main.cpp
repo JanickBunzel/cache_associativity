@@ -17,8 +17,7 @@ extern const char *tracefile;
 
 Result simulationResult;
 
-int sc_main(int argc, char *argv[])
-{
+int sc_main(int argc, char *argv[]) {
     std:cout << "sc_main Method called" << std::endl;
     
     // TODO: Use the config, tracefile etc.

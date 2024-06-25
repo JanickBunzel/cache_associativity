@@ -21,8 +21,22 @@ typedef struct {
     char *eingabedatei;
 } CacheConfig;
 
+// Default cache configuration
+CacheConfig cache_config = {
+    .cycles = 2800, // allows the cache to process 1000 requests (with a hit rate of 90%, the average cycle count per hit is 2.8)
+    .directmapped = 1, // Using direct mapped cache as default
+    .fourway = 0, // Using direct mapped cache as default
+    .cacheline_size = 64, // Standard size that balances spatial locality and overhead
+    .cachelines = 128, // with each line of 64 bytes, this provides an 8KB cache
+    .cache_latency = 2, // quick access for first-level cache
+    .memory_latency = 10, // realistic gap between cache and main access time
+    .tracefile = "tracefile.vcd", // default tracefile name
+    .eingabedatei = NULL, // input file needs to be provided
+};
+
 int MAX_REQUEST_LINE_LENGTH = 256;
 
+// Function declarations
 CacheConfig arguments_to_cache_config(int argc, char *argv[]);
 void print_cache_config(CacheConfig cacheConfig);
 int count_lines_in_file(char* filename);
@@ -97,19 +111,7 @@ int main(int argc, char *argv[]) {
 
 // Converts the given arguments to a CacheConfig struct
 CacheConfig arguments_to_cache_config(int argc, char *argv[]) {
-    // TODO: Specify default values
-    CacheConfig cache_config = {
-        .cycles = 0,
-        .directmapped = 0,
-        .fourway = 0,
-        .cacheline_size = 0,
-        .cachelines = 0,
-        .cache_latency = 0,
-        .memory_latency = 0,
-        .tracefile = NULL,
-        .eingabedatei = NULL,
-    };
-    
+    // Loop depending on number of arguments (controlled using getopt_long)
     while (1) {
         const char* optstring = "c:dfs:l:a:m:t:h";
         static struct option longopts[] = {
