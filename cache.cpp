@@ -1,12 +1,33 @@
-// cache.cpp
 #include "cache.hpp"
 
+/**
+ * @brief Updates the LRU (Least Recently Used) values for a cache line.
+ *
+ * This method performs the LRU replacement policy on a set of cache lines. It updates the
+ * LRU values for a cache set based on the provided index. If the index is out of bounds,
+ * the method will print an error message and terminate the program.
+ *
+ * @param index_to_update The index of the cache line to be updated.
+ *
+ * The LRU replacement policy works as follows:
+ * - The cache set is determined by dividing the index by 4.
+ * - The starting index of the cache set in the LRU array is calculated.
+ * - The method iterates through the cache set and decrements the LRU value of each cache line
+ *   that has an LRU value greater than the cache line at the given index.
+ * - The LRU value of the cache line at the given index is set to 3, indicating it is the most
+ *   recently used.
+ *
+ * @note The method assumes that the LRU array is organized in sets of 4 cache lines.
+ * @note If the provided index is out of the valid range, the program will terminate with an error message.
+ *
+ * @example If the cache set is {3, 2, 1, 0} and the index_to_update is 2, the updated set will be {2, 1, 3, 0}.
+ */
 void Cache::lru_replacement(unsigned index_to_update)
 {
-    if (index_to_update >= cache_lines)
+    if (index_to_update >= cache_lines || index_to_update < 0)
     {
-        std::cerr << "Error: Invalid index_to_update: " << index_to_update << std::endl;
-        return;
+        std::cerr << "Error: You are trying to access an Element in lru[] that is out of bounds" << std::endl;
+        std::exit(EXIT_FAILURE);
     }
 
     unsigned cache_set = index_to_update / 4;
@@ -23,207 +44,196 @@ void Cache::lru_replacement(unsigned index_to_update)
     lru[index_to_update] = 3;
 }
 
+/**
+ * @brief Simulates the cache access for both direct-mapped and 4-way set associative caches.
+ *
+ * This method continuously monitors the address bus and simulates cache accesses based on
+ * the provided configuration (either direct-mapped or 4-way set associative). It handles both
+ * read and write operations, updates the cache contents, and maintains the LRU (Least Recently Used)
+ * replacement strategy for the associative cache.
+ *
+ * For a direct-mapped cache, the method:
+ * - Extracts the offset, index, and tag from the address.
+ * - Checks if the tag matches the tag stored in the cache at the given index.
+ * - Logs a cache hit if the tags match.
+ * - Logs a cache miss and updates the cache with the new tag if the tags do not match.
+ *
+ * For a 4-way set associative cache, the method:
+ * - Extracts the offset, index, and tag from the address.
+ * - Calculates the set index for the cache.
+ * - Searches the set for a matching tag and logs a cache hit if found, updating the LRU strategy.
+ * - If the tag is not found (cache miss), it searches for a free block in the set:
+ *     - If a free block is found, it writes the new tag to the free block and updates the LRU strategy.
+ *     - If no free block is found, it identifies the least recently used block, replaces it with the new tag,
+ *       and updates the LRU strategy.
+ *
+ * The method supports both read and write operations by differentiating based on the write enable signal (we).
+ * It waits for the next event or address change in each iteration, ensuring real-time simulation behavior.
+ */
 void Cache::cache_access()
 {
 
     while (true)
     {
-
+        // Wait for next delty cycle because values form test bench are not propagated yet
         wait(SC_ZERO_TIME);
 
-        // Adresse aus dem Adressbus lesen
+        // Read address from the address bus
         sc_uint<32> address = addr.read();
 
-        // Offset, Index und Tag aus der Adresse extrahieren
+        // Extract offset, index, and tag from the address
         sc_uint<32> offset = address.range(offset_bits - 1, 0);
         sc_uint<32> index = address.range(offset_bits + index_bits - 1, offset_bits);
         sc_uint<32> tag = address.range(31, offset_bits + index_bits);
 
-        // Cache-Zugriff für direkt abgebildeten Cache simulieren
+        // Simulate cache access for direct-mapped cache
         if (direct_mapped)
         {
-
-            // Lese Zugriff
+            // Read access
             if (we.read() == 0)
             {
+                // Check if the tag in the cache matches the address tag CACHE HIT
                 if (cache[index] == tag)
                 {
-                    std::cout << "Cache hit" << std::endl;
+                    // TODO: Wait x cycles
+                    std::cout << "CACHE HIT reading adress: " << address << std::endl;
                 }
+                // Insert value that was not found CACHE MISS
                 else
                 {
-                    // Wenn der Tag nicht mit dem Index übereinstimmt, handelt es sich um einen Cache-Miss
-                    // Also wird der Tag am richtigen Index in den Cache geschrieben
-                    // Hier beötigen wir keine LRU-Strategie, da der Cache direkt abgebildet ist
+                    // TODO: Wait x + y cycles
                     cache[index] = tag;
-                    std::cout << "Cache miss" << std::endl;
+                    std::cout << "CACHE MISS reading adress: " << address << std::endl;
                 }
             }
-
-            // Schreib Zugriff
+            // Write access
             else
             {
-                // Schreibe den Tag an den Index
-                // Hier beötigen wir keine LRU-Strategie, da der Cache direkt abgebildet ist
+                // Write the new tag to the cache at the given index
                 cache[index] = tag;
-                std::cout << "Cache write" << std::endl;
+                std::cout << "CACHE WRITE writing adress: " << address << std::endl;
             }
         }
-
-        // Cache-Zugriff für 4-fach assoziativen Cache simulieren
+        // Simulate cache access for 4-way set associative cache
         else
         {
-
-            // Lese Zugriff
+            // Calculate the set index for the 4-way set associative cache
+            unsigned set_index = index * 4;
+            // Read access
             if (we.read() == 0)
             {
+                // Search for the tag in the set
+                int index_of_tag = search_tag_in_set(tag, set_index);
 
-                // Index für das Set berechnen
-                unsigned set_index = index * 4;
-
-                // Suche nach dem Tag im Set
-                int index_to_update = -1;
-                for (int i = 0; i < 4; i++)
+                // CACHE HIT. Element that is accessed gets updatet to most recently used
+                if (index_of_tag != -1)
                 {
-                    if (cache[set_index + i] == tag)
-                    {
-                        index_to_update = set_index + i;
-                        break;
-                    }
+                    lru_replacement(index_of_tag);
+                    std::cout << "CACHE HIT reading adress: " << address << std::endl;
                 }
-
-                // Cache Hit
-                if (index_to_update != -1)
-                {
-                    // Es wird lediglich die LRU-Strategie aktualisiert
-                    lru_replacement(index_to_update);
-                    std::cout << "Cache hit" << std::endl;
-                }
-
-                // Cache Miss
+                // CACHE MISS
                 else
                 {
+                    // Search for a free line in the set
+                    int index_of_free_line = search_free_line_in_set(set_index);
 
-                    // Suche nach einem freien Block im Set
-                    int free_line_index = -1;
-                    for (int i = 0; i < 4; i++)
+                    // Free line found. Write the new tag to the free line. Update LRU strategy
+                    if (index_of_free_line != -1)
                     {
-                        if (lru[set_index + i] == -1)
-                        {
-                            free_line_index = set_index + i;
-                            break;
-                        }
+                        cache[index_of_free_line] = tag;
+                        lru_replacement(index_of_free_line);
+                        std::cout << "CACHE MISS with free cacheline reading address: " << address << std::endl;
                     }
-
-                    // Es gibt einen freien Block
-                    if (free_line_index != -1)
-                    {
-                        // Schreibe den Tag in den freien Block
-                        cache[free_line_index] = tag;
-                        // Aktualisiere die LRU-Strategie
-                        lru_replacement(free_line_index);
-
-                        std::cout << "Cache miss mit freier Cachezeile" << std::endl;
-                    }
-
-                    // Es gibt keinen freien Block
+                    // No free line available. Write the new tag to the least recently used line. Update LRU strategy
                     else
                     {
-                        // Suche nach dem Block, der am längsten nicht benutzt wurde
-                        int lru_line_index = -1;
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if (lru[set_index + i] == 0)
-                            {
-                                lru_line_index = set_index + i;
-                                break;
-                            }
-                        }
-
-                        // Schreibe den Tag in den LRU-Block
-                        cache[lru_line_index] = tag;
-                        // Aktualisiere die LRU-Strategie
-                        lru_replacement(lru_line_index);
-                        std::cout << "Cache miss ohne freie Cachzeile" << std::endl;
+                        // Find the least recently used block in the set
+                        int index_of_lru_line = search_least_recently_used_line(set_index);
+                        cache[index_of_lru_line] = tag;
+                        lru_replacement(index_of_lru_line);
+                        std::cout << "CACHE MISS with full set reading adress: " << address << std::endl;
                     }
                 }
             }
-
-            // Schreib Zugriff
+            // Write access
             else
             {
-
-                // Index für das Set berechnen
-                unsigned set_index = index * 4;
-
-                // Suche nach dem Tag im Set
-                int index_to_update = -1;
-                for (int i = 0; i < 4; i++)
+                // Search for the tag in the set
+                int index_of_tag = search_tag_in_set(tag, set_index);
+                // CACHE HIT. Element that is accessed gets updatet to most recently used
+                if (index_of_tag != -1)
                 {
-                    if (cache[set_index + i] == tag)
-                    {
-                        index_to_update = set_index + i;
-                        break;
-                    }
+                    lru_replacement(index_of_tag);
+                    std::cout << "CACHE HIT writing value with adress: " << address << std::endl;
                 }
-
-                // Cache Hit
-                if (index_to_update != -1)
-                {
-                    // Es wird lediglich die LRU-Strategie aktualisiert
-                    lru_replacement(index_to_update);
-                    std::cout << "Cache hit beim schreiben" << std::endl;
-                }
-
-                // Cache Miss
+                // CACHE MISS
                 else
                 {
 
-                    // Suche nach einem freien Block im Set
-                    int free_line_index = -1;
-                    for (int i = 0; i < 4; i++)
+                    // Search for a free line in the set
+                    int index_of_free_line = search_free_line_in_set(set_index);
+
+                    // Free line found. Write the new tag to the free line. Update LRU strategy
+                    if (index_of_free_line != -1)
                     {
-                        if (lru[set_index + i] == -1)
-                        {
-                            free_line_index = set_index + i;
-                            break;
-                        }
+                        cache[index_of_free_line] = tag;
+                        lru_replacement(index_of_free_line);
+                        std::cout << "CACHE MISS with free cacheline writing value with adress: " << address << std::endl;
                     }
-
-                    // Es gibt einen freien Block
-                    if (free_line_index != -1)
-                    {
-                        // Schreibe den Tag in den freien Block
-                        cache[free_line_index] = tag;
-                        // Aktualisiere die LRU-Strategie
-                        lru_replacement(free_line_index);
-
-                        std::cout << "Cache miss mit freier Cachezeile beim Schreiben" << std::endl;
-                    }
-
-                    // Es gibt keinen freien Block
+                    // No free line available. Write the new tag to the least recently used line. Update LRU strategy
                     else
                     {
-                        // Suche nach dem Block, der am längsten nicht benutzt wurde
-                        int lru_line_index = -1;
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if (lru[set_index + i] == 0)
-                            {
-                                lru_line_index = set_index + i;
-                                break;
-                            }
-                        }
-
-                        // Schreibe den Tag in den LRU-Block
-                        cache[lru_line_index] = tag;
-                        // Aktualisiere die LRU-Strategie
-                        lru_replacement(lru_line_index);
-                        std::cout << "Cache miss ohne freie Cachzeile beim Schreiben" << std::endl;
+                        // Find the least recently used block in the set
+                        int index_of_lru_line = search_least_recently_used_line(set_index);
+                        cache[index_of_lru_line] = tag;
+                        lru_replacement(index_of_lru_line);
+                        std::cout << "CACHE MISS writing value with adress: " << address << std::endl;
                     }
                 }
             }
         }
         wait();
     }
+}
+
+int Cache::search_tag_in_set(sc_uint<32> tag, unsigned set_index)
+{
+    int index_of_tag = -1;
+    for (int i = 0; i < 4; i++)
+    {
+        if (cache[set_index + i] == tag)
+        {
+            index_of_tag = set_index + i;
+            break;
+        }
+    }
+    return index_of_tag;
+}
+
+int Cache::search_free_line_in_set(unsigned set_index)
+{
+    int index_of_free_line = -1;
+    for (int i = 0; i < 4; i++)
+    {
+        if (lru[set_index + i] == -1)
+        {
+            index_of_free_line = set_index + i;
+            break;
+        }
+    }
+    return index_of_free_line;
+}
+
+int Cache::search_least_recently_used_line(unsigned set_index)
+{
+    int index_of_lru_line = -1;
+    for (int i = 0; i < 4; i++)
+    {
+        if (lru[set_index + i] == 0)
+        {
+            index_of_lru_line = set_index + i;
+            break;
+        }
+    }
+    return index_of_lru_line;
 }
