@@ -17,6 +17,8 @@ SC_MODULE(Cache) {
 
     void cache_access();
 
+    void lru_replacement(unsigned index);
+
     /**
      * Standardkonstruktor für die Cache-Klasse.
      */
@@ -36,6 +38,12 @@ SC_MODULE(Cache) {
         
         // Speicher für Cache allozieren
         cache = new sc_uint<32>[cache_lines];
+
+        // LRU Speicher für 4-fach assoziativen Cache allozieren und mit -1 initialisieren
+        lru = new sc_uint<32>[cache_lines];
+        for (int i = 0; i < cache_lines; i++) {
+            lru[i] = -1;
+        }
 
         // Offset-Bits berechnen
         offset_bits = log2(cache_line_size);
@@ -72,6 +80,10 @@ private:
     unsigned cache_line_size;
     // Flag, ob der Cache direct-mapped ist
     int direct_mapped;
+
+    // ################ LRU Ersetzungsstrategie ################ //
+
+    sc_uint<32>* lru;
 
     // ################  4-Fach assoziativer Cache ################ //
 

@@ -9,10 +9,10 @@ extern "C" {
 
 // Struct to store results
 typedef struct Result {
-    size_t cycles;
-    size_t misses;
-    size_t hits;
-    size_t primitiveGateCount;
+    int cycles;
+    int misses;
+    int hits;
+    int primitiveGateCount;
 } Result;
 
 #ifdef __cplusplus
