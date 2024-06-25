@@ -49,7 +49,7 @@ void Cache::cache_access() {
 
             // Lese Zugriff
             if (we.read() == 0) {
-
+                
             }
 
             // Schreib Zugriff

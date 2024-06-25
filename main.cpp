@@ -16,7 +16,7 @@ int sc_main(int argc, char *argv[])
     sc_signal<bool> we;
     sc_clock clk("clk", 1, SC_NS);
 
-    cache cache_inst("cache_inst");
+    Cache cache_inst("cache_inst");
     cache_inst.clk(clk);
 
     testbench testbench_inst("testbench_inst", numRequests, requests);
