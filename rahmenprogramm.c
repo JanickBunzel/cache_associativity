@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include "Request.h"
+#include "Result.h"
 
 // Struct to store properties of the cache
 typedef struct {
@@ -35,7 +36,16 @@ int is_integer(char* str);
 extern "C" {
 #endif
 
-void run_simulation(int numRequests, struct Request requests[]);
+struct Result run_simulation(
+    int cycles,
+    int directMapped,
+    unsigned cacheLines,
+    unsigned cacheLineSize,
+    unsigned cacheLatency,
+    unsigned memoryLatency,
+    size_t numRequests,
+    struct Request requests[],
+    const char* tracefile);
 
 #ifdef __cplusplus
 }
@@ -60,8 +70,24 @@ int main(int argc, char *argv[]) {
     struct Request* requests = read_requests_from_file(number_of_requests, cacheConfig.eingabedatei);
 
     // Run the SystemC simulation
-    fprintf(stderr, "run_simulation() not connected\n"); // run_simulation();
-    exit(1);
+    Result result = run_simulation(
+        cacheConfig.cycles,
+        cacheConfig.directmapped,
+        cacheConfig.cachelines,
+        cacheConfig.cacheline_size,
+        cacheConfig.cache_latency,
+        cacheConfig.memory_latency,
+        number_of_requests,
+        requests,
+        cacheConfig.tracefile
+    );
+
+    // Print the result
+    printf("Simulation Result:\n");
+    printf("  - Cache hits: %d\n", result.cycles);
+    printf("  - Cache misses: %d\n", result.misses);
+    printf("  - Cache writes: %d\n", result.hits);
+    printf("  - Memory accesses: %d\n", result.primitiveGateCount);
 
     // Free allocated space
     free(requests);

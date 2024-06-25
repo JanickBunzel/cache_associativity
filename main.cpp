@@ -1,22 +1,37 @@
 #include <systemc.h>
 #include "Request.h"
+#include "Result.h"
 #include "cache.hpp"
 #include "testbench.hpp"
 #include <sstream>
 
-extern Request* requestsGlobal;
+extern int cycles;
+extern int directMapped;
+extern unsigned cacheLines;
+extern unsigned cacheLineSize;
+extern unsigned cacheLatency;
+extern unsigned memoryLatency;
+extern size_t numRequests;
+extern Request *requests;
+extern const char *tracefile;
+
+Result simulationResult;
 
 int sc_main(int argc, char *argv[])
 {
-
-    int numRequests = argc;
-
-    Request* requests = requestsGlobal;
+    std:cout << "sc_main Method called" << std::endl;
+    
+    // TODO: Use the config, tracefile etc.
 
     sc_signal<bool> we;
     sc_clock clk("clk", 1, SC_NS);
 
-    Cache cache_inst("cache_inst");
+    Cache cache_inst(
+        "cache_inst",
+        directMapped,
+        cacheLines,
+        cacheLineSize
+    );
     cache_inst.clk(clk);
 
     testbench testbench_inst("testbench_inst", numRequests, requests);
