@@ -219,8 +219,7 @@ void Cache::cache_access()
                     }
                 }
             }
-
-            wait();
         }
+        wait();
     }
 }
