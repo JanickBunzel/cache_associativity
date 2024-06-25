@@ -1,7 +1,8 @@
 #include <iostream>
 #include <systemc.h>
-#include "requestStruct.hpp"
-// Deklarieren und initialisieren Sie die globale Variable
+#include "Request.h"
+
+// Globale Variable für die Simulation
 Request* requestsGlobal;
 
 extern "C" void run_simulation(int numRequests, struct Request requests[]) {

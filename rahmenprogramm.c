@@ -5,6 +5,7 @@
 #include <getopt.h>
 #include <string.h>
 #include <stdarg.h>
+#include "Request.h"
 
 // Struct to store properties of the cache
 typedef struct {
@@ -18,13 +19,6 @@ typedef struct {
     char *tracefile;
     char *eingabedatei;
 } CacheConfig;
-
-// Struct to define cache requests
-struct Request {
-    uint32_t addr;
-    uint32_t data;
-    int we;
-};
 
 int MAX_REQUEST_LINE_LENGTH = 256;
 

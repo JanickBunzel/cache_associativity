@@ -9,7 +9,7 @@ void testbench::process() {
     }
 }
 
-testbench::testbench(sc_module_name name, int numReqs, Request* reqs) 
+testbench::testbench(sc_module_name name, int numReqs, Request* reqs)
     : sc_module(name), requests(reqs), numRequests(numReqs) {
     SC_THREAD(process);
     dont_initialize();

@@ -1,5 +1,5 @@
 #include <systemc.h>
-#include "requestStruct.hpp"
+#include "Request.h"
 #include "cache.hpp"
 #include "testbench.hpp"
 #include <sstream>

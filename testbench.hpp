@@ -1,7 +1,7 @@
 #ifndef TESTBENCH_HPP
 #define TESTBENCH_HPP
 #include <systemc.h>
-#include "requestStruct.hpp"
+#include "Request.h"
 
 SC_MODULE(testbench) {
     sc_in<bool> clk;
