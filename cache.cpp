@@ -196,6 +196,16 @@ void Cache::cache_access()
     }
 }
 
+/**
+ * @brief Searches for the specified tag within a cache set.
+ * 
+ * This method searches for a given tag in a 4-way set associative cache set.
+ * It iterates through the set to find the index where the tag is located.
+ * 
+ * @param tag The tag to search for within the cache set.
+ * @param set_index The starting index of the cache set to search within.
+ * @return The index of the tag within the cache if found, or -1 if the tag is not found in the set.
+ */
 int Cache::search_tag_in_set(sc_uint<32> tag, unsigned set_index)
 {
     int index_of_tag = -1;
@@ -210,6 +220,16 @@ int Cache::search_tag_in_set(sc_uint<32> tag, unsigned set_index)
     return index_of_tag;
 }
 
+
+/**
+ * @brief Searches for a free line within a cache set.
+ * 
+ * This method searches for a free line (an unused block) within a 4-way set associative cache set.
+ * It iterates through the set to find an index where the LRU indicator is -1, indicating the line is free.
+ * 
+ * @param set_index The starting index of the cache set to search within.
+ * @return The index of the free line within the cache if found, or -1 if no free line is available in the set.
+ */
 int Cache::search_free_line_in_set(unsigned set_index)
 {
     int index_of_free_line = -1;
@@ -224,6 +244,15 @@ int Cache::search_free_line_in_set(unsigned set_index)
     return index_of_free_line;
 }
 
+/**
+ * @brief Searches for the least recently used (LRU) line within a cache set.
+ * 
+ * This method searches for the least recently used line within a 4-way set associative cache set.
+ * It iterates through the set to find an index where the LRU indicator is 0, indicating the least recently used line.
+ * 
+ * @param set_index The starting index of the cache set to search within.
+ * @return The index of the least recently used line within the cache if found, or -1 if no LRU line is identified.
+ */
 int Cache::search_least_recently_used_line(unsigned set_index)
 {
     int index_of_lru_line = -1;
