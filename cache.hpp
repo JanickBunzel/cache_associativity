@@ -2,28 +2,97 @@
 #define CACHE_HPP
 #include <systemc.h>
 
-#define CACHE_SIZE 256
-#define NUM_BLOCKS (CACHE_SIZE / BLOCK_SIZE)
+SC_MODULE(Cache) {
 
-const int OFFSET_BITS = 6;
-const int INDEX_BITS = 8;
-const int TAG_BITS = 32 - OFFSET_BITS - INDEX_BITS;
+    // ################ Ports ################ //
 
-SC_MODULE(cache) {
+    // Adresse, die von der CPU angefordert wird
     sc_in<sc_uint<32>> addr;
+    // Daten, die von der CPU geschrieben werden
     sc_in<sc_uint<32>> wdata;
+    // Clocksignal
     sc_in<bool> clk;
+    // Write Enable Signal
     sc_in<bool> we;
-
-    sc_uint<32> cache_storage[CACHE_SIZE];
-
-    int cache_access_count;
-    int cache_miss_count;
-    int cache_hit_count;
-    int cache_write_count;
 
     void cache_access();
 
-    SC_CTOR(cache);
+    /**
+     * Standardkonstruktor für die Cache-Klasse.
+     */
+    SC_CTOR(Cache);
+
+    /**
+    * Konstruktor für die Cache-Klasse.
+    *
+    * Initialisiert eine Instanz der Cache-Klasse mit spezifischen Parametern für die Cache-Konfiguration.
+    *
+    * @param name Der Name des Moduls, wird an den sc_module Konstruktor weitergegeben.
+    * @param directMapped Gibt an, ob der Cache direkt abgebildet ist (1) oder nicht (0).
+    * @param cacheLines Die Anzahl der Cache-Lines.
+    * @param cacheLineSize Die Größe einer Cache-Line in Byte.
+    */
+    Cache (sc_module_name name, int directMapped, unsigned chacheLines, unsigned chacheLineSize) : sc_module(name) , direct_mapped(directMapped), cache_lines(chacheLines), cache_line_size(chacheLineSize){
+        
+        // Speicher für Cache allozieren
+        cache = new sc_uint<32>[cache_lines];
+
+        // Offset-Bits berechnen
+        offset_bits = log2(cache_line_size);
+        // Index-Bits berechnen
+        if (direct_mapped == 1) {
+            // Direct-Mapped Cache berechnet Index-Bits aus der Anzahl der Cache-Lines
+            index_bits = log2(cache_lines);
+        }
+        else {
+            // 4-Fach assoziativer Cache berechnet Index-Bits aus der Anzahl der Sets
+            index_bits = log2(num_sets);
+        }
+        // Tag-Bits berechnen
+        tag_bits = 32 - offset_bits - index_bits;
+
+        SC_THREAD(cache_access);
+        dont_initialize();  
+        sensitive << clk.pos();
+    }
+
+    // Destruktor
+    ~Cache(){
+
+        // Speicher freigeben (Array)
+        delete[] cache;
+    }
+
+private:
+    // ################ Allgemeine Cache Eigenschaften ################ //
+
+    // Größe des Caches in Lines
+    unsigned cache_lines;
+    // Größer einer Line in Byte
+    unsigned cache_line_size;
+    // Flag, ob der Cache direct-mapped ist
+    int direct_mapped;
+
+    // ################  4-Fach assoziativer Cache ################ //
+
+    // Anzahl der Blöcke pro Set
+    unsigned lines_per_set = 4;
+    // Anzahl der Sets
+    int num_sets = cache_lines / lines_per_set;
+
+    // ################ Cache-Speicher ################ //
+
+    // Direct-Mapped Cache Speicher, in dem nur die Tag-Informationen gespeichert werden
+    sc_uint<32>* cache;
+
+    // ################ Cache-Zugriffs Attribute ################ //
+
+    // Offset-Bits (Anzahl der Bits, die für den Offset benötigt werden)
+    unsigned offset_bits;
+    // Index-Bits (Anzahl der Bits, die für den Index benötigt werden)
+    unsigned index_bits;
+    // Tag-Bits (Anzahl der Bits, die für den Tag benötigt werden)
+    unsigned tag_bits;
+
 };
 #endif

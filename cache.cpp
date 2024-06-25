@@ -1,41 +1,65 @@
 // cache.cpp
 #include "cache.hpp"
 
-void cache::cache_access() {
-    while (true) {
-        wait(SC_ZERO_TIME);
-        sc_uint<32> address = addr.read();
-        sc_uint<OFFSET_BITS> offset = address.range(OFFSET_BITS - 1, 0);
-        sc_uint<INDEX_BITS> index = address.range(OFFSET_BITS + INDEX_BITS - 1, OFFSET_BITS);
-        sc_uint<TAG_BITS> tag = address.range(31, OFFSET_BITS + INDEX_BITS);
 
-        if (we.read() == 0) {
-            if (cache_storage[index] == tag) {
-                cache_hit_count++;
-                std::cout << "Cache hit" << std::endl;
+void Cache::cache_access() {
+
+    while (true) {
+
+        wait(SC_ZERO_TIME);
+
+        // Adresse aus dem Adressbus lesen
+        sc_uint<32> address = addr.read();
+
+        // Offset, Index und Tag aus der Adresse extrahieren
+        sc_uint<32> offset = address.range(offset_bits - 1, 0);
+        sc_uint<32> index = address.range(offset_bits + index_bits - 1, offset_bits);
+        sc_uint<32> tag = address.range(31, offset_bits + index_bits);
+
+        // Cache-Zugriff für direkt abgebildeten Cache simulieren
+        if (direct_mapped == 1) {
+
+            // Lese Zugriff
+            if (we.read() == 0) {
+                if (cache[index] == tag) {
+                    std::cout << "Cache hit" << std::endl;
+                }
+                else {
+                    // Wenn der Tag nicht mit dem Index übereinstimmt, handelt es sich um einen Cache-Miss
+                    // Also wird der Tag am richtigen Index in den Cache geschrieben
+                    // Hier beötigen wir keine LRU-Strategie, da der Cache direkt abgebildet ist
+                    cache[index] = tag;
+                    std::cout << "Cache miss" << std::endl;
+                }
             }
+
+            // Schreib Zugriff
             else {
-                cache_miss_count++;
-                std::cout << "Cache miss" << std::endl;
-                cache_storage[index] = tag;
-            } 
+                // Schreibe den Tag an den Index
+                // Hier beötigen wir keine LRU-Strategie, da der Cache direkt abgebildet ist
+                cache[index] = tag;
+                std::cout << "Cache write" << std::endl;
+            }
+
         }
+
+
+        // Cache-Zugriff für 4-fach assoziativen Cache simulieren
         else {
-            cache_write_count++;
-            std::cout << "Cache write" << std::endl;
-            cache_storage[index] = tag;
+
+            // Lese Zugriff
+            if (we.read() == 0) {
+
+            }
+
+            // Schreib Zugriff
+            else {
+                
+            }
+
         }
+
         wait();
     }
-}
 
-cache::cache(sc_module_name name) : sc_module(name) {
-    cache_access_count = 0;
-    cache_miss_count = 0;
-    cache_hit_count = 0;
-    cache_write_count = 0;
-
-    SC_THREAD(cache_access);
-    dont_initialize();  
-    sensitive << clk.pos();
 }
