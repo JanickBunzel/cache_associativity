@@ -23,7 +23,7 @@ typedef struct {
 
 // Default cache configuration
 CacheConfig cache_config = {
-    .cycles = 2800, // allows the cache to process 1000 requests (with a hit rate of 90%, the average cycle count per hit is 2.8)
+    .cycles = 3000, // allows the cache to process 1000 requests (with a hit rate of 90%, and average cycles/request 3 as below)
     .directmapped = 1, // Using direct mapped cache as default
     .fourway = 0, // Using direct mapped cache as default
     .cacheline_size = 64, // Standard size that balances spatial locality and overhead
@@ -68,6 +68,7 @@ struct Result run_simulation(
 /* 
     TODO: Remove this comment
     Beispiele:
+    ./linked_program -c 1000 --fourway --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd r.csv
     ./linked_program -c 1000 --directmapped --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd r.csv
     ./rahmenprogramm -c 1000 --directmapped --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd r.csv
 */ 

@@ -1,4 +1,6 @@
+# macOS system files
 .DS_Store
+*.dSYM/
 
 # ignore compiled object file
 *.o

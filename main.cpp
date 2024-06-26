@@ -2,7 +2,7 @@
 #include "Request.h"
 #include "Result.h"
 #include "cache.hpp"
-#include "testbench.hpp"
+#include "cpu.hpp"
 #include <sstream>
 
 extern int cycles;
@@ -18,33 +18,39 @@ extern const char *tracefile;
 Result simulationResult;
 
 int sc_main(int argc, char *argv[]) {
-    std::cout << "sc_main Method called" << std::endl;
-    
-    // TODO: Use the config, tracefile etc.
+    // TODO: Implement Tracefile
 
-    sc_signal<bool> we;
     sc_clock clk("clk", 1, SC_NS);
 
-    Cache cache_inst("cache_inst", directMapped, cacheLines, cacheLineSize);
+    // Initialize and connect cache and cpu to the clock
+    Cache cache_inst("cache_inst", directMapped, cacheLines, cacheLineSize, cacheLatency, memoryLatency);
     cache_inst.clk(clk);
+    cpu cpu_inst("cpu_inst", numRequests, requests);
+    cpu_inst.clk(clk);
 
-    testbench testbench_inst("testbench_inst", numRequests, requests);
-    testbench_inst.clk(clk);
 
-    sc_signal<sc_uint<32>> addr_tb;
-    sc_signal<sc_uint<32>> wdata_tb;
-    sc_signal<bool> we_tb;
-
-    testbench_inst.addr(addr_tb);
-    cache_inst.addr(addr_tb);
-
-    testbench_inst.wdata(wdata_tb);
-    cache_inst.wdata(wdata_tb);
+    // Signals to pass requests to cache
+    // - Address of the next request
+    sc_signal<sc_uint<32>> addr_signal;
+    cpu_inst.addr(addr_signal);
+    cache_inst.addr(addr_signal);
     
-    testbench_inst.we(we_tb);
-    cache_inst.we(we_tb);
+    // - Value of the next request
+    sc_signal<sc_uint<32>> data_signal;
+    cpu_inst.wdata(data_signal);
+    cache_inst.wdata(data_signal);
+    
+    // - Write or read request
+    sc_signal<bool> we_signal;
+    cpu_inst.we(we_signal);
+    cache_inst.we(we_signal);
 
+    
+    // Start the simulation with the given number of cycles
+    // TODO: Use cycles property to simulate only the specific number of cycles
     sc_start(7, SC_NS);
+
+    // TODO: Return the simulation result
 
     return 0;
 }

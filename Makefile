@@ -3,7 +3,7 @@
 # ---------------------------------------
 
 # entry point for the program and target name
-CACHE_SRCS := cache.cpp testbench.cpp main.cpp
+CACHE_SRCS := cache.cpp cpu.cpp main.cpp
 
 RAHMENPROGRAMM_SRCS := rahmenprogramm.c
 
@@ -48,7 +48,7 @@ rahmenprogramm.o: rahmenprogramm.c
 	$(CC) -g -c rahmenprogramm.c -o rahmenprogramm.o
 
 link_all: rahmenprogramm.o
-	$(CXX) -g $(CXXFLAGS) -o linked_program rahmenprogramm.o cache.cpp main.cpp simulation.cpp testbench.cpp
+	$(CXX) -g $(CXXFLAGS) -o linked_program rahmenprogramm.o cache.cpp main.cpp simulation.cpp cpu.cpp
 
 clean:
 	rm -f cache_simulator rahmenprogramm linked_program *.o

@@ -1,8 +1,7 @@
 #include <systemc.h>
 #include "Request.h"
 #include "Result.h"
-#include "cache.hpp"
-#include "testbench.hpp"
+#include "cpu.hpp"
 #include <sstream>
 
 int cycles;
@@ -38,11 +37,12 @@ extern "C" struct Result run_simulation(
     requests = _requests;
     tracefile = _tracefile;
 
+    // Call the SystemC Simulation in main.cpp
     if (sc_main(0, nullptr) == 0) {
-        // Kein Fehler in der Simulation
+        // If no error, return the simulation result
         return simulationResult;
     } else {
-        // Return invalides Result
+        // On error, return an empty result
         Result errorResult = {
             .cycles = 0,
             .misses = 0,
