@@ -60,6 +60,8 @@
 	- `slides.pdf` Einzige Datei für die Präsentation
 
 ### Finish Up:
+- [ ] SystemC Path aus _evironment variable_ lesen (statt zurzeit workspace folder) -> Zulip
+- [ ] Auf **Rechnerhalle** compilieren!
 - [ ] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments
 - [ ] Alle TODO's im Code aufräumen
 
