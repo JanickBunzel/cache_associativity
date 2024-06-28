@@ -9,7 +9,7 @@ extern "C"
 #include <stdint.h> // For uint32_t
 
     // Struct to define cache requests
-    typedef struct request
+    typedef struct Request
     {
         uint32_t addr;
         uint32_t data;
