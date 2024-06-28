@@ -53,6 +53,8 @@ void Cache::cache_access()
                 {
                     std::cout << "CACHE HIT reading address: " << address << std::endl;
 
+                    hits++;
+
                     // Simulate cache access time
                     // TODO: wait (cacheLatency) cycles
                 }
@@ -64,6 +66,8 @@ void Cache::cache_access()
                     // Insert value that was not found CACHE MISS
                     cache[index] = tag;
 
+                    misses++;
+
                     // Simulate cache access time and memory access time
                     // TODO: wait (cacheLatency + memoryLatency) cycles
                 }
@@ -71,7 +75,20 @@ void Cache::cache_access()
             // Write access
             else
             {
-                std::cout << "CACHE WRITE writing address: " << address << std::endl;
+                // Cache HIT
+                if (cache[index] == tag)
+                {
+                    std::cout << "CACHE HIT writing value with address: " << address << std::endl;
+
+                    hits++;
+                }
+                // Cache MISS
+                else
+                {
+                    std::cout << "CACHE MISS writing value with address: " << address << std::endl;
+
+                    misses++;
+                }
 
                 // Write the new tag to the cache at the given index
                 cache[index] = tag;
@@ -99,6 +116,8 @@ void Cache::cache_access()
                     // Element that is accessed gets updatet to most recently used
                     lru_replacement(index_of_tag);
 
+                    hits++;
+
                     // Simulate cache access time
                     // TODO: wait (cacheLatency) cycles
                 }
@@ -125,6 +144,8 @@ void Cache::cache_access()
                         std::cout << "CACHE MISS with full set reading address: " << address << std::endl;
                     }
 
+                    misses++;
+
                     // Simulate cache access time and memory access time
                     // TODO: wait (cacheLatency + memoryLatency) cycles
                 }
@@ -138,6 +159,8 @@ void Cache::cache_access()
                 if (index_of_tag != -1)
                 {
                     std::cout << "CACHE HIT writing value with address: " << address << std::endl;
+
+                    hits++;
 
                     // Element that is accessed gets updatet to most recently used
                     lru_replacement(index_of_tag);
@@ -168,6 +191,8 @@ void Cache::cache_access()
                         lru_replacement(index_of_lru_line);
                         std::cout << "CACHE MISS writing value with address: " << address << std::endl;
                     }
+
+                    misses++;
 
                     // Simulate cache access time and memory access time
                     // TODO: wait (cacheLatency + memoryLatency) cycles

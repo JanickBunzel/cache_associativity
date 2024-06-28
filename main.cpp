@@ -49,7 +49,10 @@ int sc_main(int argc, char *argv[])
     // TODO: Use cycles property to simulate only the specific number of cycles
     sc_start(7, SC_NS);
 
-    // TODO: Return the simulation result
+    // Store the simulation results after the simulation has finished
+    simulationResult.cycles = cache_inst.cycles;
+    simulationResult.misses = cache_inst.misses;
+    simulationResult.hits = cache_inst.hits;
 
     return 0;
 }

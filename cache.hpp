@@ -9,17 +9,15 @@ private:
     unsigned int cache_lines;     // Number of cache lines
     unsigned int cache_line_size; // In bytes
     int direct_mapped;            // 1 -> direct mapped, 0 -> fourway
-    unsigned int cacheLatency;   // In cycles
-    unsigned int memoryLatency;  // In cycles
+    unsigned int cacheLatency;    // In cycles
+    unsigned int memoryLatency;   // In cycles
 
-    // Array of usage ranks for LRU replacement strategy
-    sc_int<32> *lru;
-
-    // DirectMapped cache, array of cache lines
-    sc_uint<32> *cache;
+    // DirectMapped cache configuration
+    sc_uint<32> *cache; // Array of cache lines
 
     // Fourway cache configuration
-    int num_sets = cache_lines / 4;
+    int num_sets = cache_lines / 4; // Fourway cache has 4 lines per set
+    sc_int<32> *lru;                // Array of usage ranks for LRU replacement strategy
 
     // Numbers of bits represented in an address:
     unsigned offset_bits; // - offset_bits: Bits for the position of a block in a cache line
@@ -27,16 +25,17 @@ private:
     unsigned tag_bits;    // - tag_bits: Bits for the tag of a cache line
 
 public:
-    // SystemC Input Ports:
-    // - Clock Signal
-    sc_in<bool> clk;
+    // Cache statistics
+    unsigned int cycles = 0;
+    unsigned int misses = 0;
+    unsigned int hits = 0;
 
-    // - Address of the next request
-    sc_in<sc_uint<32>> addr;
-    // - Value of the next request
-    sc_in<sc_uint<32>> wdata;
-    // - Write or read request
-    sc_in<bool> we;
+    // SystemC Input Ports:
+    sc_in<bool> clk; // Clock Signal
+
+    sc_in<sc_uint<32>> addr;  // Address of the next request
+    sc_in<sc_uint<32>> wdata; // Value of the next request
+    sc_in<bool> we;           // Write or read request
 
     // Method declarations
     void cache_access();
