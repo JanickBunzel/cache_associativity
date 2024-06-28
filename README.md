@@ -65,10 +65,11 @@
 - [ ] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments
 - [ ] Alle TODO's im Code aufräumen
 
-### Offene Fragen Julian
+### Offene Fragen
 - Was muss im Tracefile angezeigt werden?
 - Wie muss ein write funktioneren, es werden ja keine Daten gespeichert, da wir ja keine Hintergrundspeicher haben, aus dem bei einem Cachmiss Daten geladen werden können.
 - Wie funktioniert ein Cache Hit beim schreiben
+- Write Request: Wann cache hit und wann miss?
 
 ### Code Style
 ```
