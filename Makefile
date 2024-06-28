@@ -48,8 +48,11 @@ rahmenprogramm.o: rahmenprogramm.c
 	$(CC) -g -c rahmenprogramm.c -o rahmenprogramm.o
 
 link_all: rahmenprogramm.o
-	$(CXX) -g $(CXXFLAGS) -o linked_program rahmenprogramm.o cache.cpp main.cpp simulation.cpp testbench.cpp
+	$(CXX) $(CXXFLAGS) -o linked_program rahmenprogramm.o cache.cpp main.cpp simulation.cpp testbench.cpp
 
+debug: rahmenprogramm.o
+	$(CXX) -g $(CXXFLAGS) -o linked_program rahmenprogramm.o cache.cpp main.cpp simulation.cpp testbench.cpp
+	
 clean:
 	rm -f cache_simulator rahmenprogramm linked_program *.o
 

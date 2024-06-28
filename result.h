@@ -9,7 +9,7 @@ extern "C"
 #include <stddef.h> // For size_t
 
     // Struct to store results
-    typedef struct result
+    typedef struct Result
     {
         size_t cycles;
         size_t misses;
