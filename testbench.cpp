@@ -7,6 +7,7 @@ void testbench::nextRequest()
         addr.write(requests[i].addr);
         wdata.write(requests[i].data);
         we.write(requests[i].we);
+        wait();
     }
 }
 
