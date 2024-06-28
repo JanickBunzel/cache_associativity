@@ -34,6 +34,7 @@
 - [ ] direkt vs 4-fach
 - [ ] Speicherzugriffsverhalten eines speicherintensiven Algorithmus -> .csv Dateien mit Beispielen
 - [ ] Mit eigener Simulation Verhalten in Bezug auf Zugriffszeiten beobachten
+- [ ] Mind. ein Fallbeispiel für das Speicherzugriffsmuster unseres ausgewählten Algorithmus
 - [ ] Ergebnisse in Readme dokumentieren
 
 ### C Rahmenprogramm (3.2, s.4):
@@ -55,6 +56,7 @@
 - `Readme.md` : Dokumentation/Bericht + persönliche Abschnitte
 - `Makefile`
 - `src/` : Quellcode mit Rahmenprogramm und Simulation
+- `examples/` : Verzeichnis für csv-Fallbeispiele
 - `slides/` :
 	- Präsentationsfolien und weiteres Material
 	- `slides.pdf` Einzige Datei für die Präsentation
