@@ -9,11 +9,13 @@ SC_MODULE(cpu) {
     sc_out<sc_uint<32>> wdata;
     sc_out<bool> we;
 
-    Request* requests;
+    // int cycles;
     int numRequests;
+    Request* requests;
 
     void nextRequest();
 
+    // cpu(sc_module_name name, int _cycles, int _numRequests, Request* _requests);
     cpu(sc_module_name name, int _numRequests, Request* _requests);
 
     SC_CTOR(cpu);

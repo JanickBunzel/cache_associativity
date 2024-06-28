@@ -4,11 +4,11 @@
 
 SC_MODULE(Cache) {
     // Cache Configuration
-    unsigned int cache_lines;
-    unsigned int cache_line_size;
+    unsigned int cache_lines; // Number of cache lines
+    unsigned int cache_line_size; // In bytes
     int direct_mapped; // 1 -> direct mapped, 0 -> fourway
-    unsigned int cache_latency;
-    unsigned int memory_latency;
+    unsigned int cache_latency; // In cycles
+    unsigned int memory_latency; // In cycles
 
     // Array of usage ranks for LRU replacement strategy
     sc_int<32>* lru;
@@ -57,7 +57,7 @@ SC_MODULE(Cache) {
     * Initialisiert eine Instanz der Cache-Klasse mit spezifischen Parametern für die Cache-Konfiguration.
     *
     * @param name Der Name des Moduls, wird an den sc_module Konstruktor weitergegeben.
-    * @param directMapped Gibt an, ob der Cache direkt abgebildet ist (1) oder nicht (0).
+    * @param directMapped Gibt an, ob der Cache direkt abgebildet ist (!= 0) oder 4-fach assoziativ (0).
     * @param cacheLines Die Anzahl der Cache-Lines.
     * @param cacheLineSize Die Größe einer Cache-Line in Byte.
     */
@@ -91,4 +91,5 @@ SC_MODULE(Cache) {
         delete[] cache;
     }
 };
+
 #endif
