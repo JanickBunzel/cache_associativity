@@ -2,17 +2,19 @@
 #define REQUEST_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #include <stdint.h> // For uint32_t
 
-// Struct to define cache requests
-typedef struct Request {
-    uint32_t addr;
-    uint32_t data;
-    int we;
-} Request;
+    // Struct to define cache requests
+    typedef struct Request
+    {
+        uint32_t addr;
+        uint32_t data;
+        int we;
+    } Request;
 
 #ifdef __cplusplus
 }

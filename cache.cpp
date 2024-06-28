@@ -52,32 +52,32 @@ void Cache::cache_access()
                 if (cache[index] == tag)
                 {
                     std::cout << "CACHE HIT reading address: " << address << std::endl;
-                    
+
                     // Simulate cache access time
-                    // TODO: wait (cache_latency) cycles
+                    // TODO: wait (cacheLatency) cycles
                 }
                 // Cache MISS
                 else
                 {
                     std::cout << "CACHE MISS reading address: " << address << std::endl;
-                    
+
                     // Insert value that was not found CACHE MISS
                     cache[index] = tag;
 
                     // Simulate cache access time and memory access time
-                    // TODO: wait (cache_latency + memory_latency) cycles
+                    // TODO: wait (cacheLatency + memoryLatency) cycles
                 }
             }
             // Write access
             else
             {
                 std::cout << "CACHE WRITE writing address: " << address << std::endl;
-                
+
                 // Write the new tag to the cache at the given index
                 cache[index] = tag;
 
                 // Simulate cache access time
-                // TODO: wait (cache_latency) cycles
+                // TODO: wait (cacheLatency) cycles
             }
         }
         // Simulate cache access for 4-way set associative cache
@@ -95,12 +95,12 @@ void Cache::cache_access()
                 if (index_of_tag != -1)
                 {
                     std::cout << "CACHE HIT reading address: " << address << std::endl;
-                    
+
                     // Element that is accessed gets updatet to most recently used
                     lru_replacement(index_of_tag);
 
                     // Simulate cache access time
-                    // TODO: wait (cache_latency) cycles
+                    // TODO: wait (cacheLatency) cycles
                 }
                 // CACHE MISS
                 else
@@ -126,7 +126,7 @@ void Cache::cache_access()
                     }
 
                     // Simulate cache access time and memory access time
-                    // TODO: wait (cache_latency + memory_latency) cycles
+                    // TODO: wait (cacheLatency + memoryLatency) cycles
                 }
             }
             // Write access
@@ -138,12 +138,12 @@ void Cache::cache_access()
                 if (index_of_tag != -1)
                 {
                     std::cout << "CACHE HIT writing value with address: " << address << std::endl;
-                    
+
                     // Element that is accessed gets updatet to most recently used
                     lru_replacement(index_of_tag);
 
                     // Simulate cache access time
-                    // TODO: wait (cache_latency) cycles
+                    // TODO: wait (cacheLatency) cycles
                 }
                 // CACHE MISS
                 else
@@ -170,7 +170,7 @@ void Cache::cache_access()
                     }
 
                     // Simulate cache access time and memory access time
-                    // TODO: wait (cache_latency + memory_latency) cycles
+                    // TODO: wait (cacheLatency + memoryLatency) cycles
                 }
             }
         }
@@ -226,10 +226,10 @@ void Cache::lru_replacement(unsigned index_to_update)
 
 /**
  * @brief Searches for the specified tag within a cache set.
- * 
+ *
  * This method searches for a given tag in a 4-way set associative cache set.
  * It iterates through the set to find the index where the tag is located.
- * 
+ *
  * @param tag The tag to search for within the cache set.
  * @param set_index The starting index of the cache set to search within.
  * @return The index of the tag within the cache if found, or -1 if the tag is not found in the set.
@@ -250,10 +250,10 @@ int Cache::search_tag_in_set(sc_uint<32> tag, unsigned set_index)
 
 /**
  * @brief Searches for a free line within a cache set.
- * 
+ *
  * This method searches for a free line (an unused block) within a 4-way set associative cache set.
  * It iterates through the set to find an index where the LRU indicator is -1, indicating the line is free.
- * 
+ *
  * @param set_index The starting index of the cache set to search within.
  * @return The index of the free line within the cache if found, or -1 if no free line is available in the set.
  */
@@ -273,10 +273,10 @@ int Cache::search_free_line_in_set(unsigned set_index)
 
 /**
  * @brief Searches for the least recently used (LRU) line within a cache set.
- * 
+ *
  * This method searches for the least recently used line within a 4-way set associative cache set.
  * It iterates through the set to find an index where the LRU indicator is 0, indicating the least recently used line.
- * 
+ *
  * @param set_index The starting index of the cache set to search within.
  * @return The index of the least recently used line within the cache if found, or -1 if no LRU line is identified.
  */

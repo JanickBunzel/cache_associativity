@@ -70,9 +70,10 @@
 
 ### Code Style
 ```
-int someVariable = 1 + 1;
+int someVariable;
 
-void this_is_a_method() {
+void this_is_a_method()
+{
     // Code
 }
 ```
