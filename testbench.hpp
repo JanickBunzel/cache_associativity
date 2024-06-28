@@ -1,21 +1,24 @@
 #ifndef TESTBENCH_HPP
 #define TESTBENCH_HPP
 #include <systemc.h>
-#include "Request.h"
+#include "request.h"
 
-SC_MODULE(testbench) {
+SC_MODULE(testbench)
+{
     sc_in<bool> clk;
     sc_out<sc_uint<32>> addr;
     sc_out<sc_uint<32>> wdata;
     sc_out<bool> we;
 
-    Request* requests;
+    // int cycles;
     int numRequests;
+    Request *requests;
 
-    void process();
+    void nextRequest();
 
-    testbench(sc_module_name name, int numReqs, Request* reqs);  
+    testbench(sc_module_name name, int _numRequests, Request *_requests);
 
     SC_CTOR(testbench);
 };
+
 #endif

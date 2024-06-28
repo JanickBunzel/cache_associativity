@@ -69,3 +69,13 @@
 - Was muss im Tracefile angezeigt werden?
 - Wie muss ein write funktioneren, es werden ja keine Daten gespeichert, da wir ja keine Hintergrundspeicher haben, aus dem bei einem Cachmiss Daten geladen werden können.
 - Wie funktioniert ein Cache Hit beim schreiben
+
+### Code Style
+```
+int someVariable;
+
+void this_is_a_method()
+{
+    // Code
+}
+```

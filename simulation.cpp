@@ -1,7 +1,6 @@
 #include <systemc.h>
-#include "Request.h"
-#include "Result.h"
-#include "cache.hpp"
+#include "request.h"
+#include "result.h"
 #include "testbench.hpp"
 #include <sstream>
 
@@ -38,17 +37,20 @@ extern "C" struct Result run_simulation(
     requests = _requests;
     tracefile = _tracefile;
 
-    if (sc_main(0, nullptr) == 0) {
-        // Kein Fehler in der Simulation
+    // Call the SystemC Simulation in main.cpp
+    if (sc_main(0, nullptr) == 0)
+    {
+        // If no error, return the simulation result
         return simulationResult;
-    } else {
-        // Return invalides Result
+    }
+    else
+    {
+        // On error, return an empty result
         Result errorResult = {
             .cycles = 0,
             .misses = 0,
             .hits = 0,
-            .primitiveGateCount = 0
-        };
+            .primitiveGateCount = 0};
         return errorResult;
     }
 }
