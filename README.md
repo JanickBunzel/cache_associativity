@@ -48,8 +48,8 @@
 
 ### SystemC Programm (3.3, s.5):
 - [x] run_simulation connecten
-- [ ] **Makefile** erstellen, welches eine klare ausführbare main datei erstellt
-- [ ] **Tracefile** während der Simulation erstellen
+- [x] **Makefile** erstellen, welches eine klare ausführbare main datei erstellt
+- [x] **Tracefile** während der Simulation erstellen
 - [ ] **Cache** implementieren: direct & fourway
 
 ### Abzugebende Dateien (4, s.7):
