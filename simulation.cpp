@@ -38,12 +38,7 @@ extern "C" struct Result run_simulation(
     tracefile = _tracefile;
 
     // Call the SystemC Simulation in main.cpp
-    if (sc_main(0, nullptr) == 0)
-    {
-        // If no error, return the simulation result
-        return simulationResult;
-    }
-    else
+    if (numRequests <= 0 || sc_main(0, nullptr) != 0)
     {
         // On error, return an empty result
         Result errorResult = {
@@ -52,5 +47,10 @@ extern "C" struct Result run_simulation(
             .hits = 0,
             .primitiveGateCount = 0};
         return errorResult;
+    }
+    else
+    {
+        // If no error, return the simulation result
+        return simulationResult;
     }
 }

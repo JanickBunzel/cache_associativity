@@ -32,10 +32,14 @@ public:
 
     // SystemC Input Ports:
     sc_in<bool> clk; // Clock Signal
+    sc_in<bool> cpuDone;
 
     sc_in<sc_uint<32>> addr;  // Address of the next request
     sc_in<sc_uint<32>> wdata; // Value of the next request
     sc_in<bool> we;           // Write or read request
+
+    // SystemC Output Ports:
+    sc_out<bool> cacheDone; // Signal that the cache has finished processing the request
 
     // Method declarations
     void cache_access();

@@ -29,10 +29,14 @@
 void Cache::cache_access()
 {
 
-    while (true)
+    while (!cpuDone.read())
     {
-        // Wait for next delty cycle because values form test bench are not propagated yet
+        // Wait for next delty cycle because values from the cpu are not propagated yet
         wait(SC_ZERO_TIME);
+
+        // set done signal to false inndicating that the cache is processing the request
+        std::cout << "cache process anfangen" << std::endl;
+        cacheDone.write(false);
 
         // Read address from the address bus
         sc_uint<32> address = addr.read();
@@ -56,7 +60,11 @@ void Cache::cache_access()
                     hits++;
 
                     // Simulate cache access time
-                    // TODO: wait (cacheLatency) cycles
+                    std::cout << "Waiting c cycles!" << std::endl;
+                    for (int i = 0; i < cacheLatency; i++)
+                    {
+                        wait();
+                    }
                 }
                 // Cache MISS
                 else
@@ -69,7 +77,11 @@ void Cache::cache_access()
                     misses++;
 
                     // Simulate cache access time and memory access time
-                    // TODO: wait (cacheLatency + memoryLatency) cycles
+                    std::cout << "Waiting c+m cycles!" << std::endl;
+                    for (int i = 0; i < cacheLatency + memoryLatency; i++)
+                    {
+                        wait();
+                    }
                 }
             }
             // Write access
@@ -94,7 +106,11 @@ void Cache::cache_access()
                 cache[index] = tag;
 
                 // Simulate cache access time
-                // TODO: wait (cacheLatency) cycles
+                std::cout << "Waiting c cycles!" << std::endl;
+                for (int i = 0; i < cacheLatency; i++)
+                {
+                    wait();
+                }
             }
         }
         // Simulate cache access for 4-way set associative cache
@@ -119,7 +135,11 @@ void Cache::cache_access()
                     hits++;
 
                     // Simulate cache access time
-                    // TODO: wait (cacheLatency) cycles
+                    std::cout << "Waiting c cycles!" << std::endl;
+                    for (int i = 0; i < cacheLatency; i++)
+                    {
+                        wait();
+                    }
                 }
                 // CACHE MISS
                 else
@@ -147,7 +167,11 @@ void Cache::cache_access()
                     misses++;
 
                     // Simulate cache access time and memory access time
-                    // TODO: wait (cacheLatency + memoryLatency) cycles
+                    std::cout << "Waiting c+m cycles!" << std::endl;
+                    for (int i = 0; i < cacheLatency + memoryLatency; i++)
+                    {
+                        wait();
+                    }
                 }
             }
             // Write access
@@ -166,7 +190,11 @@ void Cache::cache_access()
                     lru_replacement(index_of_tag);
 
                     // Simulate cache access time
-                    // TODO: wait (cacheLatency) cycles
+                    std::cout << "Waiting c cycles!" << std::endl;
+                    for (int i = 0; i < cacheLatency; i++)
+                    {
+                        wait();
+                    }
                 }
                 // CACHE MISS
                 else
@@ -195,12 +223,20 @@ void Cache::cache_access()
                     misses++;
 
                     // Simulate cache access time and memory access time
-                    // TODO: wait (cacheLatency + memoryLatency) cycles
+                    std::cout << "Waiting c+m cycles!" << std::endl;
+                    for (int i = 0; i < cacheLatency + memoryLatency; i++)
+                    {
+                        wait();
+                    }
                 }
             }
         }
 
-        // Wait for the next access
+        // Set done signal to true indicating that the cache has finished processing the request
+        std::cout << "cache process fertig" << std::endl;
+        cacheDone.write(true);
+
+        // Wait for the clock tick
         wait();
     }
 }

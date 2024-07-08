@@ -26,8 +26,19 @@ int sc_main(int argc, char *argv[])
     // Initialize and connect cache and cpu to the clock
     Cache cache_inst("cache_inst", directMapped, cacheLines, cacheLineSize, cacheLatency, memoryLatency);
     cache_inst.clk(clk);
-    cpu cpu_inst("cpu_inst", numRequests, requests);
+    Cpu cpu_inst("cpu_inst", numRequests, requests);
     cpu_inst.clk(clk);
+
+    // Signal to indicate that the cache has finished processing the request
+    sc_signal<bool> cache_done_signal;
+    cache_inst.cacheDone(cache_done_signal);
+    cpu_inst.cacheDone(cache_done_signal);
+    cache_done_signal.write(true); // Start with true to indicate that the cache is ready to process the first request
+
+    sc_signal<bool> cpu_done_signal;
+    cpu_inst.cpuDone(cpu_done_signal);
+    cache_inst.cpuDone(cpu_done_signal);
+    cpu_done_signal.write(true);
 
     // Signals to pass requests to cache
     // - Address of the next request
@@ -47,7 +58,7 @@ int sc_main(int argc, char *argv[])
 
     // Start the simulation with the given number of cycles
     // TODO: Use cycles property to simulate only the specific number of cycles
-    sc_start(7, SC_NS);
+    sc_start(cycles, SC_NS);
 
     // Store the simulation results after the simulation has finished
     simulationResult.cycles = cache_inst.cycles;

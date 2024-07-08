@@ -11,13 +11,13 @@
 // Struct to store properties of the cache
 typedef struct
 {
-    int cycles;
-    int directmapped;
-    int fourway;
-    int cachelineSize;
-    int cachelines;
-    int cacheLatency;
-    int memoryLatency;
+    int cycles;        // Number of cycles to simulate
+    int directmapped;  // bool
+    int fourway;       // bool
+    int cachelineSize; // In bytes
+    int cachelines;    // Number of cachelines
+    int cacheLatency;  // In cycles
+    int memoryLatency; // In cycles
     char *tracefile;
     char *eingabedatei;
 } CacheConfig;

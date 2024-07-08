@@ -3,22 +3,26 @@
 #include <systemc.h>
 #include "request.h"
 
-SC_MODULE(cpu)
+SC_MODULE(Cpu)
 {
+    // SystemC Input Ports:
     sc_in<bool> clk;
-    sc_out<sc_uint<32>> addr;
-    sc_out<sc_uint<32>> wdata;
-    sc_out<bool> we;
+    sc_in<bool> cacheDone;
 
-    // int cycles;
+    // SystemC Output Ports:
+    sc_out<bool> cpuDone;
+    sc_out<sc_uint<32>> addr;  // Address of the next request
+    sc_out<sc_uint<32>> wdata; // Value of the next request
+    sc_out<bool> we;           // Write or read request
+
     int numRequests;
     Request *requests;
 
-    void nextRequest();
+    void handleRequests();
 
-    cpu(sc_module_name name, int _numRequests, Request *_requests);
+    Cpu(sc_module_name name, int _numRequests, Request *_requests);
 
-    SC_CTOR(cpu);
+    SC_CTOR(Cpu);
 };
 
 #endif

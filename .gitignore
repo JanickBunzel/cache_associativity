@@ -6,9 +6,7 @@
 *.o
 
 # ignore compiled executable
-cache_simulator
-linked_program
-rahmenprogramm
+cache_simulation
 
 # ignore local vscode settings
 .vscode
