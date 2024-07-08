@@ -24,8 +24,8 @@ SIM := simulation.cpp
 SCPATH = ../systemc
 
 # Define the object files
-C_OBJS := $(MAINC:.c=.o) $(SIM:.c=.o)
-CXX_OBJS := $(MAINCXX:.cpp=.o) $(CACHEIMP:.cpp=.o) $(CPUIMP:.cpp=.o)
+C_OBJS := $(MAINC:.c=.o)
+CXX_OBJS := $(MAINCXX:.cpp=.o) $(CACHEIMP:.cpp=.o) $(CPUIMP:.cpp=.o) $(SIM:.cpp=.o)
 
 # Additional flags for the compiler
 # -std=c++14: This flag specifies the C++ standard to be used by the compiler. In this case, it tells the compiler to use the C++14 standard.
