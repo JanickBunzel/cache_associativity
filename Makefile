@@ -17,6 +17,9 @@ CACHEIMP := cache.cpp
 CPU := cpu.hpp
 CPUIMP := cpu.cpp
 
+# tracefiles
+TRACEFILES := *.vcd
+
 # simulation handler in c++
 SIM := simulation.cpp
 
@@ -94,4 +97,4 @@ $(EXECUTABLE): $(C_OBJS) $(CXX_OBJS)
 
 # Clean up the build
 clean:
-	rm -f $(C_OBJS) $(CXX_OBJS) $(EXECUTABLE)
+	rm -f $(C_OBJS) $(CXX_OBJS) $(EXECUTABLE) $(TRACEFILES)

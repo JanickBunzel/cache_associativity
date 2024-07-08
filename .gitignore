@@ -11,3 +11,9 @@ cache_simulation
 # ignore local vscode settings
 .vscode
 .launch.json
+
+# ignore clion settings
+.idea
+
+# ignore tracefiles
+*.vcd

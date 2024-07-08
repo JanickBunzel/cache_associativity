@@ -31,7 +31,7 @@ CacheConfig cacheConfig = {
     .cachelines = 128,            // with each line of 64 bytes, this provides an 8KB cache
     .cacheLatency = 2,            // quick access for first-level cache
     .memoryLatency = 10,          // realistic gap between cache and main access time
-    .tracefile = "tracefile.vcd", // default tracefile name
+    .tracefile = "",              // name of the tracefile (optional)
     .eingabedatei = NULL,         // input file needs to be provided
 };
 
@@ -348,6 +348,8 @@ struct Request *read_requests_from_file(int numRequests, char *filename)
 // Variadic function to print the error and help message and exits the program
 void print_help_and_exit_with_error(char *errorMessage, ...)
 {
+    print_help();
+
     va_list args;
     va_start(args, errorMessage);
 
@@ -356,14 +358,13 @@ void print_help_and_exit_with_error(char *errorMessage, ...)
 
     va_end(args);
 
-    print_help();
     exit(1);
 }
 
 // Prints the description and usage of the arguments
 void print_help()
 {
-    printf("\nUsage: rahmenprogramm [OPTIONS] <Eingabedatei>\n");
+    printf("Usage: rahmenprogramm [OPTIONS] <Eingabedatei>\n");
     printf("Options:\n");
     printf("  -c, --cycles <Zahl>         Die Anzahl der Zyklen, die simuliert werden sollen.\n");
     printf("  --directmapped              Simuliert einen direkt assoziativen Cache.\n");
@@ -376,6 +377,7 @@ void print_help()
     printf("  -h, --help                  Eine Beschreibung aller Optionen des Rahmenprogramms und Verwendung ausgeben und das Programm danach beendet.\n");
     printf("  Positional Arguments:\n");
     printf("  <Eingabedatei>              Die .csv Eingabedatei, die die zu verarbeitenden Daten enthält. Zeilenformat: <W, Adresse, Wert> oder <R, Adresse>\n");
+    printf("\n");
 }
 
 // Checks if a string is an integer

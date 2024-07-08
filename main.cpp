@@ -19,8 +19,6 @@ Result simulationResult;
 
 int sc_main(int argc, char *argv[])
 {
-    // TODO: Implement Tracefile
-
     sc_clock clk("clk", 1, SC_NS);
 
     // Initialize and connect cache and cpu to the clock
@@ -56,9 +54,23 @@ int sc_main(int argc, char *argv[])
     cpu_inst.we(we_signal);
     cache_inst.we(we_signal);
 
+    // Create a tracefile to track the simulation signals
+    sc_trace_file *tf;
+    if (strcmp(tracefile, "") != 0) {
+        tf = sc_create_vcd_trace_file(tracefile);
+        sc_trace(tf, cache_done_signal, "cache_done_signal");
+        sc_trace(tf, cpu_done_signal, "cpu_done_signal");
+        sc_trace(tf, addr_signal, "addr_signal");
+        sc_trace(tf, we_signal, "we_signal");
+    }
+
     // Start the simulation with the given number of cycles
-    // TODO: Use cycles property to simulate only the specific number of cycles
     sc_start(cycles, SC_NS);
+
+    // Close the tracefile
+    if (strcmp(tracefile, "") != 0) {
+        sc_close_vcd_trace_file(tf);
+    }
 
     // Store the simulation results after the simulation has finished
     simulationResult.cycles = cache_inst.cycles;
