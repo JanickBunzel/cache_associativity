@@ -28,6 +28,7 @@
  */
 void Cache::cache_access()
 {
+    int debugPrints = 0;
 
     while (!cpuDone.read())
     {
@@ -35,7 +36,7 @@ void Cache::cache_access()
         wait(SC_ZERO_TIME);
 
         // set done signal to false inndicating that the cache is processing the request
-        std::cout << "[Cache]: " << "Startin processing request with adress: " << addr.read() << std::endl;
+        if (debugPrints) std::cout << "[Cache]: " << "Startin processing request with adress: " << addr.read() << std::endl;
         cacheDone.write(false);
 
         // Read address from the address bus
@@ -55,22 +56,22 @@ void Cache::cache_access()
                 // Cache HIT
                 if (cache[index] == tag)
                 {
-                    std::cout << "[Cache]: " << "CACHE HIT reading address: " << address << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "CACHE HIT reading address: " << address << std::endl;
 
                     hits++;
 
                     // Simulate cache access time
-                    std::cout << "[Cache]: " << "Waiting c cycles!" << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "Waiting c cycles!" << std::endl;
                     for (int i = 0; i < cacheLatency; i++)
                     {
                         wait();
-                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
+                        if (debugPrints) std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
                 // Cache MISS
                 else
                 {
-                    std::cout << "[Cache]: " << "CACHE MISS reading address: " << address << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "CACHE MISS reading address: " << address << std::endl;
 
                     // Insert value that was not found CACHE MISS
                     cache[index] = tag;
@@ -78,11 +79,11 @@ void Cache::cache_access()
                     misses++;
 
                     // Simulate cache access time and memory access time
-                    std::cout << "[Cache]: " << "Waiting c+m cycles!" << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "Waiting c+m cycles!" << std::endl;
                     for (int i = 0; i < cacheLatency + memoryLatency; i++)
                     {
                         wait();
-                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
+                        if (debugPrints) std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
             }
@@ -92,14 +93,14 @@ void Cache::cache_access()
                 // Cache HIT
                 if (cache[index] == tag)
                 {
-                    std::cout << "[Cache]: " << "CACHE HIT writing value with address: " << address << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "CACHE HIT writing value with address: " << address << std::endl;
 
                     hits++;
                 }
                 // Cache MISS
                 else
                 {
-                    std::cout << "[Cache]: " << "CACHE MISS writing value with address: " << address << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "CACHE MISS writing value with address: " << address << std::endl;
 
                     misses++;
                 }
@@ -108,11 +109,11 @@ void Cache::cache_access()
                 cache[index] = tag;
 
                 // Simulate cache access time
-                std::cout << "[Cache]: " << "Waiting c cycles!" << std::endl;
+                if (debugPrints) std::cout << "[Cache]: " << "Waiting c cycles!" << std::endl;
                 for (int i = 0; i < cacheLatency; i++)
                 {
                     wait();
-                    std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                 }
             }
         }
@@ -130,7 +131,7 @@ void Cache::cache_access()
                 // CACHE HIT
                 if (index_of_tag != -1)
                 {
-                    std::cout << "[Cache]: " << "CACHE HIT reading address: " << address << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "CACHE HIT reading address: " << address << std::endl;
 
                     // Element that is accessed gets updatet to most recently used
                     lru_replacement(index_of_tag);
@@ -138,11 +139,11 @@ void Cache::cache_access()
                     hits++;
 
                     // Simulate cache access time
-                    std::cout << "[Cache]: " << "Waiting c cycles!" << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "Waiting c cycles!" << std::endl;
                     for (int i = 0; i < cacheLatency; i++)
                     {
                         wait();
-                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
+                        if (debugPrints) std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
                 // CACHE MISS
@@ -156,7 +157,7 @@ void Cache::cache_access()
                     {
                         cache[index_of_free_line] = tag;
                         lru_replacement(index_of_free_line);
-                        std::cout << "[Cache]: " << "CACHE MISS with free cacheline reading address: " << address << std::endl;
+                        if (debugPrints) std::cout << "[Cache]: " << "CACHE MISS with free cacheline reading address: " << address << std::endl;
                     }
                     // No free line available. Write the new tag to the least recently used line. Update LRU strategy
                     else
@@ -165,17 +166,17 @@ void Cache::cache_access()
                         int index_of_lru_line = search_least_recently_used_line(set_index);
                         cache[index_of_lru_line] = tag;
                         lru_replacement(index_of_lru_line);
-                        std::cout << "[Cache]: " << "CACHE MISS with full set reading address: " << address << std::endl;
+                        if (debugPrints) std::cout << "[Cache]: " << "CACHE MISS with full set reading address: " << address << std::endl;
                     }
 
                     misses++;
 
                     // Simulate cache access time and memory access time
-                    std::cout << "[Cache]: " << "Waiting c+m cycles!" << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "Waiting c+m cycles!" << std::endl;
                     for (int i = 0; i < cacheLatency + memoryLatency; i++)
                     {
                         wait();
-                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
+                        if (debugPrints) std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
             }
@@ -187,7 +188,7 @@ void Cache::cache_access()
                 // CACHE HIT
                 if (index_of_tag != -1)
                 {
-                    std::cout << "[Cache]: " << "CACHE HIT writing value with address: " << address << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "CACHE HIT writing value with address: " << address << std::endl;
 
                     hits++;
 
@@ -195,11 +196,11 @@ void Cache::cache_access()
                     lru_replacement(index_of_tag);
 
                     // Simulate cache access time
-                    std::cout << "[Cache]: " << "Waiting c cycles!" << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "Waiting c cycles!" << std::endl;
                     for (int i = 0; i < cacheLatency; i++)
                     {
                         wait();
-                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
+                        if (debugPrints) std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
                 // CACHE MISS
@@ -214,7 +215,7 @@ void Cache::cache_access()
                     {
                         cache[index_of_free_line] = tag;
                         lru_replacement(index_of_free_line);
-                        std::cout << "[Cache]: " << "CACHE MISS with free cacheline writing value with address: " << address << std::endl;
+                        if (debugPrints) std::cout << "[Cache]: " << "CACHE MISS with free cacheline writing value with address: " << address << std::endl;
                     }
                     // No free line available. Write the new tag to the least recently used line. Update LRU strategy
                     else
@@ -223,24 +224,24 @@ void Cache::cache_access()
                         int index_of_lru_line = search_least_recently_used_line(set_index);
                         cache[index_of_lru_line] = tag;
                         lru_replacement(index_of_lru_line);
-                        std::cout << "[Cache]: " << "CACHE MISS writing value with address: " << address << std::endl;
+                        if (debugPrints) std::cout << "[Cache]: " << "CACHE MISS writing value with address: " << address << std::endl;
                     }
 
                     misses++;
 
                     // Simulate cache access time and memory access time
-                    std::cout << "[Cache]: " << "Waiting c+m cycles!" << std::endl;
+                    if (debugPrints) std::cout << "[Cache]: " << "Waiting c+m cycles!" << std::endl;
                     for (int i = 0; i < cacheLatency + memoryLatency; i++)
                     {
                         wait();
-                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
+                        if (debugPrints) std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
             }
         }
 
         // Set done signal to true indicating that the cache has finished processing the request
-        std::cout << "[Cache]: " << "Cache done processing request with adress: " << address << std::endl;
+        if (debugPrints) std::cout << "[Cache]: " << "Cache done processing request with adress: " << address << std::endl;
         cacheDone.write(true);
 
         // Wait for the clock tick
