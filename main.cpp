@@ -65,6 +65,7 @@ int sc_main(int argc, char *argv[])
     // Store the simulation results after the simulation has finished
     simulationResult.cycles = cache_inst.cycles;
     simulationResult.misses = cache_inst.misses;
+    simulationResult.hits = cache_inst.hits;
     simulationResult.primitiveGateCount = primitiveGateCount();
 
     return 0;
