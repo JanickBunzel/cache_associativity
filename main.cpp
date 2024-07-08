@@ -77,14 +77,17 @@ int primitiveGateCount()
     primitiveGateCount = cacheLineSize * 8 * 5;           // 5 gates per Flip Flop one FLip Flop for each bit of the cache line  * 8 in byte
     primitiveGateCount *= cacheLines;                     // multiply with the number of cache lines
     primitiveGateCount += cacheLines * 2 ^ cacheLineSize; // control Unit for each cache line (multiplexer)
-    primitiveGateCount += 150 * cacheLines;               // 150 gates for each cache line for adding
+    primitiveGateCount += 150 * cacheLines * cacheLineSize;               // 150 gates for each cache line for adding
     primitiveGateCount += 150 * cacheLines;               // 150 gates for each cache line for Hit or Miss structure
+
 
     if (!directMapped)
     {
-        primitiveGateCount += 2 ^ cacheLines / 4; // control Unit for each cache line (multiplexer) for 4 way associative
-        primitiveGateCount += cacheLineSize * 8 * 5;
-        primitiveGateCount *= cacheLines;
+        int extra = 0; // extra gates for 4 way associative
+        extra += 2 ^ cacheLines / 4; // control Unit for each cache line (multiplexer) for 4 way associative
+        extra += cacheLineSize * 8 * 5;
+        extra *= cacheLines;
+        primitiveGateCount += extra;
         primitiveGateCount += 150 * cacheLines / 4; // LRU Unit for each cache line for 4 way associative
     }
     else
