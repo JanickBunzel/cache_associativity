@@ -27,5 +27,6 @@ Cpu::Cpu(sc_module_name name, int _numRequests, Request *_requests)
     : sc_module(name), numRequests(_numRequests), requests(_requests)
 {
     SC_THREAD(handleRequests);
+    dont_initialize();
     sensitive << clk.pos();
 }
