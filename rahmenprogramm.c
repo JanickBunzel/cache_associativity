@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
         cacheConfig.tracefile);
 
     // Print the result
-    printf("Simulation Result:\n");
+    printf("\nSimulation Result:\n");
     printf(" - Cycles: %zu\n", result.cycles);
     printf(" - Cache misses: %zu\n", result.misses);
     printf(" - Cache hits: %zu\n", result.hits);

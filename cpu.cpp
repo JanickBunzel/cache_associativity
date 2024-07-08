@@ -7,11 +7,11 @@ void Cpu::handleRequests()
         // Wait for the cache to be done processing
         while (!cacheDone.read())
         {
-            std::cout << "warten bis cache fertig ist: i:" << i << std::endl;
+            std::cout << "[Cpu]: : " << "warten bis cache fertig ist: i:" << i << std::endl;
             wait();
         }
 
-        std::cout << "Nächste Adresse" << std::endl;
+        std::cout << "[Cpu]: " << "Nächste Adresse: i: " << i << std::endl;
         // Pass the next request to the cache
         addr.write(requests[i].addr);
         wdata.write(requests[i].data);
@@ -20,7 +20,7 @@ void Cpu::handleRequests()
         wait();
     }
 
-    cpuDone.write(false);
+    cpuDone.write(true);
 }
 
 Cpu::Cpu(sc_module_name name, int _numRequests, Request *_requests)

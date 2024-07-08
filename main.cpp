@@ -38,7 +38,7 @@ int sc_main(int argc, char *argv[])
     sc_signal<bool> cpu_done_signal;
     cpu_inst.cpuDone(cpu_done_signal);
     cache_inst.cpuDone(cpu_done_signal);
-    cpu_done_signal.write(true);
+    cpu_done_signal.write(false);
 
     // Signals to pass requests to cache
     // - Address of the next request
