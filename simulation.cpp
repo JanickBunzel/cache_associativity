@@ -1,7 +1,7 @@
 #include <systemc.h>
 #include "request.h"
 #include "result.h"
-#include "testbench.hpp"
+#include "cpu.hpp"
 #include <sstream>
 
 int cycles;

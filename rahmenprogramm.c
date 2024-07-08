@@ -260,8 +260,7 @@ void print_cacheConfig(CacheConfig cacheConfig)
 {
     printf("\nCache Configuration:\n");
     printf("  - Cycles: %d\n", cacheConfig.cycles);
-    printf("  - Direct mapped: %d\n", cacheConfig.directmapped);
-    printf("  - Four way: %d\n", cacheConfig.fourway);
+    printf("  - DirectMapped/Fourway: %s\n", cacheConfig.directmapped ? "DirectMapped" : "Fourway");
     printf("  - Cacheline size: %d\n", cacheConfig.cachelineSize);
     printf("  - Cachelines: %d\n", cacheConfig.cachelines);
     printf("  - Cache latency: %d\n", cacheConfig.cacheLatency);

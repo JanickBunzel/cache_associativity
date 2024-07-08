@@ -1,6 +1,6 @@
-#include "testbench.hpp"
+#include "cpu.hpp"
 
-void testbench::nextRequest()
+void cpu::nextRequest()
 {
     for (int i = 0; i < numRequests; i++)
     {
@@ -18,7 +18,7 @@ void testbench::nextRequest()
     }
 }
 
-testbench::testbench(sc_module_name name, int _numRequests, Request *_requests)
+cpu::cpu(sc_module_name name, int _numRequests, Request *_requests)
     : sc_module(name), numRequests(_numRequests), requests(_requests)
 {
     SC_THREAD(nextRequest);

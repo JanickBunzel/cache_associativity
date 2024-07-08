@@ -2,7 +2,7 @@
 #include "request.h"
 #include "result.h"
 #include "cache.hpp"
-#include "testbench.hpp"
+#include "cpu.hpp"
 #include <sstream>
 
 extern int cycles;
@@ -23,26 +23,26 @@ int sc_main(int argc, char *argv[])
 
     sc_clock clk("clk", 1, SC_NS);
 
-    // Initialize and connect cache and testbench to the clock
+    // Initialize and connect cache and cpu to the clock
     Cache cache_inst("cache_inst", directMapped, cacheLines, cacheLineSize, cacheLatency, memoryLatency);
     cache_inst.clk(clk);
-    testbench testbench_inst("testbench_inst", numRequests, requests);
-    testbench_inst.clk(clk);
+    cpu cpu_inst("cpu_inst", numRequests, requests);
+    cpu_inst.clk(clk);
 
     // Signals to pass requests to cache
     // - Address of the next request
     sc_signal<sc_uint<32>> addr_signal;
-    testbench_inst.addr(addr_signal);
+    cpu_inst.addr(addr_signal);
     cache_inst.addr(addr_signal);
 
     // - Value of the next request
     sc_signal<sc_uint<32>> data_signal;
-    testbench_inst.wdata(data_signal);
+    cpu_inst.wdata(data_signal);
     cache_inst.wdata(data_signal);
 
     // - Write or read request
     sc_signal<bool> we_signal;
-    testbench_inst.we(we_signal);
+    cpu_inst.we(we_signal);
     cache_inst.we(we_signal);
 
     // Start the simulation with the given number of cycles
