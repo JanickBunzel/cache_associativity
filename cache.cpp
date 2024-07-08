@@ -35,7 +35,7 @@ void Cache::cache_access()
         wait(SC_ZERO_TIME);
 
         // set done signal to false inndicating that the cache is processing the request
-        std::cout << "[Cache]: " << "cache process anfangen adresse: " << addr.read() << std::endl;
+        std::cout << "[Cache]: " << "Startin processing request with adress: " << addr.read() << std::endl;
         cacheDone.write(false);
 
         // Read address from the address bus
@@ -64,6 +64,7 @@ void Cache::cache_access()
                     for (int i = 0; i < cacheLatency; i++)
                     {
                         wait();
+                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
                 // Cache MISS
@@ -81,6 +82,7 @@ void Cache::cache_access()
                     for (int i = 0; i < cacheLatency + memoryLatency; i++)
                     {
                         wait();
+                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
             }
@@ -110,6 +112,7 @@ void Cache::cache_access()
                 for (int i = 0; i < cacheLatency; i++)
                 {
                     wait();
+                    std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                 }
             }
         }
@@ -139,6 +142,7 @@ void Cache::cache_access()
                     for (int i = 0; i < cacheLatency; i++)
                     {
                         wait();
+                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
                 // CACHE MISS
@@ -171,6 +175,7 @@ void Cache::cache_access()
                     for (int i = 0; i < cacheLatency + memoryLatency; i++)
                     {
                         wait();
+                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
             }
@@ -194,6 +199,7 @@ void Cache::cache_access()
                     for (int i = 0; i < cacheLatency; i++)
                     {
                         wait();
+                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
                 // CACHE MISS
@@ -227,13 +233,14 @@ void Cache::cache_access()
                     for (int i = 0; i < cacheLatency + memoryLatency; i++)
                     {
                         wait();
+                        std::cout << "[Cache]: " << "Waited cycles:" << i+1 << std::endl;
                     }
                 }
             }
         }
 
         // Set done signal to true indicating that the cache has finished processing the request
-        std::cout << "[Cache]: " << "cache process fertig" << std::endl;
+        std::cout << "[Cache]: " << "Cache done processing request with adress: " << address << std::endl;
         cacheDone.write(true);
 
         // Wait for the clock tick
