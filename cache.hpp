@@ -43,10 +43,9 @@ public:
 
     // Method declarations
     void cache_access();
+    bool directmapped_access(int index, int tag);
+    bool fourway_access(int index, int tag);
     void lru_replacement(unsigned index);
-    int search_tag_in_set(sc_uint<32> tag, unsigned set_index);
-    int search_free_line_in_set(unsigned set_index);
-    int search_least_recently_used_line(unsigned set_index);
 
     // Standardkonstruktor für die Cache-Klasse.
     SC_CTOR(Cache);
