@@ -12,12 +12,12 @@ MAINCXX := main.cpp
 # cache related files
 CACHE := cache.hpp
 CACHEIMP := cache.cpp
+MEMORY := memory.hpp
+MEMORYIMP := memory.cpp
 CACHELINE := cacheLine.h
 CACHLINEIMP := cacheLine.cpp
 DIRECTMAPPEDCACHE := directMappedCache.h
 DIRECTMAPPEDCACHEIMP := directMappedCache.cpp
-
-
 
 # cpu related files
 CPU := cpu.hpp
@@ -34,7 +34,7 @@ SCPATH = ../systemc
 
 # Define the object files
 C_OBJS := $(MAINC:.c=.o)
-CXX_OBJS := $(MAINCXX:.cpp=.o) $(CACHEIMP:.cpp=.o) $(CPUIMP:.cpp=.o) $(SIM:.cpp=.o) $(CACHELINE:.cpp=.o) $(DIRECTMAPPEDCACHEIMP:.cpp=.o)
+CXX_OBJS := $(MAINCXX:.cpp=.o) $(CACHEIMP:.cpp=.o) $(CPUIMP:.cpp=.o) $(SIM:.cpp=.o) $(CACHELINEIMP:.cpp=.o) $(DIRECTMAPPEDCACHEIMP:.cpp=.o) $(MEMORYIMP:.cpp=.o)
 
 # Additional flags for the compiler
 # -std=c++14: This flag specifies the C++ standard to be used by the compiler. In this case, it tells the compiler to use the C++14 standard.
