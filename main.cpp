@@ -17,6 +17,8 @@ extern const char *tracefile;
 
 Result simulationResult;
 
+int primitiveGateCount();
+
 int sc_main(int argc, char *argv[])
 {
     sc_clock clk("clk", 1, SC_NS);
@@ -76,6 +78,34 @@ int sc_main(int argc, char *argv[])
     simulationResult.cycles = cache_inst.cycles;
     simulationResult.misses = cache_inst.misses;
     simulationResult.hits = cache_inst.hits;
+    simulationResult.primitiveGateCount = primitiveGateCount();
 
     return 0;
+}
+
+int primitiveGateCount()
+{
+    int primitiveGateCount = 0;
+
+    primitiveGateCount = cacheLineSize * 8 * 5;             // 5 gates per Flip Flop one FLip Flop for each bit of the cache line * 8 in byte
+    primitiveGateCount *= cacheLines;                       // multiply with the number of cache lines
+    primitiveGateCount += cacheLines * 2 ^ cacheLineSize;   // control Unit for each cache line (multiplexer)
+    primitiveGateCount += 150 * cacheLines * cacheLineSize; // 150 gates for each cache line for adding
+    primitiveGateCount += 150 * cacheLines;                 // 150 gates for each cache line for Hit or Miss structure
+
+    if (directMapped)
+    {
+        primitiveGateCount += 2 ^ cacheLines; // control Unit for each cache line (multiplexer)
+    }
+    else
+    {
+        int extra = 0;               // extra gates for 4 way associative
+        extra += 2 ^ cacheLines / 4; // control Unit for each cache line (multiplexer) for 4 way associative
+        extra += cacheLineSize * 8 * 5;
+        extra *= cacheLines;
+        primitiveGateCount += extra;
+        primitiveGateCount += 150 * cacheLines / 4; // LRU Unit for each cache line for 4 way associative
+    }
+
+    return primitiveGateCount;
 }
