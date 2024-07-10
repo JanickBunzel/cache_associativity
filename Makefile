@@ -14,8 +14,14 @@ MEMORY := src/memory.hpp
 MEMORYIMP := src/memory.cpp
 CACHELINE := src/cacheLine.h
 CACHELINEIMP := src/cacheLine.cpp
-DIRECTMAPPEDCACHE := src/directMappedCache.h
-DIRECTMAPPEDCACHEIMP := src/directMappedCache.cpp
+CACHE := src/cache.h
+CACHEIMP := src/cache.cpp
+DIRECTMAPPEDCACHEPOLY := src/directMappedCachePoly.h
+DIRECTMAPPEDCACHEPOLYIMP := src/directMappedCachePoly.cpp
+FOURWAYMAPPEDCACHEPOLY := src/fourWayMappedCachePoly.h
+FOURWAYMAPPEDCACHEPOLYIMP := src/fourWayMappedCachePoly.cpp
+#DIRECTMAPPEDCACHE := src/directMappedCache.h
+#DIRECTMAPPEDCACHEIMP := src/directMappedCache.cpp
 
 # cpu related files
 CPU := src/cpu.hpp
@@ -32,7 +38,7 @@ SCPATH = $(SYSTEMC_HOME)
 
 # Define the object files
 C_OBJS := $(MAINC:.c=.o)
-CXX_OBJS := $(MAINCXX:.cpp=.o) $(CPUIMP:.cpp=.o) $(SIM:.cpp=.o) $(CACHELINEIMP:.cpp=.o) $(DIRECTMAPPEDCACHEIMP:.cpp=.o) $(MEMORYIMP:.cpp=.o)
+CXX_OBJS := $(MAINCXX:.cpp=.o) $(CPUIMP:.cpp=.o) $(SIM:.cpp=.o) $(CACHELINEIMP:.cpp=.o)  $(MEMORYIMP:.cpp=.o) $(CACHEIMP:.cpp=.o) $(FOURWAYMAPPEDCACHEPOLYIMP:.cpp=.o) $(DIRECTMAPPEDCACHEPOLYIMP:.cpp=.o)
 
 # Additional flags for the compiler
 # -std=c++14: This flag specifies the C++ standard to be used by the compiler. In this case, it tells the compiler to use the C++14 standard.

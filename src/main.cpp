@@ -2,8 +2,9 @@
 #include "request.h"
 #include "result.h"
 #include "cpu.hpp"
-#include "directMappedCache.h"
 #include "memory.h"
+#include "cache.h"
+#include "directMappedCachePoly.h"
 
 extern int cycles;
 extern int directMapped;
@@ -24,8 +25,8 @@ int sc_main(int argc, char *argv[])
     sc_clock clk("clk", 1, SC_NS);
 
     // ----- Cache ----- //
-    DirectMappedCache cache("cache_inst", cacheLines, cacheLatency, cacheLineSize);
-    cache.clkCACHEIn(clk);
+    Cache* cache = new DirectMappedCachePoly("cache_inst", cacheLines, cacheLatency, cacheLineSize);
+    cache->clkCACHEIn(clk);
 
     // ----- CPU ----- //
     Cpu cpu("cpu_inst", requests, numRequests);
@@ -40,45 +41,45 @@ int sc_main(int argc, char *argv[])
     // - Cache done signal
     sc_signal<bool> cacheDoneSignal;
     cpu.cacheDoneCPUIn(cacheDoneSignal);
-    cache.cacheDoneCACHEOut(cacheDoneSignal);
+    cache->cacheDoneCACHEOut(cacheDoneSignal);
     // - Address of the next request
     sc_signal<sc_uint<32>> cacheAdressSignal;
     cpu.addressCPUOut(cacheAdressSignal);
-    cache.cacheAddressCACHEIn(cacheAdressSignal);
+    cache->cacheAddressCACHEIn(cacheAdressSignal);
     // - Value of the next request
     sc_signal<sc_uint<32>> cacheWriteDataSignal;
     cpu.writeDataCPUOut(cacheWriteDataSignal);
-    cache.cacheWriteDataCACHEIn(cacheWriteDataSignal);
+    cache->cacheWriteDataCACHEIn(cacheWriteDataSignal);
     // - Write or read request
     sc_signal<bool> cacheWriteEnableSignal;
     cpu.writeEnableCPUOut(cacheWriteEnableSignal);
-    cache.cacheWriteEnableCACHEIn(cacheWriteEnableSignal);
+    cache->cacheWriteEnableCACHEIn(cacheWriteEnableSignal);
     // - Cache read data
     sc_signal<sc_uint<8>> cacheReadDataSignal;
     cpu.cacheReadDataCPUIn(cacheReadDataSignal);
-    cache.cacheReadDataCACHEOut(cacheReadDataSignal);
+    cache->cacheReadDataCACHEOut(cacheReadDataSignal);
 
     // ----- Signals Memory ----- //
 
     // - Memory done signal
     sc_signal<bool> memoryDoneSignal;
-    cache.memoryDoneCACHEIn(memoryDoneSignal);
+    cache->memoryDoneCACHEIn(memoryDoneSignal);
     memory.doneMEMORYOut(memoryDoneSignal);
     // - Address of the memory request
     sc_signal<sc_uint<32>> memoryAddressSignal;
-    cache.memoryAddressCACHEOut(memoryAddressSignal);
+    cache->memoryAddressCACHEOut(memoryAddressSignal);
     memory.addressMEMORYIn(memoryAddressSignal);
     // - Value of the memory write request
     sc_signal<sc_uint<32>> memoryWriteDataSignal;
-    cache.memoryWriteDataCACHEOut(memoryWriteDataSignal);
+    cache->memoryWriteDataCACHEOut(memoryWriteDataSignal);
     memory.writeDataMEMORYIn(memoryWriteDataSignal);
     // - Write memory signal
     sc_signal<bool> memoryWriteEnableSignal;
-    cache.memoryWriteEnableCACHEOut(memoryWriteEnableSignal);
+    cache->memoryWriteEnableCACHEOut(memoryWriteEnableSignal);
     memory.writeEnableMEMORYIn(memoryWriteEnableSignal);
     // - Memory enable signal
     sc_signal<bool> memoryEnableSignal;
-    cache.memoryEnableCACHEOut(memoryEnableSignal);
+    cache->memoryEnableCACHEOut(memoryEnableSignal);
     memory.enableMEMORYIn(memoryEnableSignal);
     // - Memory read data
     std::vector<sc_signal<sc_uint<8>> *> memoryReadDataSignals(cacheLineSize, nullptr);
@@ -90,7 +91,7 @@ int sc_main(int argc, char *argv[])
     for (size_t i = 0; i < cacheLineSize; i++)
     {
         auto signal = memoryReadDataSignals[i];
-        cache.memoryReadDataCACHEIn[i](*signal);
+        cache->memoryReadDataCACHEIn[i](*signal);
     }
     for (size_t i = 0; i < cacheLineSize; i++)
     {
@@ -130,8 +131,8 @@ int sc_main(int argc, char *argv[])
 
     // Store the simulation results after the simulation has finished
     simulationResult.cycles = cpu.cpuStatistics.cycles;
-    simulationResult.misses = cache.statistics.misses;
-    simulationResult.hits = cache.statistics.hits;
+    simulationResult.misses = cache->statistics.misses;
+    simulationResult.hits = cache->statistics.hits;
     simulationResult.primitiveGateCount = primitiveGateCount();
 
     // Clean up dynamically allocated memory
@@ -139,6 +140,7 @@ int sc_main(int argc, char *argv[])
     {
         delete signal;
     }
+    delete cache;
 
     return 0;
 }
