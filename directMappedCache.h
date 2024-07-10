@@ -68,6 +68,7 @@ SC_MODULE(DirectMappedCache)
 
     void cacheAccess();
     void printCache();
+    void printBits();
 
     SC_CTOR(DirectMappedCache);
 

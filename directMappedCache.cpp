@@ -1,10 +1,12 @@
 #include "directMappedCache.h"
+#include <iostream>
+#include <cmath>
 
 DirectMappedCache::DirectMappedCache(sc_module_name name, unsigned cacheSize,const unsigned cacheLatency, const unsigned cacheLineSize)
 : sc_module(name), statistics({0,0,0,0,0}), bits({0,0,0}), cacheLatency(cacheLatency), cacheLineSize(cacheLineSize), memoryReadDataCACHEIn(cacheLineSize)
 {
-    bits.offset = log(cacheLineSize);
-    bits.index = log(cacheSize);
+    bits.offset = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cacheLineSize))));
+    bits.index = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cacheSize))));
     bits.tag = 32 - bits.offset - bits.index;
 
     for (unsigned i = 0; i < cacheSize; ++i)
@@ -15,6 +17,9 @@ DirectMappedCache::DirectMappedCache(sc_module_name name, unsigned cacheSize,con
     SC_THREAD(cacheAccess);
     dont_initialize();
     sensitive << clkCACHEIn.pos();
+
+    printBits();
+    printCache();
 }
 
 void DirectMappedCache::cacheAccess()
@@ -155,5 +160,15 @@ void DirectMappedCache::printCache()
     std::cout << "Accesses: " << statistics.accesses << std::endl;
     std::cout << "Writes: " << statistics.writes << std::endl;
     std::cout << "Reads: " << statistics.reads << std::endl;
+    std::cout << "----------------------------------------" << std::endl;
+}
+
+void DirectMappedCache::printBits()
+{
+    std::cout << "Bits:" << std::endl;
+    std::cout << "----------------------------------------" << std::endl;
+    std::cout << "Offset: " << bits.offset << std::endl;
+    std::cout << "Index: " << bits.index << std::endl;
+    std::cout << "Tag: " << bits.tag << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 }
