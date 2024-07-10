@@ -37,6 +37,10 @@ int sc_main(int argc, char *argv[])
 
     // ----- Signals Cache ----- //
 
+    // - Cache done signal
+    sc_signal<bool> cacheDoneSignal;
+    cpu.cacheDoneCPUIn(cacheDoneSignal);
+    cache.cacheDoneCACHEOut(cacheDoneSignal);
     // - Address of the next request
     sc_signal<sc_uint<32>> cacheAdressSignal;
     cpu.addressCPUOut(cacheAdressSignal);
@@ -53,12 +57,13 @@ int sc_main(int argc, char *argv[])
     sc_signal<sc_uint<8>> cacheReadDataSignal;
     cpu.cacheReadDataCPUIn(cacheReadDataSignal);
     cache.cacheReadDataCACHEOut(cacheReadDataSignal);
-    // - Cache done signal
-    sc_signal<bool> cacheDoneSignal;
-    cpu.cacheDoneCPUIn(cacheDoneSignal);
-    cache.cacheDoneCACHEOut(cacheDoneSignal);
+
     // ----- Signals Memory ----- //
 
+    // - Memory done signal
+    sc_signal<bool> memoryDoneSignal;
+    cache.memoryDoneCACHEIn(memoryDoneSignal);
+    memory.doneMEMORYOut(memoryDoneSignal);
     // - Address of the memory request
     sc_signal<sc_uint<32>> memoryAddressSignal;
     cache.memoryAddressCACHEOut(memoryAddressSignal);
@@ -76,39 +81,52 @@ int sc_main(int argc, char *argv[])
     cache.memoryEnableCACHEOut(memoryEnableSignal);
     memory.enableMEMORYIn(memoryEnableSignal);
     // - Memory read data
-    std::vector<sc_signal<sc_uint<8>>*> memoryReadDataSignals(cacheLineSize, nullptr);
-    for (size_t i = 0; i < cacheLineSize; i++) {
+    std::vector<sc_signal<sc_uint<8>> *> memoryReadDataSignals(cacheLineSize, nullptr);
+    // TODO Julian: 3 for loops in eine?
+    for (size_t i = 0; i < cacheLineSize; i++)
+    {
         memoryReadDataSignals[i] = new sc_signal<sc_uint<8>>();
     }
-    for (size_t i = 0; i < cacheLineSize; i++) {
+    for (size_t i = 0; i < cacheLineSize; i++)
+    {
         auto signal = memoryReadDataSignals[i];
         cache.memoryReadDataCACHEIn[i](*signal);
     }
-    for (size_t i = 0; i < cacheLineSize; i++) {
+    for (size_t i = 0; i < cacheLineSize; i++)
+    {
         auto signal = memoryReadDataSignals[i];
         memory.readDataMEMORYOut[i](*signal);
     }
-    // - Memory done signal
-    sc_signal<bool> memoryDoneSignal;
-    cache.memoryDoneCACHEIn(memoryDoneSignal);
-    memory.doneMEMORYOut(memoryDoneSignal);
 
-    // Create a tracefile to track the simulation signals
-    //sc_trace_file *tf;
-    //if (strcmp(tracefile, "") != 0) {
-    //    tf = sc_create_vcd_trace_file(tracefile);
-    //    sc_trace(tf, cache_done_signal, "cache_done_signal");
-    //    sc_trace(tf, cache_addr_signal, "addr_signal");
-    //    sc_trace(tf, cache_we_signal, "we_signal");
-    //}
+    // Create a tracefile to track all simulation signals
+    sc_trace_file *tf;
+    if (strcmp(tracefile, "") != 0)
+    {
+        tf = sc_create_vcd_trace_file(tracefile);
+        sc_trace(tf, cacheDoneSignal, "cacheDoneSignal");
+        sc_trace(tf, cacheAdressSignal, "cacheAdressSignal");
+        sc_trace(tf, cacheWriteDataSignal, "cacheWriteDataSignal");
+        sc_trace(tf, cacheWriteEnableSignal, "cacheWriteEnableSignal");
+        sc_trace(tf, cacheReadDataSignal, "cacheReadDataSignal");
+        sc_trace(tf, memoryAddressSignal, "memoryAddressSignal");
+        sc_trace(tf, memoryWriteDataSignal, "memoryWriteDataSignal");
+        sc_trace(tf, memoryWriteEnableSignal, "memoryWriteEnableSignal");
+        sc_trace(tf, memoryEnableSignal, "memoryEnableSignal");
+        sc_trace(tf, memoryDoneSignal, "memoryDoneSignal");
+        for (size_t i = 0; i < cacheLineSize; i++)
+        {
+            sc_trace(tf, memoryReadDataSignals[i], "memoryReadDataSignal" + std::to_string(i));
+        }
+    }
 
     // Start the simulation with the given number of cycles
     sc_start(cycles, SC_NS);
 
     // Close the tracefile
-    //if (strcmp(tracefile, "") != 0) {
-    //    sc_close_vcd_trace_file(tf);
-    //}
+    if (strcmp(tracefile, "") != 0)
+    {
+        sc_close_vcd_trace_file(tf);
+    }
 
     // Store the simulation results after the simulation has finished
     simulationResult.cycles = cpu.cpuStatistics.cycles;
@@ -117,7 +135,8 @@ int sc_main(int argc, char *argv[])
     simulationResult.primitiveGateCount = primitiveGateCount();
 
     // Clean up dynamically allocated memory
-    for (auto signal : memoryReadDataSignals) {
+    for (auto signal : memoryReadDataSignals)
+    {
         delete signal;
     }
 

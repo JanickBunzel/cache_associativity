@@ -16,7 +16,7 @@
 - [x] Simulation starten (run_simulation in c++)
 - [x] Hex oder Dezimal als Adresse oder Wert in CSV richtig verarbeiten
 - [x] Default Werte für Optionen setzen
-- [ ] Leerzeichen zwischen csv values checken
+- [x] Leerzeichen zwischen csv values checken
 
 
 ### SystemC Programm (3.3, s.5):
