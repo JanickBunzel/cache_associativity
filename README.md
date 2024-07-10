@@ -72,6 +72,7 @@
 - Wie muss ein write funktioneren, es werden ja keine Daten gespeichert, da wir ja keine Hintergrundspeicher haben, aus dem bei einem Cachmiss Daten geladen werden können.
 - Wie funktioniert ein Cache Hit beim schreiben
 - Write Request: Wann cache hit und wann miss?
+- Hat die CPU auch eine Zeit, die sie braucht um neue Daten zu schreiben?
 
 ### Code Style
 ```
