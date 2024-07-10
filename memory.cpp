@@ -6,6 +6,7 @@ Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cacheLineSi
 {
     SC_THREAD(memoryAccess);
     sensitive << clkMEMORYIn.pos();
+    printMemory();
 }
 
 // Write data to memory, crucial is that the data is written in the Little Endian order
@@ -46,7 +47,7 @@ void Memory::memoryAccess()
             //TODO: Passt das mit dem memoryLatency oder muss nicht -1?
             for (unsigned i = 0; i < memoryLatency - 1; ++i)
             {
-                std::cout << "[Memory] Waiting memoryLatency" << std::endl;
+                //std::cout << "[Memory] Waiting memoryLatency" << std::endl;
                 wait();
             }
             if (writeEnableMEMORYIn.read() == true)
@@ -59,8 +60,26 @@ void Memory::memoryAccess()
                 readDataMEMORYOut[i].write(dataWord[i]);
             }
             doneMEMORYOut.write(true);
-            std::cout << "[Memory] Done" << std::endl;
+            //std::cout << "[Memory] Done" << std::endl;
         }
         wait();
+    }
+}
+
+void Memory::printMemory()
+{
+    std::cout << "Memory Content:" << std::endl;
+    std::cout << "Address     Data (Hex)     Data (Binary)" << std::endl;
+    std::cout << "-----------------------------------------" << std::endl;
+
+    for (const auto& entry : memory)
+    {
+        auto address = entry.first;
+        auto data = entry.second;
+
+        std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << address
+                  << "   0x" << std::setw(2) << std::setfill('0') << std::hex << data.to_uint()
+                  << "       " << std::bitset<8>(data.to_uint())
+                  << std::dec << std::endl;
     }
 }

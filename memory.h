@@ -35,6 +35,7 @@ SC_MODULE(Memory)
     void memoryAccess();
     void write(unsigned memoryAddress, sc_uint<32> data);
     std::vector<sc_uint<8>> readBlock(unsigned address);
+    void printMemory();
 
     SC_CTOR(Memory);
 

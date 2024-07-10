@@ -26,7 +26,7 @@ void Cpu::handleRequests()
         while (cacheDone == false)
         {
             cpuStatistics.cycles++;
-            std::cout << "[Cpu]: Zyklus: " << cpuStatistics.cycles << std::endl;
+            //std::cout << "[Cpu]: Zyklus: " << cpuStatistics.cycles << std::endl;
             wait();
             cacheDone = cacheDoneCPUIn.read();
         }

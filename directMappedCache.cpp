@@ -31,7 +31,7 @@ void DirectMappedCache::cacheAccess()
         cacheDoneCACHEOut.write(false);
         this->statistics.accesses = this->statistics.accesses + 1;
 
-        std::cout << "[Cache] Accesses: " << this->statistics.accesses << std::endl;
+        //std::cout << "[Cache] Accesses: " << this->statistics.accesses << std::endl;
 
         if (bits.offset < 0 || bits.index < 0 || bits.offset + bits.index > 31) {
             std::cerr << "Error: offsetBits and/or indexBits are out of valid range." << std::endl;
@@ -55,19 +55,12 @@ void DirectMappedCache::cacheAccess()
             tag = address.range(31, bits.offset + bits.index);
         }
 
-        std::cout << cacheWriteEnableCACHEIn.read() << std::endl;
-        std::cout << address << std::endl;
-        std::cout << offset << std::endl;
-        std::cout << index << std::endl;
-        std::cout << tag << std::endl;
-        std::cout << cacheWriteDataCACHEIn.read() << std::endl;
-
         if (cacheWriteEnableCACHEIn.read() == 0)
         {
             this->statistics.reads = this->statistics.reads + 1;
             std::vector<sc_uint<8>> rdata;
             for (unsigned i = 0; i < cacheLatency - 1; i++) {
-                std::cout << "[Cache] Waiting cacheLatency" << std::endl;
+                //std::cout << "[Cache] Waiting cacheLatency" << std::endl;
                 wait();
                 wait(SC_ZERO_TIME);
             }
@@ -75,12 +68,12 @@ void DirectMappedCache::cacheAccess()
             if (hit)
             {
                 this->statistics.hits++;
-                std::cout << "[Cache] Hit" << std::endl;
+                //std::cout << "[Cache] Hit" << std::endl;
             }
             else
             {
                 this->statistics.misses++;
-                std::cout << "[Cache] Miss" << std::endl;
+                //std::cout << "[Cache] Miss" << std::endl;
                 memoryAddressCACHEOut.write(address);
                 memoryWriteDataCACHEOut.write(false);
                 memoryEnableCACHEOut.write(true);
@@ -102,9 +95,9 @@ void DirectMappedCache::cacheAccess()
         else if (cacheWriteEnableCACHEIn.read() == 1)
         {
             this->statistics.writes = this->statistics.writes + 1;
-            std::cout << "[Cache] Write" << std::endl;
+            //std::cout << "[Cache] Write" << std::endl;
             for (unsigned i = 0; i < cacheLatency - 1; ++i) {
-                std::cout << "[Cache] Waiting cacheLatency" << std::endl;
+                //std::cout << "[Cache] Waiting cacheLatency" << std::endl;
                 wait();
                 wait(SC_ZERO_TIME);
             }
@@ -112,7 +105,7 @@ void DirectMappedCache::cacheAccess()
             memoryWriteDataCACHEOut.write(cacheWriteDataCACHEIn.read());
             memoryWriteEnableCACHEOut.write(true);
             memoryEnableCACHEOut.write(true);
-            std::cout << "[Cache] Writing to memory" << std::endl;
+            //std::cout << "[Cache] Writing to memory" << std::endl;
             while (memoryDoneCACHEIn.read() == false)
             {
                 wait();
@@ -129,7 +122,7 @@ void DirectMappedCache::cacheAccess()
         }
         memoryEnableCACHEOut.write(false);
         cacheDoneCACHEOut.write(true);
-        std::cout << "[Cache] Done" << std::endl;
+        //std::cout << "[Cache] Done" << std::endl;
         printCache();
         wait();
     }
@@ -139,7 +132,7 @@ void DirectMappedCache::printCache()
 {
     std::cout << "Cache State:" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
-    std::cout << "Index\tTag\t\tValid\tLRU\tData" << std::endl;
+    std::cout << "Index\tTag\t\tValid\tLRU\tData (Hex/Binary)" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 
     for (unsigned i = 0; i < cacheLines.size(); ++i) {
@@ -148,7 +141,9 @@ void DirectMappedCache::printCache()
                   << cacheLines[i].valid << "\t"
                   << cacheLines[i].lru << "\t";
         for (const auto& byte : cacheLines[i].data) {
-            std::cout << byte.to_string(SC_HEX) << " ";
+            std::cout << "("
+                << byte.to_string(SC_HEX) << " / "
+                << byte.to_string(SC_BIN) << ") ";
         }
         std::cout << std::endl;
     }
@@ -162,6 +157,7 @@ void DirectMappedCache::printCache()
     std::cout << "Reads: " << statistics.reads << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 }
+
 
 void DirectMappedCache::printBits()
 {
