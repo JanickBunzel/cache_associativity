@@ -4,19 +4,22 @@ import random
 
 # region Config --------------------------------------------------------------------------------------------------
 
-WRITE_CSV = False
+WRITE_CSV = True
 
-PRINT_ARRAYS = False
+PRINT_ARRAYS = True
 
-ARRAY_SIZE = 100
+ARRAY_SIZE = 10
 ARRAY_MIN = 1
 ARRAY_MAX = 1000
 
-QUICKSORT_ENABLED = True
-QUICKSORT_OUTPUT = 'quicksort_requests.csv'
+QUICKSORT_ENABLED = False
+QUICKSORT_OUTPUT = 'examples/quicksort_requests.csv'
 
-MERGESORT_ENABLED = True
-MERGESORT_OUTPUT = 'mergesort_requests.csv'
+MERGESORT_ENABLED = False
+MERGESORT_OUTPUT = 'examples/mergesort_requests.csv'
+
+ITERATE_ENABLED = True
+ITERATE_OUTPUT = 'examples/iterate_requests.csv'
 
 # endregion Config -----------------------------------------------------------------------------------------------
 
@@ -30,6 +33,7 @@ def main():
 
     global firstAddress
     firstAddress = random.randint(0x10000000, 0xFFFFFFF0)
+    firstAddress &= ~0xF  # Align to 16 bytes
     print("\nFirst address:", hex(firstAddress), "\n")
 
     array = [random.randint(ARRAY_MIN, ARRAY_MAX) for _ in range(ARRAY_SIZE)]
@@ -58,15 +62,24 @@ def main():
             print("Merge Sort array is:", arraySorted, "\n")
         print("Merge Sort Reads:", reads)
         print("Merge Sort Writes:", writes, "\n")
+    
+    # Iterate
+    if ITERATE_ENABLED:
+        reads = 0
+        writes = 0
+        iterate_array(array, ITERATE_OUTPUT)
+        if PRINT_ARRAYS:
+            print("Iterated array is:", array, "\n")
+        print("Iterate Reads:", reads)
+        print("Iterate Writes:", writes, "\n")
 
 def getAddress(index):
-    return hex(firstAddress + index*4)
+    return hex(firstAddress + index * 4)
 
 def writeLine(filename, data):
     with open(filename, 'a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(data)
-
 # endregion Main
 
 
@@ -146,7 +159,7 @@ def merge(arr, l, m, r, filename):
         k += 1
         writes += 1
         if WRITE_CSV:
-            writeLine(filename, ['W', getAddress(k-1), arr[k-1]])
+            writeLine(filename, ['W', getAddress(k - 1), arr[k - 1]])
 
     while j < n2:
         arr[k] = R[j]
@@ -154,7 +167,7 @@ def merge(arr, l, m, r, filename):
         k += 1
         writes += 1
         if WRITE_CSV:
-            writeLine(filename, ['W', getAddress(k-1), arr[k-1]])
+            writeLine(filename, ['W', getAddress(k - 1), arr[k - 1]])
 
 def merge_sort_helper(arr, l, r, filename):
     if l < r:
@@ -168,6 +181,19 @@ def merge_sort(arr, filename):
         file.write('')  # Truncate the file to make sure it starts empty
     merge_sort_helper(arr, 0, len(arr) - 1, filename)
 # endregion Merge Sort
+
+
+
+# region Iterate
+def iterate_array(arr, filename):
+    global reads
+    with open(filename, mode='w', newline='') as file:
+        file.write('')  # Truncate the file to make sure it starts empty
+    for index, value in enumerate(arr):
+        reads += 1
+        if WRITE_CSV:
+            writeLine(filename, ['R', getAddress(index)])
+# endregion Iterate
 
 
 
