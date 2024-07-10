@@ -10,8 +10,8 @@ MAINC := src/rahmenprogramm.c
 MAINCXX := src/main.cpp
 
 # cache related files
-CACHE := src/cache.hpp
-CACHEIMP := src/cache.cpp
+CACHE := src/directMappedCache.hpp
+CACHEIMP := src/directMappedCache.cpp
 MEMORY := src/memory.hpp
 MEMORYIMP := src/memory.cpp
 CACHELINE := src/cacheLine.h
