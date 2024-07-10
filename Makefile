@@ -6,28 +6,28 @@
 EXECUTABLE := cache_simulation
 
 # entry point for the program and target name
-MAINC := rahmenprogramm.c
-MAINCXX := main.cpp
+MAINC := src/rahmenprogramm.c
+MAINCXX := src/main.cpp
 
 # cache related files
-CACHE := cache.hpp
-CACHEIMP := cache.cpp
-MEMORY := memory.hpp
-MEMORYIMP := memory.cpp
-CACHELINE := cacheLine.h
-CACHELINEIMP := cacheLine.cpp
-DIRECTMAPPEDCACHE := directMappedCache.h
-DIRECTMAPPEDCACHEIMP := directMappedCache.cpp
+CACHE := src/cache.hpp
+CACHEIMP := src/cache.cpp
+MEMORY := src/memory.hpp
+MEMORYIMP := src/memory.cpp
+CACHELINE := src/cacheLine.h
+CACHELINEIMP := src/cacheLine.cpp
+DIRECTMAPPEDCACHE := src/directMappedCache.h
+DIRECTMAPPEDCACHEIMP := src/directMappedCache.cpp
 
 # cpu related files
-CPU := cpu.hpp
-CPUIMP := cpu.cpp
+CPU := src/cpu.hpp
+CPUIMP := src/cpu.cpp
 
 # tracefiles
 TRACEFILES := *.vcd
 
 # simulation handler in c++
-SIM := simulation.cpp
+SIM := src/simulation.cpp
 
 # Path to our systemc installation
 SCPATH = $(SYSTEMC_HOME)
