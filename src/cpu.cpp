@@ -16,7 +16,9 @@ void Cpu::handleRequests()
     for (int i = 0; i < requestLength; i++)
     {
         cpuStatistics.requests++;
-        std::cout << "[Cpu]: " << "Request mit adresse: " << requests[i].addr << " wurde gestartet! Warte auf Cache..." << std::endl;
+        std::cout << "##########################################################################################################################################################################################################################################################" << std::endl;
+        std::cout << "[Cpu]: Request[" << i << "]: " << (requests[i].we ? "W," : "R,") << requests[i].addr << "," << (requests[i].we ? std::to_string(requests[i].data) : "") << std::endl;
+        std::cout << "##########################################################################################################################################################################################################################################################" << std::endl;
 
         // Send the request to the cache
         addressCPUOut.write(requests[i].addr);

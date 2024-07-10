@@ -61,6 +61,7 @@ void Memory::memoryAccess()
             }
             doneMEMORYOut.write(true);
             //std::cout << "[Memory] Done" << std::endl;
+            printMemory();
         }
         wait();
     }
@@ -72,10 +73,18 @@ void Memory::printMemory()
     std::cout << "Address     Data (Hex)     Data (Binary)" << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
 
-    for (const auto& entry : memory)
+    // Copy memory entries to a vector and sort them by address
+    std::vector<std::pair<unsigned, sc_uint<8>>> sorted_memory(memory.begin(), memory.end());
+    std::sort(sorted_memory.begin(), sorted_memory.end(),
+              [](const std::pair<unsigned, sc_uint<8>>& a, const std::pair<unsigned, sc_uint<8>>& b) {
+                  return a.first < b.first;
+              });
+
+    // Print sorted memory
+    for (const auto& entry : sorted_memory)
     {
-        auto address = entry.first;
-        auto data = entry.second;
+        unsigned address = entry.first;
+        sc_uint<8> data = entry.second;
 
         std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << address
                   << "   0x" << std::setw(2) << std::setfill('0') << std::hex << data.to_uint()

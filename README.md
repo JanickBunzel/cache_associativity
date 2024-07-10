@@ -65,6 +65,7 @@
 ### Finish Up:
 - [x] SystemC Path aus _evironment variable_ lesen (statt zurzeit workspace folder) -> Zulip
 - [ ] Auf _Rechnerhalle_ compilieren!
+- [ ] Cycles richtig handlen (Aufgabenstellung)
 - [ ] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments
 - [ ] Alle TODO's im Code aufräumen
 
