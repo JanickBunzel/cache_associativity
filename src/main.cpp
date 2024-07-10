@@ -51,7 +51,7 @@ int sc_main(int argc, char *argv[])
     cache.cacheWriteEnableCACHEIn(cacheWriteEnableSignal);
     // - Cache read data
     sc_signal<sc_uint<8>> cacheReadDataSignal;
-    cpu.cacheReadDateCPUIn(cacheReadDataSignal);
+    cpu.cacheReadDataCPUIn(cacheReadDataSignal);
     cache.cacheReadDataCACHEOut(cacheReadDataSignal);
     // - Cache done signal
     sc_signal<bool> cacheDoneSignal;
