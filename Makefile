@@ -30,7 +30,7 @@ TRACEFILES := *.vcd
 SIM := simulation.cpp
 
 # Path to our systemc installation
-SCPATH = ../systemc
+SCPATH = $(SYSTEMC_HOME)
 
 # Define the object files
 C_OBJS := $(MAINC:.c=.o)
@@ -42,8 +42,8 @@ CXX_OBJS := $(MAINCXX:.cpp=.o) $(CACHEIMP:.cpp=.o) $(CPUIMP:.cpp=.o) $(SIM:.cpp=
 # -L$(SCPATH)/lib: The -L flag adds a directory to the list of directories to be searched for libraries during linking. Similar to the -I flag, $(SCPATH) is a variable that holds the path to the sysC directory, and /lib is appended to point to the library directory within that path. This tells the linker to look in $(SCPATH)/lib for any libraries it needs to link against our program.d
 # -lsystemc: The -l flag specifies a library to be linked. In this case, -lsystemc tells the linker to link against the systemc library. The linker will search for a file named libsystemc.so (on Unix-like systems) or libsystemc.a in the directories specified by the -L flags.
 # -lm: Similar to -lsystemc, the -lm flag tells the linker to link against the math library. This is a standard library provided by the system for mathematical functions, and the linker will search for a file named libm.so (on Unix-like systems) or libm.a.
-CXXFLAGS := -std=c++14 -I$(SCPATH)/include
-LDFLAGS := -L$(SCPATH)/lib -lsystemc -lm
+CXXFLAGS := -std=c++14 -I"$(SCPATH)/include"
+LDFLAGS := -L"$(SCPATH)/lib" -lsystemc -lm
 CFLAGS := -std=c18
 
 # ---------------------------------------

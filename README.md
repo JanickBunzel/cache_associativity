@@ -31,6 +31,7 @@
 
 ### Recherche (3.1, s.3):
 - [x] übliche Größen
+- [x] PrimitiveGateCount berechnen
 - [ ] direkt vs 4-fach
 - [ ] Speicherzugriffsverhalten eines speicherintensiven Algorithmus -> .csv Dateien mit Beispielen
 - [ ] Mit eigener Simulation Verhalten in Bezug auf Zugriffszeiten beobachten
@@ -48,8 +49,8 @@
 
 ### SystemC Programm (3.3, s.5):
 - [x] run_simulation connecten
-- [ ] **Makefile** erstellen, welches eine klare ausführbare main datei erstellt
-- [ ] **Tracefile** während der Simulation erstellen
+- [x] **Makefile** erstellen, welches eine klare ausführbare main datei erstellt
+- [x] **Tracefile** während der Simulation erstellen
 - [ ] **Cache** implementieren: direct & fourway
 
 ### Abzugebende Dateien (4, s.7):
@@ -62,13 +63,12 @@
 	- `slides.pdf` Einzige Datei für die Präsentation
 
 ### Finish Up:
-- [ ] SystemC Path aus _evironment variable_ lesen (statt zurzeit workspace folder) -> Zulip
-- [ ] Auf **Rechnerhalle** compilieren!
+- [x] SystemC Path aus _evironment variable_ lesen (statt zurzeit workspace folder) -> Zulip
+- [ ] Auf _Rechnerhalle_ compilieren!
 - [ ] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments
 - [ ] Alle TODO's im Code aufräumen
 
 ### Offene Fragen
-- Was muss im Tracefile angezeigt werden?
 - Wie muss ein write funktioneren, es werden ja keine Daten gespeichert, da wir ja keine Hintergrundspeicher haben, aus dem bei einem Cachmiss Daten geladen werden können.
 - Wie funktioniert ein Cache Hit beim schreiben
 - Write Request: Wann cache hit und wann miss?

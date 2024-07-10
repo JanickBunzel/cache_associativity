@@ -12,6 +12,7 @@ Cpu::Cpu(sc_module_name name, Request *requests, const int requestLength)
 void Cpu::handleRequests()
 {
     bool cacheDone = false;
+  
     for (int i = 0; i < requestLength; i++)
     {
         cpuStatistics.requests++;
@@ -30,6 +31,7 @@ void Cpu::handleRequests()
             wait();
             cacheDone = cacheDoneCPUIn.read();
         }
+
         cacheDone = false;
     }
 
