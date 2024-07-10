@@ -16,7 +16,7 @@ const char *tracefile;
 
 extern Result simulationResult;
 
-extern "C" struct Result run_simulation(
+extern "C" Result run_simulation(
     int _cycles,
     int _directMapped,
     unsigned _cacheLines,

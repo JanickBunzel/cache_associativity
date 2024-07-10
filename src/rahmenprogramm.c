@@ -24,15 +24,15 @@ typedef struct
 
 // Default cache configuration
 CacheConfig cacheConfig = {
-    .cycles = 3000,               // allows the cache to process 1000 requests (with a hit rate of 90%, and average cycles/request 3 as below)
-    .directmapped = 1,            // Using direct mapped cache as default
-    .fourway = 0,                 // Using direct mapped cache as default
-    .cachelineSize = 4,          // Standard size that balances spatial locality and overhead
-    .cachelines = 10,            // with each line of 64 bytes, this provides an 8KB cache
-    .cacheLatency = 5,            // quick access for first-level cache
-    .memoryLatency = 10,          // realistic gap between cache and main access time
-    .tracefile = "",              // name of the tracefile (optional)
-    .eingabedatei = NULL,         // input file needs to be provided
+    .cycles = 3000,       // allows the cache to process TODO requests (with a hit rate of TODO%, and average cycles/request TODO as below)
+    .directmapped = 1,    // Using direct mapped cache as default
+    .fourway = 0,         // Using direct mapped cache as default
+    .cachelineSize = 4,   // Standard size that balances spatial locality and overhead
+    .cachelines = 10,     // with each line of TODO bytes, this provides an TODOKB cache
+    .cacheLatency = 5,    // quick access for first-level cache
+    .memoryLatency = 10,  // realistic gap between cache and main access time
+    .tracefile = "",      // name of the tracefile (optional)
+    .eingabedatei = NULL, // input file needs to be provided
 };
 
 // Macro to handle request lines in the input file
@@ -42,7 +42,7 @@ int MAX_REQUEST_LINE_LENGTH = 256;
 CacheConfig arguments_to_cacheConfig(int argc, char *argv[]);
 void print_cacheConfig(CacheConfig cacheConfig);
 int count_lines_in_file(char *filename);
-struct Request *read_requests_from_file(int numRequests, char *filename);
+Request *read_requests_from_file(int numRequests, char *filename);
 void print_help_and_exit_with_error(char *errorMessage, ...);
 void print_help();
 int is_integer(char *str);
@@ -53,7 +53,7 @@ extern "C"
 {
 #endif
 
-    struct Result run_simulation(
+    Result run_simulation(
         int cycles,
         int directMapped,
         unsigned cacheLines,
@@ -61,20 +61,13 @@ extern "C"
         unsigned cacheLatency,
         unsigned memoryLatency,
         size_t numRequests,
-        struct Request requests[],
+        Request requests[],
         const char *tracefile);
 
 #ifdef __cplusplus
 }
 #endif
 
-/*
-    TODO: Remove this comment
-    Beispiele:
-    ./linked_program -c 1000 --fourway --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd r.csv
-    ./linked_program -c 1000 --directmapped --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd r.csv
-    ./rahmenprogramm -c 1000 --directmapped --cacheline-size 64 --cachelines 16 --cache-latency 2 --memory-latency 10 --tf tracefile.vcd r.csv
-*/
 int main(int argc, char *argv[])
 {
     // Process the given parameters
@@ -87,7 +80,7 @@ int main(int argc, char *argv[])
     int numRequests = count_lines_in_file(cacheConfig.eingabedatei);
 
     // Process the read and write requests
-    struct Request *requests = read_requests_from_file(numRequests, cacheConfig.eingabedatei);
+    Request *requests = read_requests_from_file(numRequests, cacheConfig.eingabedatei);
 
     // Run the SystemC simulation
     printf("Starting the SystemC Simulation...\n");
@@ -292,10 +285,10 @@ int count_lines_in_file(char *filename)
 }
 
 // Reads the requests from the given .csv file
-struct Request *read_requests_from_file(int numRequests, char *filename)
+Request *read_requests_from_file(int numRequests, char *filename)
 {
     // Allocate memory for the requests array
-    struct Request *requests = malloc(numRequests * sizeof(struct Request));
+    Request *requests = malloc(numRequests * sizeof(Request));
 
     FILE *file = fopen(filename, "r");
     if (file == NULL)
@@ -307,35 +300,68 @@ struct Request *read_requests_from_file(int numRequests, char *filename)
     char line[MAX_REQUEST_LINE_LENGTH];
     while (fgets(line, sizeof(line), file))
     {
-        char rw, addr[MAX_REQUEST_LINE_LENGTH], data[MAX_REQUEST_LINE_LENGTH], rest[MAX_REQUEST_LINE_LENGTH];
+        char rw;
+        unsigned int addr;
+        unsigned int data = 0; // Initialize data to 0, as it might not be present for read requests
+
+        // Remove any leading and trailing whitespace from the line
+        char *trimmedLine = line;
+        while (isspace((unsigned char)*trimmedLine))
+        {
+            trimmedLine++;
+        }
+        if (*trimmedLine == 0)
+        {
+            continue; // Skip empty lines
+        }
+
+        // Remove trailing whitespaces
+        char *end = trimmedLine + strlen(trimmedLine) - 1;
+        while (end > trimmedLine && isspace((unsigned char)*end))
+        {
+            end--;
+        }
+        end[1] = '\0';
 
         // Scan the format of the current line and store the entries in the local variables
-        int numEntries = sscanf(line, "%c,%[^,],%s", &rw, addr, data);
+        int numEntries = sscanf(trimmedLine, "%c , %x , %x", &rw, &addr, &data);
 
         // Check if the line is in the correct format
-        if (numEntries == 2 || numEntries == 3)
+        if (numEntries == 2)
         {
-            if (numEntries == 3 && rw == 'R')
-            {
-                // write request expected for 3 entries
-                print_help_and_exit_with_error("Error in Zeile %d: Bei einem Lesezugriff darf kein Wert übergeben werden\n", index + 1);
-            }
-            else if (numEntries == 2 && rw == 'W')
+            if (rw != 'R')
             {
                 // read request expected for 2 entries
                 print_help_and_exit_with_error("Error in Zeile %d: Bei einem Schreibzugriff muss ein Wert übergeben werden\n", index + 1);
             }
+            else
+            {
+                // Read request
+                requests[index].we = 0;
+                requests[index].addr = addr;
+                requests[index].data = 0; // No data for read requests
+            }
+        }
+        else if (numEntries == 3)
+        {
+            if (rw != 'W')
+            {
+                // write request expected for 3 entries
+                print_help_and_exit_with_error("Error in Zeile %d: Bei einem Lesezugriff darf kein Wert übergeben werden\n", index + 1);
+            }
+            else
+            {
+                // Write request
+                requests[index].we = 1;
+                requests[index].addr = addr;
+                requests[index].data = data;
+            }
         }
         else
         {
-            // invalid line format for more than 3 or less than 2 entries
+            // invalid line format
             print_help_and_exit_with_error("Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert>: %s\n", index + 1, line);
         }
-
-        // Store the entries in the current request, converting addr and data from hex or decimal string to uint32_t
-        requests[index].addr = (uint32_t)strtol(addr, NULL, strncmp(addr, "0x", 2) == 0 ? 16 : 10);
-        requests[index].data = (uint32_t)strtol(data, NULL, strncmp(data, "0x", 2) == 0 ? 16 : 10);
-        requests[index].we = rw == 'W' ? 1 : 0;
 
         index++;
     }
