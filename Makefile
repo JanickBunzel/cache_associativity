@@ -15,7 +15,7 @@ CACHEIMP := cache.cpp
 MEMORY := memory.hpp
 MEMORYIMP := memory.cpp
 CACHELINE := cacheLine.h
-CACHLINEIMP := cacheLine.cpp
+CACHELINEIMP := cacheLine.cpp
 DIRECTMAPPEDCACHE := directMappedCache.h
 DIRECTMAPPEDCACHEIMP := directMappedCache.cpp
 

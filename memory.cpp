@@ -1,49 +1,66 @@
 #include "memory.h"
 
-void Memory::write(sc_uint<> addr, sc_uint<32> data)
+// Default constructor
+Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cacheLineSize)
+: sc_module(name), memoryLatency(memoryLatency), cacheLineSize(cacheLineSize), readDataMEMORYOut(cacheLineSize)
 {
-    for (int i = 0; i < 4; ++i)
+    SC_THREAD(memoryAccess);
+    sensitive << clkMEMORYIn.pos();
+}
+
+// Write data to memory, crucial is that the data is written in the Little Endian order
+void Memory::write(unsigned memoryAddress, sc_uint<32> data)
+{
+    for (unsigned i = 0; i < 4; ++i)
     {
-        memory[addr + i] = (data >> (i * 8)) & 0xFF;
+        memory[memoryAddress + i] = (data >> (8 * i)) & 0xFF;
     }
 }
 
-sc_uint<32> Memory::read(unsigned addr)
+std::vector<sc_uint<8>> Memory::readBlock(unsigned memoryAddress)
 {
-    sc_uint<32> data = 0;
-    for (int i = 0; i < 4; ++i)
+    unsigned blockStartAddr = memoryAddress - (memoryAddress % cacheLineSize);
+
+    std::vector<sc_uint<8>> block(cacheLineSize);
+
+    for (unsigned i = 0; i < cacheLineSize; ++i)
     {
-        if (memory.find(addr + i) == memory.end())
+        unsigned currentAddr = blockStartAddr + i;
+        if (memory.find(currentAddr) == memory.end())
         {
-            sc_uint<8> arbitrary_data = rand() & 0xFF;
-            memory[addr + i] = arbitrary_data;
-            data |= arbitrary_data << (i * 8);
+            memory[currentAddr] = 0x00;
         }
-        else
-        {
-            data |= memory[addr + i] << (i * 8);
-        }
+        sc_uint<8> byte = memory[currentAddr];
+        block[i] = byte;
     }
-    return data;
+    return block;
 }
 
 void Memory::memoryAccess()
 {
     while (true)
     {
-        wait(); // Wait for the clock
-
-        if (we.read() == true) // Write operation
+        doneMEMORYOut.write(false);
+        if (enableMEMORYIn.read() == true)
         {
-            write(address.read().to_uint(), wdata.read());
-            wait(memoryLatency); // Simulate memory latency
-            memoryDone.write(true);
+            //TODO: Passt das mit dem memoryLatency oder muss nicht -1?
+            for (unsigned i = 0; i < memoryLatency - 1; ++i)
+            {
+                std::cout << "[Memory] Waiting memoryLatency" << std::endl;
+                wait();
+            }
+            if (writeEnableMEMORYIn.read() == true)
+            {
+                write(addressMEMORYIn.read().to_uint(), writeDataMEMORYIn.read());
+            }
+            std::vector<sc_uint<8>> dataWord = readBlock(addressMEMORYIn.read().to_uint());
+            for (unsigned i = 0; i < dataWord.size(); ++i)
+            {
+                readDataMEMORYOut[i].write(dataWord[i]);
+            }
+            doneMEMORYOut.write(true);
+            std::cout << "[Memory] Done" << std::endl;
         }
-        else // Read operation
-        {
-            rdata.write(read(address.read().to_uint()));
-            wait(memoryLatency); // Simulate memory latency
-            memoryDone.write(true);
-        }
+        wait();
     }
 }
