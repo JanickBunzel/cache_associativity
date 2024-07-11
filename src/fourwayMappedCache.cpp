@@ -4,7 +4,7 @@
 #include <cmath>
 
 FourwayMappedCache::FourwayMappedCache(sc_module_name name, unsigned cacheLines, unsigned cacheLineSize, unsigned cacheLatency)
-    : Cache(name, cacheLines, cacheLatency, cacheLineSize)
+    : Cache(name, cacheLines, cacheLineSize, cacheLatency)
 {
     calculateBits(cacheLines, cacheLineSize);
 
