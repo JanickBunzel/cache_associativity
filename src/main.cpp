@@ -130,7 +130,7 @@ int sc_main(int argc, char *argv[])
     }
 
     // Start the simulation with the given number of cycles
-    sc_start(cycles, SC_NS);
+    sc_start();
 
     // Close the tracefile
     if (strcmp(tracefile, "") != 0)
@@ -139,7 +139,7 @@ int sc_main(int argc, char *argv[])
     }
 
     // Store the simulation results after the simulation has finished
-    simulationResult.cycles = cpu.cpuStatistics.cycles;
+    simulationResult.cycles = cpu.cpuStatistics.cycles > cycles ? SIZE_MAX : cpu.cpuStatistics.cycles; // If the simulation has not finished in the given number of cycles, return SIZE_MAX
     simulationResult.misses = cache->statistics.misses;
     simulationResult.hits = cache->statistics.hits;
     simulationResult.primitiveGateCount = primitiveGateCount();
