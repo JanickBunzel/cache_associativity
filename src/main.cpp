@@ -29,11 +29,11 @@ int sc_main(int argc, char *argv[])
     Cache *cache;
     if (directMapped)
     {
-        cache = new DirectMappedCache("cache_inst", cacheLines, cacheLatency, cacheLineSize);
+        cache = new DirectMappedCache("cache_inst", cacheLines, cacheLineSize, cacheLatency);
     }
     else
     {
-        cache = new FourwayMappedCache("cache_inst", cacheLines, cacheLatency, cacheLineSize);
+        cache = new FourwayMappedCache("cache_inst", cacheLines, cacheLineSize, cacheLatency);
     }
     cache->clkCACHEIn(clk);
 
