@@ -1,12 +1,12 @@
 #include "cache.h"
 #include <iostream>
 
-Cache::Cache(sc_module_name name, unsigned cacheSize, unsigned cacheLatency, unsigned cacheLineSize)
-    : sc_module(name), statistics({0,0,0,0,0}), bits({0,0,0}), cacheLatency(cacheLatency), cacheLineSize(cacheLineSize), memoryReadDataCACHEIn(cacheLineSize)
+Cache::Cache(sc_module_name name, unsigned cacheLines, unsigned cacheLineSize, unsigned cacheLatency)
+    : sc_module(name), statistics({0,0,0,0,0}), bits({0,0,0}), cacheLineSize(cacheLineSize), memoryReadDataCACHEIn(cacheLineSize), cacheLatency(cacheLatency)
 {
-    for (unsigned i = 0; i < cacheSize; ++i)
+    for (unsigned i = 0; i < cacheLines; ++i)
     {
-        cacheLines.emplace_back(cacheLineSize);
+        cacheLinesArray.emplace_back(cacheLineSize);
     }
 }
 

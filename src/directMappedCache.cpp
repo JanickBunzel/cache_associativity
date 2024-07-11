@@ -1,18 +1,12 @@
 #include "directMappedCache.h"
+#include "cache.h"
 #include <iostream>
 #include <cmath>
 
-DirectMappedCache::DirectMappedCache(sc_module_name name, unsigned cacheSize,const unsigned cacheLatency, const unsigned cacheLineSize)
-: sc_module(name), statistics({0,0,0,0,0}), bits({0,0,0}), cacheLatency(cacheLatency), cacheLineSize(cacheLineSize), memoryReadDataCACHEIn(cacheLineSize)
+DirectMappedCache::DirectMappedCache(sc_module_name name, unsigned cacheLines, unsigned cacheLineSize, unsigned cacheLatency)
+    : Cache(name, cacheLines, cacheLatency, cacheLineSize)
 {
-    bits.offset = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cacheLineSize))));
-    bits.index = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cacheSize))));
-    bits.tag = 32 - bits.offset - bits.index;
-
-    for (unsigned i = 0; i < cacheSize; ++i)
-    {
-        cacheLines.emplace_back(cacheLineSize);
-    }
+    calculateBits(cacheLines, cacheLineSize);
 
     SC_THREAD(cacheAccess);
     dont_initialize();
@@ -29,27 +23,27 @@ void DirectMappedCache::cacheAccess()
         wait(SC_ZERO_TIME);
 
         cacheDoneCACHEOut.write(false);
-        this->statistics.accesses = this->statistics.accesses + 1;
-
-        //std::cout << "[Cache] Accesses: " << this->statistics.accesses << std::endl;
-
-        if (bits.offset < 0 || bits.index < 0 || bits.offset + bits.index > 31) {
-            std::cerr << "Error: offsetBits and/or indexBits are out of valid range." << std::endl;
-            break;
-        }
+        this->statistics.accesses++;
 
         sc_uint<32> address = this->cacheAddressCACHEIn.read();
         sc_uint<32> offset = 0, index = 0, tag;
 
-        if (bits.offset == 0 && bits.index == 0) {
+        if (bits.offset == 0 && bits.index == 0)
+        {
             tag = address;
-        } else if (bits.offset == 0) {
+        }
+        else if (bits.offset == 0)
+        {
             index = address.range(bits.index - 1, 0);
             tag = address.range(31, bits.index);
-        } else if (bits.index == 0) {
+        }
+        else if (bits.index == 0)
+        {
             offset = address.range(bits.offset - 1, 0);
             tag = address.range(31, bits.offset);
-        } else {
+        }
+        else
+        {
             offset = address.range(bits.offset - 1, 0);
             index = address.range(bits.offset + bits.index - 1, bits.offset);
             tag = address.range(31, bits.offset + bits.index);
@@ -57,23 +51,21 @@ void DirectMappedCache::cacheAccess()
 
         if (cacheWriteEnableCACHEIn.read() == 0)
         {
-            this->statistics.reads = this->statistics.reads + 1;
+            this->statistics.reads++;
             std::vector<sc_uint<8>> rdata;
-            for (unsigned i = 0; i < cacheLatency - 1; i++) {
-                //std::cout << "[Cache] Waiting cacheLatency" << std::endl;
+            for (unsigned i = 0; i < cacheLatency - 1; i++)
+            {
                 wait();
                 wait(SC_ZERO_TIME);
             }
-            const bool hit = cacheLines[index].read(tag, rdata);
+            const bool hit = cacheLinesArray[index].read(tag, rdata);
             if (hit)
             {
                 this->statistics.hits++;
-                //std::cout << "[Cache] Hit" << std::endl;
             }
             else
             {
                 this->statistics.misses++;
-                //std::cout << "[Cache] Miss" << std::endl;
                 memoryAddressCACHEOut.write(address);
                 memoryWriteDataCACHEOut.write(false);
                 memoryEnableCACHEOut.write(true);
@@ -83,21 +75,22 @@ void DirectMappedCache::cacheAccess()
                     wait(SC_ZERO_TIME);
                 }
                 std::vector<sc_uint<8>> memoryData(cacheLineSize);
-                for (unsigned i = 0; i < cacheLineSize; i++) {
+                for (unsigned i = 0; i < cacheLineSize; i++)
+                {
                     memoryData[i] = memoryReadDataCACHEIn[i].read();
                 }
-                cacheLines[index].write(tag, memoryData);
-                for (unsigned i = 0; i < cacheLineSize; ++i) {
+                cacheLinesArray[index].write(tag, memoryData);
+                for (unsigned i = 0; i < cacheLineSize; ++i)
+                {
                     cacheReadDataCACHEOut.write(memoryData[offset]);
                 }
             }
         }
         else if (cacheWriteEnableCACHEIn.read() == 1)
         {
-            this->statistics.writes = this->statistics.writes + 1;
-            //std::cout << "[Cache] Write" << std::endl;
-            for (unsigned i = 0; i < cacheLatency - 1; ++i) {
-                //std::cout << "[Cache] Waiting cacheLatency" << std::endl;
+            this->statistics.writes++;
+            for (unsigned i = 0; i < cacheLatency - 1; ++i)
+            {
                 wait();
                 wait(SC_ZERO_TIME);
             }
@@ -105,36 +98,36 @@ void DirectMappedCache::cacheAccess()
             memoryWriteDataCACHEOut.write(cacheWriteDataCACHEIn.read());
             memoryWriteEnableCACHEOut.write(true);
             memoryEnableCACHEOut.write(true);
-            //std::cout << "[Cache] Writing to memory" << std::endl;
             while (memoryDoneCACHEIn.read() == false)
             {
                 wait();
                 wait(SC_ZERO_TIME);
             }
             std::vector<sc_uint<8>> memoryData(cacheLineSize);
-            for (unsigned i = 0; i < cacheLineSize; i++) {
+            for (unsigned i = 0; i < cacheLineSize; i++)
+            {
                 memoryData[i] = memoryReadDataCACHEIn[i].read();
             }
-            cacheLines[index].write(tag, memoryData);
-            for (unsigned i = 0; i < cacheLineSize; i++) {
+            cacheLinesArray[index].write(tag, memoryData);
+            for (unsigned i = 0; i < cacheLineSize; i++)
+            {
                 cacheReadDataCACHEOut.write(memoryData[offset]);
             }
-            // Invalidate the next bytes in the cache if the write makes the cache line invalid
             sc_uint<32> nextAddress = address;
             unsigned numBytes = 32 / 8;
-            for (unsigned i = 1; i < numBytes; ++i) {
+            for (unsigned i = 1; i < numBytes; ++i)
+            {
                 nextAddress = address + i * cacheLineSize;
-                sc_uint<32> nextIndex = (nextAddress >> bits.offset) % cacheLines.size();
+                sc_uint<32> nextIndex = (nextAddress >> bits.offset) % cacheLinesArray.size();
                 sc_uint<32> nextTag = nextAddress >> (bits.offset + bits.index);
-                if (cacheLines[nextIndex].valid && cacheLines[nextIndex].tag == nextTag)
+                if (cacheLinesArray[nextIndex].valid && cacheLinesArray[nextIndex].tag == nextTag)
                 {
-                    cacheLines[nextIndex].valid = false;
+                    cacheLinesArray[nextIndex].valid = false;
                 }
             }
         }
         memoryEnableCACHEOut.write(false);
         cacheDoneCACHEOut.write(true);
-        //std::cout << "[Cache] Done" << std::endl;
         printCache();
         wait();
     }
@@ -147,15 +140,17 @@ void DirectMappedCache::printCache()
     std::cout << "Index\tTag\t\tValid\tLRU\tData (Hex/Binary)" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 
-    for (unsigned i = 0; i < cacheLines.size(); ++i) {
+    for (unsigned i = 0; i < cacheLinesArray.size(); ++i)
+    {
         std::cout << i << "\t"
-                  << cacheLines[i].tag.to_string(SC_HEX) << "\t"
-                  << cacheLines[i].valid << "\t"
-                  << cacheLines[i].lru << "\t";
-        for (const auto& byte : cacheLines[i].data) {
+                  << cacheLinesArray[i].tag.to_string(SC_HEX) << "\t"
+                  << cacheLinesArray[i].valid << "\t"
+                  << cacheLinesArray[i].lru << "\t";
+        for (const auto &byte : cacheLinesArray[i].data)
+        {
             std::cout << "("
-                << byte.to_string(SC_HEX) << " / "
-                << byte.to_string(SC_BIN) << ") ";
+                      << byte.to_string(SC_HEX) << " / "
+                      << byte.to_string(SC_BIN) << ") ";
         }
         std::cout << std::endl;
     }
@@ -170,13 +165,15 @@ void DirectMappedCache::printCache()
     std::cout << "----------------------------------------" << std::endl;
 }
 
-
-void DirectMappedCache::printBits()
+void DirectMappedCache::calculateBits(unsigned cacheLines, unsigned cacheLineSize)
 {
-    std::cout << "Bits:" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
-    std::cout << "Offset: " << bits.offset << std::endl;
-    std::cout << "Index: " << bits.index << std::endl;
-    std::cout << "Tag: " << bits.tag << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
+    bits.offset = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cacheLineSize))));
+    bits.index = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cacheLines))));
+    bits.tag = 32 - bits.offset - bits.index;
+    
+    if (bits.offset < 0 || bits.index < 0 || bits.offset + bits.index > 31)
+    {
+        std::cerr << "Error: offsetBits and/or indexBits are out of valid range." << std::endl;
+        exit(1);
+    }
 }

@@ -7,9 +7,9 @@ class CacheLine {
 public:
 
     std::vector<sc_uint<8>> data;
-    sc_uint<32> tag{0};
-    sc_int<2> lru{0};
-    bool valid {false};
+    sc_uint<32> tag = 0;
+    sc_int<2> lru = 0;
+    bool valid = false;
     unsigned cacheLineSize;
 
     CacheLine(unsigned cacheLineSize);

@@ -9,23 +9,17 @@ EXECUTABLE := cache_simulation
 MAINC := src/rahmenprogramm.c
 MAINCXX := src/main.cpp
 
-# cache related files
-MEMORY := src/memory.hpp
-MEMORYIMP := src/memory.cpp
-CACHELINE := src/cacheLine.h
-CACHELINEIMP := src/cacheLine.cpp
-CACHE := src/cache.h
-CACHEIMP := src/cache.cpp
-DIRECTMAPPEDCACHEPOLY := src/directMappedCachePoly.h
-DIRECTMAPPEDCACHEPOLYIMP := src/directMappedCachePoly.cpp
-FOURWAYMAPPEDCACHEPOLY := src/fourWayMappedCachePoly.h
-FOURWAYMAPPEDCACHEPOLYIMP := src/fourWayMappedCachePoly.cpp
-#DIRECTMAPPEDCACHE := src/directMappedCache.h
-#DIRECTMAPPEDCACHEIMP := src/directMappedCache.cpp
-
 # cpu related files
-CPU := src/cpu.hpp
-CPUIMP := src/cpu.cpp
+CPU := src/cpu.cpp
+
+# cache related files
+CACHELINE := src/cacheLine.cpp
+CACHE := src/cache.cpp
+DIRECTMAPPEDCACHE := src/directMappedCache.cpp
+FOURWAYMAPPEDCACHE := src/fourwayMappedCache.cpp
+
+# memory related files
+MEMORY := src/memory.cpp
 
 # tracefiles
 TRACEFILES := *.vcd
@@ -35,10 +29,6 @@ SIM := src/simulation.cpp
 
 # Path to our systemc installation
 SCPATH = $(SYSTEMC_HOME)
-
-# Define the object files
-C_OBJS := $(MAINC:.c=.o)
-CXX_OBJS := $(MAINCXX:.cpp=.o) $(CPUIMP:.cpp=.o) $(SIM:.cpp=.o) $(CACHELINEIMP:.cpp=.o)  $(MEMORYIMP:.cpp=.o) $(CACHEIMP:.cpp=.o) $(FOURWAYMAPPEDCACHEPOLYIMP:.cpp=.o) $(DIRECTMAPPEDCACHEPOLYIMP:.cpp=.o)
 
 # Additional flags for the compiler
 # -std=c++14: This flag specifies the C++ standard to be used by the compiler. In this case, it tells the compiler to use the C++14 standard.
@@ -82,29 +72,15 @@ debug: $(EXECUTABLE)
 release: CXXFLAGS += -O2
 release: $(EXECUTABLE)
 
-# Compile the main C file and the sim file into an object file
-$(MAINC:.c=.o): $(MAINC)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(SIM:.cpp=.o): $(SIM)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Compile the main C++ file into an object file
-$(MAINCXX:.cpp=.o): $(MAINCXX)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Compile the C++ files into object files
-$(CACHEIMP:.cpp=.o): $(CACHEIMP)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(CPUIMP:.cpp=.o): $(CPUIMP)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Link all object files into the final executable
-$(EXECUTABLE): $(C_OBJS) $(CXX_OBJS)
-	$(CXX) $(CFLAGS) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-	rm -f $(C_OBJS) $(CXX_OBJS)
+# Compile and link all source files directly into the final executable
+$(EXECUTABLE):
+	$(CC) $(CFLAGS) -o $(EXECUTABLE).c.o -c $(MAINC)
+	$(CXX) $(CXXFLAGS) -o $@ $(EXECUTABLE).c.o $(MAINCXX) $(CPU) $(SIM) $(CACHELINE) $(CACHE) $(DIRECTMAPPEDCACHE) $(FOURWAYMAPPEDCACHE) $(MEMORY) $(LDFLAGS)
+	rm -f $(EXECUTABLE).c.o
 
 # Clean up the build
 clean:
-	rm -f $(C_OBJS) $(CXX_OBJS) $(EXECUTABLE) $(TRACEFILES)
+	rm -f $(EXECUTABLE) $(TRACEFILES)
+
+# Declare the targets that are not files
+.PHONY: all debug release clean

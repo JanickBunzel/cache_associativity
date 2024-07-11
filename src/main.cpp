@@ -4,8 +4,8 @@
 #include "cpu.hpp"
 #include "memory.h"
 #include "cache.h"
-#include "directMappedCachePoly.h"
-#include "fourWayMappedCachePoly.h"
+#include "directMappedCache.h"
+#include "fourwayMappedCache.h"
 
 extern int cycles;
 extern int directMapped;
@@ -26,7 +26,15 @@ int sc_main(int argc, char *argv[])
     sc_clock clk("clk", 1, SC_NS);
 
     // ----- Cache ----- //
-    Cache* cache = new DirectMappedCachePoly("cache_inst", cacheLines, cacheLatency, cacheLineSize);
+    Cache *cache;
+    if (directMapped)
+    {
+        cache = new DirectMappedCache("cache_inst", cacheLines, cacheLatency, cacheLineSize);
+    }
+    else
+    {
+        cache = new FourwayMappedCache("cache_inst", cacheLines, cacheLatency, cacheLineSize);
+    }
     cache->clkCACHEIn(clk);
 
     // ----- CPU ----- //

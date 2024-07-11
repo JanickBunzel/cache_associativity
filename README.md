@@ -29,6 +29,7 @@
 - [x] SystemC Path aus _evironment variable_ lesen (statt zurzeit workspace folder) -> Zulip
 - [ ] Auf _Rechnerhalle_ compilieren!
 - [ ] Cycles richtig handlen (Aufgabenstellung)
+- [ ] "Bei Lesezugriffen soll der gelesene Wert in das data-Feld der Anfrage geschrieben werden" -> Seite 7 & [Zulip](https://zulip.in.tum.de/#narrow/stream/2434-GRA-24S-Projektphase---Systemdesign/topic/Cache.20Request.20Data/near/1588151)
 
 ### Finish Up:
 - [ ] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments

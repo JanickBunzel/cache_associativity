@@ -2,7 +2,7 @@
 
 // Default constructor
 Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cacheLineSize)
-: sc_module(name), memoryLatency(memoryLatency), cacheLineSize(cacheLineSize), readDataMEMORYOut(cacheLineSize)
+    : sc_module(name), memoryLatency(memoryLatency), cacheLineSize(cacheLineSize), readDataMEMORYOut(cacheLineSize)
 {
     SC_THREAD(memoryAccess);
     sensitive << clkMEMORYIn.pos();
@@ -44,10 +44,10 @@ void Memory::memoryAccess()
         doneMEMORYOut.write(false);
         if (enableMEMORYIn.read() == true)
         {
-            //TODO: Passt das mit dem memoryLatency oder muss nicht -1?
+            // TODO: Passt das mit dem memoryLatency oder muss nicht -1?
             for (unsigned i = 0; i < memoryLatency - 1; ++i)
             {
-                //std::cout << "[Memory] Waiting memoryLatency" << std::endl;
+                // std::cout << "[Memory] Waiting memoryLatency" << std::endl;
                 wait();
             }
             if (writeEnableMEMORYIn.read() == true)
@@ -60,7 +60,7 @@ void Memory::memoryAccess()
                 readDataMEMORYOut[i].write(dataWord[i]);
             }
             doneMEMORYOut.write(true);
-            //std::cout << "[Memory] Done" << std::endl;
+            // std::cout << "[Memory] Done" << std::endl;
             printMemory();
         }
         wait();
@@ -76,12 +76,13 @@ void Memory::printMemory()
     // Copy memory entries to a vector and sort them by address
     std::vector<std::pair<unsigned, sc_uint<8>>> sorted_memory(memory.begin(), memory.end());
     std::sort(sorted_memory.begin(), sorted_memory.end(),
-              [](const std::pair<unsigned, sc_uint<8>>& a, const std::pair<unsigned, sc_uint<8>>& b) {
+              [](const std::pair<unsigned, sc_uint<8>> &a, const std::pair<unsigned, sc_uint<8>> &b)
+              {
                   return a.first < b.first;
               });
 
     // Print sorted memory
-    for (const auto& entry : sorted_memory)
+    for (const auto &entry : sorted_memory)
     {
         unsigned address = entry.first;
         sc_uint<8> data = entry.second;
