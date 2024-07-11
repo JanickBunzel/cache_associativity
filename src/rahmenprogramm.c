@@ -14,8 +14,8 @@ typedef struct
     int cycles;        // Number of cycles to simulate
     int directmapped;  // bool
     int fourway;       // bool
-    int cachelineSize; // In bytes
     int cachelines;    // Number of cachelines
+    int cachelineSize; // In bytes
     int cacheLatency;  // In cycles
     int memoryLatency; // In cycles
     char *tracefile;
@@ -27,8 +27,8 @@ CacheConfig cacheConfig = {
     .cycles = 3000,       // allows the cache to process TODO requests (with a hit rate of TODO%, and average cycles/request TODO as below)
     .directmapped = 1,    // Using direct mapped cache as default
     .fourway = 0,         // Using direct mapped cache as default
-    .cachelineSize = 4,   // Standard size that balances spatial locality and overhead
     .cachelines = 10,     // with each line of TODO bytes, this provides an TODOKB cache
+    .cachelineSize = 4,   // Standard size that balances spatial locality and overhead
     .cacheLatency = 5,    // quick access for first-level cache
     .memoryLatency = 10,  // realistic gap between cache and main access time
     .tracefile = "",      // name of the tracefile (optional)
@@ -125,8 +125,8 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
             {"cycles", required_argument, NULL, 'c'},
             {"directmapped", no_argument, NULL, 'd'},
             {"fourway", no_argument, NULL, 'f'},
-            {"cacheline-size", required_argument, NULL, 's'},
             {"cachelines", required_argument, NULL, 'l'},
+            {"cacheline-size", required_argument, NULL, 's'},
             {"cache-latency", required_argument, NULL, 'a'},
             {"memory-latency", required_argument, NULL, 'm'},
             {"tf", required_argument, NULL, 't'},
@@ -169,14 +169,6 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
             }
             cacheConfig.fourway = 1;
             break;
-        case 's':
-            // Argument: Cacheline size, Expected: int > 0
-            if (!is_integer(optarg) || atoi(optarg) <= 0)
-            {
-                print_help_and_exit_with_error("Error: Die Größe einer Cachezeile muss ein Integer sein und größer als 0\n");
-            }
-            cacheConfig.cachelineSize = atoi(optarg);
-            break;
         case 'l':
             // Argument: Cachelines, Expected: int > 0
             if (!is_integer(optarg) || atoi(optarg) <= 0)
@@ -184,6 +176,14 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
                 print_help_and_exit_with_error("Error: Die Anzahl der Cachelines muss ein Integer sein und größer als 0\n");
             }
             cacheConfig.cachelines = atoi(optarg);
+            break;
+        case 's':
+            // Argument: Cacheline size, Expected: int >= 4
+            if (!is_integer(optarg) || atoi(optarg) < 4)
+            {
+                print_help_and_exit_with_error("Error: Die Größe einer Cachezeile muss ein Integer sein und mindestes 4 (bytes)\n");
+            }
+            cacheConfig.cachelineSize = atoi(optarg);
             break;
         case 'a':
             // Argument: Cache Latency, Expected: int > 0
@@ -254,8 +254,8 @@ void print_cacheConfig(CacheConfig cacheConfig)
     printf("\nCache Configuration:\n");
     printf("  - Cycles: %d\n", cacheConfig.cycles);
     printf("  - DirectMapped/Fourway: %s\n", cacheConfig.directmapped ? "DirectMapped" : "Fourway");
-    printf("  - Cacheline size: %d\n", cacheConfig.cachelineSize);
     printf("  - Cachelines: %d\n", cacheConfig.cachelines);
+    printf("  - Cacheline size: %d\n", cacheConfig.cachelineSize);
     printf("  - Cache latency: %d\n", cacheConfig.cacheLatency);
     printf("  - Memory latency: %d\n", cacheConfig.memoryLatency);
     printf("  - Tracefile: %s\n", cacheConfig.tracefile ? cacheConfig.tracefile : "None");
@@ -395,8 +395,8 @@ void print_help()
     printf("  -c, --cycles <Zahl>         Die Anzahl der Zyklen, die simuliert werden sollen.\n");
     printf("  --directmapped              Simuliert einen direkt assoziativen Cache.\n");
     printf("  --fourway                   Simuliert einen vierfach assoziativen Cache.\n");
-    printf("  --cacheline-size <Zahl>     Die Größe einer Cachezeile in Byte.\n");
     printf("  --cachelines <Zahl>         Die Anzahl der Cachezeilen.\n");
+    printf("  --cacheline-size <Zahl>     Die Größe einer Cachezeile in Byte.\n");
     printf("  --cache-latency <Zahl>      Die Latenzzeit eines Caches in Zyklen.\n");
     printf("  --memory-latency <Zahl>     Die Latenzzeit des Hauptspeichers in Zyklen.\n");
     printf("  --tf <Dateiname>            Ausgabedatei für ein Tracefile mit allen Signalen.\n");
