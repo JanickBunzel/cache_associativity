@@ -5,6 +5,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "directMappedCachePoly.h"
+#include "fourWayMappedCachePoly.h"
 
 extern int cycles;
 extern int directMapped;
