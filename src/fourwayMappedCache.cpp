@@ -85,10 +85,7 @@ void FourwayMappedCache::cacheAccess()
                 {
                     cacheLinesArray[indexOfFreeLine].write(tag, memoryData);
                     lruReplacement(indexOfFreeLine);
-                    //for (unsigned i = 0; i < cacheLineSize; ++i)
-                    //{
-                        cacheReadDataCACHEOut.write(memoryData[offset]);
-                    //}
+                    cacheReadDataCACHEOut.write(memoryData[offset]);
                 }
 
                 else
@@ -99,13 +96,67 @@ void FourwayMappedCache::cacheAccess()
                     cacheReadDataCACHEOut.write(memoryData[offset]);
                 }
             }
-
-
         }
         else if (cacheWriteEnableCACHEIn.read() == 1)
         {
-           //TODO: Implement write access
-            std::cout << "Write access" << std::endl;
+            this->statistics.writes++;
+            unsigned setIndex = index * 4;
+            int indexOfTag = searchTagInSet(tag, setIndex);
+
+            for (unsigned i = 0; i < cacheLatency - 1; ++i)
+            {
+                wait();
+                wait(SC_ZERO_TIME);
+            }
+            memoryAddressCACHEOut.write(address);
+            memoryWriteDataCACHEOut.write(cacheWriteDataCACHEIn.read());
+            memoryWriteEnableCACHEOut.write(true);
+            memoryEnableCACHEOut.write(true);
+            while (memoryDoneCACHEIn.read() == false)
+            {
+                wait();
+                wait(SC_ZERO_TIME);
+            }
+            std::vector<sc_uint<8>> memoryData(cacheLineSize);
+            for (unsigned i = 0; i < cacheLineSize; i++)
+            {
+                memoryData[i] = memoryReadDataCACHEIn[i].read();
+            }
+
+            int indexOfFreeLine = searchFreeLineInSet(setIndex);
+            // Found free line
+            if (indexOfFreeLine != -1)
+            {
+                cacheLinesArray[indexOfFreeLine].write(tag, memoryData);
+                lruReplacement(indexOfFreeLine);
+                cacheReadDataCACHEOut.write(memoryData[offset]);
+            }
+
+            else
+            {
+                int indexOfLruLine = searchLeastRecentlyUsedLine(setIndex);
+                cacheLinesArray[indexOfLruLine].write(tag, memoryData);
+                lruReplacement(indexOfLruLine);
+                cacheReadDataCACHEOut.write(memoryData[offset]);
+            }
+
+            sc_uint<32> nextAddress = address;
+            unsigned numBytes = 32 / 8;
+            for (unsigned i = 1; i < numBytes; ++i)
+            {
+                nextAddress = address + i * cacheLineSize;
+                sc_uint<32> nextIndex = (nextAddress >> bits.offset) % (cacheLinesArray.size() / 4); // Adjusted for 4-way set associative
+                sc_uint<32> nextTag = nextAddress >> (bits.offset + bits.index);
+
+                for (unsigned way = 0; way < 4; ++way)
+                {
+                    CacheLine& line = cacheLinesArray[nextIndex * 4 + way];
+                    if (line.valid && line.tag == nextTag)
+                    {
+                        line.valid = false;
+                    }
+                }
+            }
         }
         memoryEnableCACHEOut.write(false);
         cacheDoneCACHEOut.write(true);
