@@ -228,6 +228,12 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
         cacheConfig.fourway = defaultFourway;
     }
 
+    // If fourway cache, the number of cachelines must be a multiple of 4
+    if (cacheConfig.fourway && cacheConfig.cachelines % 4 != 0)
+    {
+        print_help_and_exit_with_error("Error: Die Anzahl der Cachelines muss ein Vielfaches von 4 sein, wenn ein vierfach assoziativer Cache verwendet wird\n");
+    }
+
     // The last argument is the Eingabedatei (independent from its argument position)
     if (optind >= argc)
     {
