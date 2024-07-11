@@ -79,11 +79,12 @@ void DirectMappedCache::cacheAccess()
                 {
                     memoryData[i] = memoryReadDataCACHEIn[i].read();
                 }
+                std::cout << "Tag: " << tag << std::endl;
                 cacheLinesArray[index].write(tag, memoryData);
-                for (unsigned i = 0; i < cacheLineSize; ++i)
-                {
+                //for (unsigned i = 0; i < cacheLineSize; ++i)
+                //{
                     cacheReadDataCACHEOut.write(memoryData[offset]);
-                }
+                //}
             }
         }
         else if (cacheWriteEnableCACHEIn.read() == 1)
