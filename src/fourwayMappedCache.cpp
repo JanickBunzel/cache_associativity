@@ -3,7 +3,8 @@
 #include <iostream>
 #include <cmath>
 
-FourwayMappedCache::FourwayMappedCache(sc_module_name name, unsigned cacheLines, unsigned cacheLineSize, unsigned cacheLatency)
+FourwayMappedCache::FourwayMappedCache(sc_module_name name, unsigned cacheLines, unsigned cacheLineSize,
+                                       unsigned cacheLatency)
     : Cache(name, cacheLines, cacheLineSize, cacheLatency)
 {
     calculateBits(cacheLines, cacheLineSize);
@@ -28,15 +29,22 @@ void FourwayMappedCache::cacheAccess()
         sc_uint<32> address = this->cacheAddressCACHEIn.read();
         sc_uint<32> offset = 0, index = 0, tag;
 
-        if (bits.offset == 0 && bits.index == 0) {
+        if (bits.offset == 0 && bits.index == 0)
+        {
             tag = address;
-        } else if (bits.offset == 0) {
+        }
+        else if (bits.offset == 0)
+        {
             index = address.range(bits.index - 1, 0);
             tag = address.range(31, bits.index);
-        } else if (bits.index == 0) {
+        }
+        else if (bits.index == 0)
+        {
             offset = address.range(bits.offset - 1, 0);
             tag = address.range(31, bits.offset);
-        } else {
+        }
+        else
+        {
             offset = address.range(bits.offset - 1, 0);
             index = address.range(bits.offset + bits.index - 1, bits.offset);
             tag = address.range(31, bits.offset + bits.index);
@@ -101,7 +109,7 @@ void FourwayMappedCache::cacheAccess()
         {
             this->statistics.writes++;
             unsigned setIndex = index * 4;
-            int indexOfTag = searchTagInSet(tag, setIndex);
+            unsigned indexOfWrittenLine = -1;
 
             for (unsigned i = 0; i < cacheLatency - 1; ++i)
             {
@@ -123,40 +131,58 @@ void FourwayMappedCache::cacheAccess()
                 memoryData[i] = memoryReadDataCACHEIn[i].read();
             }
 
-            int indexOfFreeLine = searchFreeLineInSet(setIndex);
-            // Found free line
-            if (indexOfFreeLine != -1)
+            //erst schauen, ob der Tag schon im Cache ist
+            int isIndexAlreadyInSet = searchTagInSet(tag, setIndex);
+            if (isIndexAlreadyInSet != -1)
             {
-                cacheLinesArray[indexOfFreeLine].write(tag, memoryData);
-                lruReplacement(indexOfFreeLine);
+                cacheLinesArray[isIndexAlreadyInSet].write(tag, memoryData);
+                indexOfWrittenLine = isIndexAlreadyInSet;
+                lruReplacement(isIndexAlreadyInSet);
                 cacheReadDataCACHEOut.write(memoryData[offset]);
             }
 
             else
             {
-                int indexOfLruLine = searchLeastRecentlyUsedLine(setIndex);
-                cacheLinesArray[indexOfLruLine].write(tag, memoryData);
-                lruReplacement(indexOfLruLine);
-                cacheReadDataCACHEOut.write(memoryData[offset]);
+                //wenn nicht im Cache, dann schauen, ob ein freier Platz im Cache ist
+                int indexOfFreeLine = searchFreeLineInSet(setIndex);
+
+                if (indexOfFreeLine != -1)
+                {
+                    cacheLinesArray[indexOfFreeLine].write(tag, memoryData);
+                    indexOfWrittenLine = indexOfFreeLine;
+                    lruReplacement(indexOfFreeLine);
+                    cacheReadDataCACHEOut.write(memoryData[offset]);
+                }
+
+                //wenn kein freier Platz vorhanden ist, dann LRU-Strategie anwenden
+                else
+                {
+                    int indexOfLruLine = searchLeastRecentlyUsedLine(setIndex);
+                    cacheLinesArray[indexOfLruLine].write(tag, memoryData);
+                    indexOfWrittenLine = indexOfLruLine;
+                    lruReplacement(indexOfLruLine);
+                    cacheReadDataCACHEOut.write(memoryData[offset]);
+                }
             }
 
+            // invalidierungstrategie für ggf. invalide cache lines
             sc_uint<32> nextAddress = address;
             unsigned numBytes = 32 / 8;
+
             for (unsigned i = 1; i < numBytes; ++i)
             {
                 nextAddress = address + i * cacheLineSize;
-                sc_uint<32> nextIndex = (nextAddress >> bits.offset) % (cacheLinesArray.size() / 4); // Adjusted for 4-way set associative
-                sc_uint<32> nextTag = nextAddress >> (bits.offset + bits.index);
+                sc_uint<32> nextIndex = nextAddress.range(bits.offset + bits.index - 1, bits.offset);
+                sc_uint<32> nextTag = nextAddress.range(31, bits.offset + bits.index);
 
-                for (unsigned way = 0; way < 4; ++way)
+                int isIndexAlreadyInSet = searchTagInSet(nextTag, nextIndex);
+                if (isIndexAlreadyInSet != -1 && isIndexAlreadyInSet != indexOfWrittenLine)
                 {
-                    CacheLine& line = cacheLinesArray[nextIndex * 4 + way];
-                    if (line.valid && line.tag == nextTag)
-                    {
-                        line.valid = false;
-                    }
+                    cacheLinesArray[isIndexAlreadyInSet].valid = false;
+                    lruReplacement(isIndexAlreadyInSet);
                 }
             }
+
         }
         memoryEnableCACHEOut.write(false);
         cacheDoneCACHEOut.write(true);
@@ -172,18 +198,21 @@ void FourwayMappedCache::printCache()
     std::cout << "Set\tWay\tTag\t\tValid\tLRU\tData (Hex/Binary)" << std::endl;
     std::cout << "-----------------------------------------------------" << std::endl;
 
-    for (unsigned i = 0; i < cacheLinesArray.size(); i += 4) {
+    for (unsigned i = 0; i < cacheLinesArray.size(); i += 4)
+    {
         unsigned set = i / 4; // Berechnet die Set-Nummer
-        for (unsigned way = 0; way < 4; ++way) {
+        for (unsigned way = 0; way < 4; ++way)
+        {
             const auto& line = cacheLinesArray[i + way];
             std::cout << set << "\t" << way << "\t"
-                      << line.tag.to_string(SC_HEX) << "\t"
-                      << line.valid << "\t"
-                      << static_cast<unsigned>(line.lru & 0x03) << "\t"; // Korrekte Darstellung der 2-Bit LRU-Zahl
-            for (const auto& byte : line.data) {
+                << line.tag.to_string(SC_HEX) << "\t"
+                << line.valid << "\t"
+                << static_cast<unsigned>(line.lru & 0x03) << "\t"; // Korrekte Darstellung der 2-Bit LRU-Zahl
+            for (const auto& byte : line.data)
+            {
                 std::cout << "("
-                          << byte.to_string(SC_HEX) << " / "
-                          << byte.to_string(SC_BIN) << ") ";
+                    << byte.to_string(SC_HEX) << " / "
+                    << byte.to_string(SC_BIN) << ") ";
             }
             std::cout << std::endl;
         }
@@ -235,21 +264,35 @@ void FourwayMappedCache::lruReplacement(unsigned indexToUpdate)
 {
     if (indexToUpdate >= cacheLinesArray.size())
     {
-        std::cerr << "Error: You are trying to access an Element in lru[] that is out of bounds" << "[Index: " << indexToUpdate << "]" << std::endl;
+        std::cerr << "Error: You are trying to access an Element in lru[] that is out of bounds" << "[Index: " <<
+            indexToUpdate << "]" << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
     unsigned cacheSet = indexToUpdate / 4;
     unsigned cacheSetIndex = 4 * cacheSet;
+    std::cout << "LRU Strategie wurde aufgerufen" << std::endl;
+    std::cout << "IndexToUpdate: " << indexToUpdate << std::endl;
 
     for (int i = 0; i < 4; i++)
     {
-        if (static_cast<unsigned>(cacheLinesArray[cacheSetIndex + i].lru) > static_cast<unsigned>(cacheLinesArray[indexToUpdate].lru))
+        std::cout << "Lru: " << cacheLinesArray[cacheSetIndex + i].lru << std::endl;
+        std::cout << "index to update lru: " << cacheLinesArray[indexToUpdate].lru << std::endl;
+        if (cacheLinesArray[cacheSetIndex + i].lru > cacheLinesArray[indexToUpdate].lru && cacheLinesArray[cacheSetIndex + i].valid == true)
         {
-            cacheLinesArray[cacheSetIndex + i].lru = static_cast<unsigned>(cacheLinesArray[cacheSetIndex + i].lru) - 1;
+            std::cout << "Index: " << cacheSetIndex + i << " wird um 1 dekrementiert" << std::endl;
+            cacheLinesArray[cacheSetIndex + i].updateLru(cacheLinesArray[cacheSetIndex + i].lru - 1);
         }
     }
-    cacheLinesArray[indexToUpdate].updateLru(3);
+    if (cacheLinesArray[indexToUpdate].valid == true)
+    {
+        std::cout << "Index: " << indexToUpdate << " wird auf 3 gesetzt" << std::endl;
+        cacheLinesArray[indexToUpdate].updateLru(3);
+    }
+    else
+    {
+        cacheLinesArray[indexToUpdate].updateLru(0);
+    }
 }
 
 
@@ -272,7 +315,7 @@ int FourwayMappedCache::searchLeastRecentlyUsedLine(unsigned setIndex)
     int indexOfLruLine = -1;
     for (int i = 0; i < 4; i++)
     {
-        if (cacheLinesArray[setIndex + i].lru == 0)
+        if (cacheLinesArray[setIndex + i].lru == 0 && cacheLinesArray[setIndex + i].valid == true)
         {
             indexOfLruLine = setIndex + i;
             break;

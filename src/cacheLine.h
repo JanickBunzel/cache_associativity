@@ -8,15 +8,15 @@ public:
 
     std::vector<sc_uint<8>> data;
     sc_uint<32> tag = 0;
-    sc_int<2> lru = 0;
+    int lru = 0;
     bool valid = false;
     unsigned cacheLineSize;
 
     CacheLine(unsigned cacheLineSize);
 
-    void write(sc_uint<32> newTag, const std::vector<sc_uint<8>>& newData, sc_uint<2> newLru =0);
-    bool read(sc_uint<32> readTag, std::vector<sc_uint<8>>& outData, sc_uint<2> newLru =0);
-    void updateLru(sc_uint<2> newLru);
+    void write(sc_uint<32> newTag, const std::vector<sc_uint<8>>& newData);
+    bool read(sc_uint<32> readTag, std::vector<sc_uint<8>>& outData);
+    void updateLru(int newLru);
 };
 
 #endif

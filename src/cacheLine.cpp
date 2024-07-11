@@ -4,18 +4,16 @@
 CacheLine::CacheLine(unsigned cacheLineSize) : data(cacheLineSize), cacheLineSize(cacheLineSize)  {}
 
 // Function to write new data into the cache line
-void CacheLine::write(sc_uint<32> newTag, const std::vector<sc_uint<8>>& newData, sc_uint<2> newLru) {
+void CacheLine::write(sc_uint<32> newTag, const std::vector<sc_uint<8>>& newData) {
     tag = newTag;
     data = newData;
-    lru = newLru;
     valid = true;
 }
 
 // Function to read data from the cache line
-bool CacheLine::read(sc_uint<32> readTag, std::vector<sc_uint<8>>& outData, sc_uint<2> newLru) {
+bool CacheLine::read(sc_uint<32> readTag, std::vector<sc_uint<8>>& outData) {
     if (tag == readTag && valid) {
         outData = data;
-        lru = newLru;
         return true;
     } else {
         return false;
@@ -23,6 +21,6 @@ bool CacheLine::read(sc_uint<32> readTag, std::vector<sc_uint<8>>& outData, sc_u
 }
 
 // Function to update the LRU value
-void CacheLine::updateLru(sc_uint<2> newLru) {
+void CacheLine::updateLru(int newLru) {
     lru = newLru;
 }
