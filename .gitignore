@@ -17,3 +17,6 @@ cache_simulation
 
 # ignore tracefiles
 *.vcd
+
+# ignore python vrtual environment
+venv

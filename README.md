@@ -1,4 +1,13 @@
-# cache_associativity TODO
+# cache_associativity
+
+Systemdesign Gruppe 157, Projektaufgabe A11:
+- Julian Knoll
+- Michael Jurcenko
+- Janick Bunzel
+
+<br>
+
+## TODO
 
 ### Recherche (3.1, s.3):
 - [x] übliche Größen
