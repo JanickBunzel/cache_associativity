@@ -1,4 +1,6 @@
 #include "memory.h"
+#include <iomanip>
+#include <bitset>
 
 // Default constructor
 Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cacheLineSize)
