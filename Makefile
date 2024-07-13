@@ -31,7 +31,7 @@ SIM := src/simulation.cpp
 SCPATH = $(SYSTEMC_HOME)
 
 # Additional flags for the compiler
-CXXFLAGS := -std=c++14 -I"$(SCPATH)/include" -v
+CXXFLAGS := -std=c++14 -I"$(SCPATH)/include"
 LDFLAGS := -L"$(SCPATH)/lib" -lsystemc -lm
 CFLAGS := -std=c18
 
@@ -56,28 +56,39 @@ ifneq ($(UNAME_S), Darwin)
     CXXFLAGS += -Wl,-rpath=$(SCPATH)/lib
 endif
 
+# Source files and object files
+SOURCES_C := $(MAINC)
+SOURCES_CXX := $(CPU) $(CACHELINE) $(CACHE) $(DIRECTMAPPEDCACHE) $(FOURWAYMAPPEDCACHE) $(MEMORY) $(SIM) $(MAINCXX)
+OBJECTS_C := $(SOURCES_C:.c=.o)
+OBJECTS_CXX := $(SOURCES_CXX:.cpp=.o)
+OBJECTS := $(OBJECTS_C) $(OBJECTS_CXX)
+
 # Default to release build
-all: clean release
+all: release
 
 # Debug build
-debug: clean
 debug: CXXFLAGS += -g
 debug: $(EXECUTABLE)
 
 # Release build
-release: clean
 release: CXXFLAGS += -O2
 release: $(EXECUTABLE)
 
-# Compile and link all source files directly into the final executable
-$(EXECUTABLE):
-	$(CC) $(CFLAGS) -o $(EXECUTABLE).c.o -c $(MAINC)
-	$(CXX) $(CXXFLAGS) -o $@ $(EXECUTABLE).c.o $(MAINCXX) $(CPU) $(SIM) $(CACHELINE) $(CACHE) $(DIRECTMAPPEDCACHE) $(FOURWAYMAPPEDCACHE) $(MEMORY) $(LDFLAGS)
-	rm -f $(EXECUTABLE).c.o
+# Compile C source files
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile C++ source files
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Link all object files into the final executable
+$(EXECUTABLE): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJECTS) $(LDFLAGS)
 
 # Clean up the build
 clean:
-	rm -f $(EXECUTABLE) $(TRACEFILES)
+	rm -f $(EXECUTABLE) $(TRACEFILES) $(OBJECTS)
 
 # Declare the targets that are not files
 .PHONY: all debug release clean
