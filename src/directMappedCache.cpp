@@ -100,6 +100,7 @@ void DirectMappedCache::cacheAccess()
         else if (cacheWriteEnableCACHEIn.read() == 1)
         {
             this->statistics.writes++;
+
             for (unsigned i = 0; i < cacheLatency - 1; ++i)
             {
                 wait();
