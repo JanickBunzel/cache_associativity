@@ -11,7 +11,7 @@ Cpu::Cpu(sc_module_name name, Request *requests, const int requestLength)
 
 void Cpu::handleRequests()
 {
-    bool cacheDone = false;
+    unsigned cycles = 1;
   
     for (int i = 0; i < requestLength; i++)
     {
@@ -28,12 +28,24 @@ void Cpu::handleRequests()
         writeEnableCPUOut.write(requests[i].we);
 
         // Wait for the cache to be done processing
-        while (cacheDone == false)
+        while (cacheReadDataCPUIn.read() == 0)
         {
             cpuStatistics.cycles++;
-            //std::cout << "[Cpu]: Zyklus: " << cpuStatistics.cycles << std::endl;
+            std::cout << "Cycle[" << cycles++ << "]" << std::endl;
+
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
+
+            if (cacheDoneCPUIn.read() == true)
+            {
+                std::cout << "cpu detected that cache is done" << std::endl;
+                break;
+            }
+
             wait();
-            cacheDone = cacheDoneCPUIn.read();
         }
         std::cout << "" << std::endl;
         std::cout << "###########################################################################################################################################################################" << std::endl;
@@ -41,8 +53,9 @@ void Cpu::handleRequests()
         std::cout << "[Cpu]: Read Data: " << cacheReadDataCPUIn.read() << std::endl;
         std::cout << "###########################################################################################################################################################################" << std::endl;
 
+        if ( i == requestLength - 1) { break; }
 
-        cacheDone = false;
+        wait();
     }
 
     sc_stop();
