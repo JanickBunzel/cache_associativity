@@ -38,7 +38,7 @@ void Cpu::handleRequests()
         std::cout << "" << std::endl;
         std::cout << "###########################################################################################################################################################################" << std::endl;
         std::cout << "[Cpu]: Cache done processing request[" << i << "]" << std::endl;
-        std::cout << "[Cpu]: Read Data: " << cacheReadDataCPUIn.read() << std::endl;
+        std::cout << std::hex << "[Cpu]: Read Data: " << cacheReadDataCPUIn.read() << std::dec << std::endl;
         std::cout << "###########################################################################################################################################################################" << std::endl;
 
 
