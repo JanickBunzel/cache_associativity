@@ -49,11 +49,34 @@ std::vector<sc_uint<8>> Cache::fetchMemoryData(sc_uint<32> address)
         memoryData[i] = memoryReadDataCACHEIn[i].read();
     }
 
+    // mem deaktivieren
+    memoryEnableCACHEOut.write(false);
+
     return memoryData;
 }
 
-// Reads 4 bytes from the offset, using the second index if a second cacheline needs to be read
-// Condition: Assuming cachelines being read are valid
+void Cache::writeMemoryData(sc_uint<32> address, sc_uint<32> writeData)
+{
+    // mem signals anlegen
+    memoryAddressCACHEOut.write(address);
+    memoryWriteDataCACHEOut.write(writeData);
+    memoryWriteEnableCACHEOut.write(true);
+
+    // mem starten
+    memoryEnableCACHEOut.write(true); // TODO: Auf false setzen?
+
+    // auf mem warten
+    while (memoryDoneCACHEIn.read() == false)
+    {
+        wait();
+        wait(SC_ZERO_TIME);
+    }
+
+    // mem deaktivieren
+    memoryEnableCACHEOut.write(false);
+}
+
+// Reads 4 bytes from the offset, using the second index if a second cacheline needs to be read -> Assuming cachelines being read are valid
 sc_uint<32> Cache::readCacheData(unsigned offset, unsigned indexFirstCacheline, unsigned indexSecondCacheline)
 {
     sc_uint<32> result = 0;
@@ -83,11 +106,10 @@ sc_uint<32> Cache::readCacheData(unsigned offset, unsigned indexFirstCacheline, 
         unsigned byte = cacheLinesArray[indexSecondCacheline].getData()[i];
         result += byte << (8 * currentByteIndex--);
     }
-
+    
 
     return result;
 }
-
 
 void Cache::writeCacheData(unsigned offset, unsigned indexFirstCacheline, unsigned indexSecondCacheline, sc_uint<32> writeData)
 {
