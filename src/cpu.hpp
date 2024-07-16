@@ -17,7 +17,7 @@ SC_MODULE(Cpu)
     // Signal to indicate that the cache has finished processing the request
     sc_in<bool> cacheDoneCPUIn;
     // Signal that contains the data read from the cache (One Byte)
-    sc_in<sc_uint<8>> cacheReadDataCPUIn;
+    sc_in<sc_uint<32>> cacheReadDataCPUIn;
 
     // --- OUTPUT PORTS --- //
 

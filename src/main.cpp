@@ -5,7 +5,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "directMappedCache.h"
-#include "fourwayMappedCache.h"
+// #include "fourwayMappedCache.h"
 
 extern int cycles;
 extern int directMapped;
@@ -33,7 +33,7 @@ int sc_main(int argc, char *argv[])
     }
     else
     {
-        cache = new FourwayMappedCache("cache_inst", cacheLines, cacheLineSize, cacheLatency);
+        // cache = new FourwayMappedCache("cache_inst", cacheLines, cacheLineSize, cacheLatency);
     }
     cache->clkCACHEIn(clk);
 
@@ -64,7 +64,7 @@ int sc_main(int argc, char *argv[])
     cpu.writeEnableCPUOut(cacheWriteEnableSignal);
     cache->cacheWriteEnableCACHEIn(cacheWriteEnableSignal);
     // - Cache read data
-    sc_signal<sc_uint<8>> cacheReadDataSignal;
+    sc_signal<sc_uint<32>> cacheReadDataSignal;
     cpu.cacheReadDataCPUIn(cacheReadDataSignal);
     cache->cacheReadDataCACHEOut(cacheReadDataSignal);
 

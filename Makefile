@@ -15,7 +15,7 @@ CPU := src/cpu.cpp
 # cache related files
 CACHE := src/cache.cpp
 DIRECTMAPPEDCACHE := src/directMappedCache.cpp
-FOURWAYMAPPEDCACHE := src/fourwayMappedCache.cpp
+#FOURWAYMAPPEDCACHE := src/fourwayMappedCache.cpp
 
 # memory related files
 MEMORY := src/memory.cpp
@@ -57,7 +57,8 @@ endif
 
 # Source files and object files
 SOURCES_C := $(MAINC)
-SOURCES_CXX := $(CPU) $(CACHE) $(DIRECTMAPPEDCACHE) $(FOURWAYMAPPEDCACHE) $(MEMORY) $(SIM) $(MAINCXX)
+SOURCES_CXX := $(CPU) $(CACHE) $(DIRECTMAPPEDCACHE) $(MEMORY) $(SIM) $(MAINCXX)
+#SOURCES_CXX := $(CPU) $(CACHE) $(DIRECTMAPPEDCACHE) $(FOURWAYMAPPEDCACHE) $(MEMORY) $(SIM) $(MAINCXX)
 OBJECTS_C := $(SOURCES_C:.c=.o)
 OBJECTS_CXX := $(SOURCES_CXX:.cpp=.o)
 OBJECTS := $(OBJECTS_C) $(OBJECTS_CXX)
