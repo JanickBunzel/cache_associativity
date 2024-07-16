@@ -64,7 +64,7 @@ void DirectMappedCache::cacheAccess()
                 wait(SC_ZERO_TIME);
             }
 
-            if (!cacheLinesArray[index].getTag() == tag || !cacheLinesArray[index].getValid())
+            if (!(cacheLinesArray[index].getTag() == tag) || !cacheLinesArray[index].getValid())
             {
                 hit = false;
                 // If the data is not present in the cache, the data is fetched from the memory and stored in the corresponding cache line.
@@ -107,7 +107,7 @@ void DirectMappedCache::cacheAccess()
                 wait(SC_ZERO_TIME);
             }
 
-            if (!cacheLinesArray[index].getTag() == tag || !cacheLinesArray[index].getValid())
+            if (!(cacheLinesArray[index].getTag() == tag) || !cacheLinesArray[index].getValid())
             {
                 hit = false;
                 // If the data is not present in the cache, the data is fetched from the memory and stored in the corresponding cache line.
