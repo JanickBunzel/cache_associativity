@@ -58,6 +58,7 @@ public:
 
     void printBits();
     std::vector<sc_uint<8>> fetchMemoryData(sc_uint<32> address);
+    sc_uint<32> Cache::readCacheData(unsigned offset, unsigned indexFirstCacheline, unsigned indexSecondCacheline);
 };
 
 #endif

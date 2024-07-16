@@ -48,3 +48,39 @@ std::vector<sc_uint<8>> Cache::fetchMemoryData(sc_uint<32> address)
 
     return memoryData;
 }
+
+// Reads 4 bytes from the offset, using the second index if a second cacheline needs to be read
+// Condition: Assuming cachelines being read are valid
+sc_uint<32> Cache::readCacheData(unsigned offset, unsigned indexFirstCacheline, unsigned indexSecondCacheline)
+{
+    sc_uint<32> result = 0;
+
+    unsigned currentByteIndex = 4;
+    unsigned remaining = 4;
+
+    // First cacheline
+    for (unsigned i = 0; i < 4; i++)
+    {
+        if (offset + i >= cacheLineSize)
+        {
+            break;
+        }
+        
+        // Read from the first cacheline
+        unsigned byte = cacheLinesArray[indexFirstCacheline].getData()[offset + i];
+        result += byte << 8 * currentByteIndex--;
+
+        remaining--;
+    }
+
+    // Second cacheline
+    for (unsigned i = 0; i < remaining; i++)
+    {
+        // Read from the second cacheline
+        unsigned byte = cacheLinesArray[indexSecondCacheline].getData()[i];
+        result += byte << 8 * currentByteIndex--;
+    }
+    
+
+    return result;
+}
