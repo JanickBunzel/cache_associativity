@@ -130,7 +130,7 @@ int sc_main(int argc, char *argv[])
     }
 
     // Start the simulation with the given number of cycles
-    sc_start();
+    sc_start(cycles, SC_NS);
 
     // Close the tracefile
     if (strcmp(tracefile, "") != 0)
