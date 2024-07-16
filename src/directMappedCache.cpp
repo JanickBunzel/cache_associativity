@@ -66,7 +66,7 @@ void DirectMappedCache::cacheAccess()
 
             if (!(cacheLinesArray[index].getTag() == tag) || !cacheLinesArray[index].getValid())
             {
-                std::cout << "Miss in first line" << std::endl;
+                std::cout << "Miss in first line (read)" << std::endl;
                 hit = false;
                 // If the data is not present in the cache, the data is fetched from the memory and stored in the corresponding cache line.
                 cacheLinesArray[index].setData(fetchMemoryData(address));
@@ -88,6 +88,7 @@ void DirectMappedCache::cacheAccess()
                 // The second cacheline also needs to have the right tag and is valid
                 if (cacheLinesArray[nextIndex].getTag() != nextTag || !cacheLinesArray[nextIndex].getValid())
                 {
+                    std::cout << "Miss in second line (read)" << std::endl;
                     hit = false;
                     
                     // Fetching the data from the next row and storing it in the corresponding cache line.
@@ -116,6 +117,7 @@ void DirectMappedCache::cacheAccess()
 
             if (!(cacheLinesArray[index].getTag() == tag) || !cacheLinesArray[index].getValid())
             {
+                std::cout << "Miss in first line (write)" << std::endl;
                 hit = false;
                 // If the data is not present in the cache, the data is fetched from the memory and stored in the corresponding cache line.
                 cacheLinesArray[index].setData(fetchMemoryData(address));
@@ -137,6 +139,7 @@ void DirectMappedCache::cacheAccess()
                 // The second cacheline also needs to have the right tag and is valid
                 if (cacheLinesArray[nextIndex].getTag() != nextTag || !cacheLinesArray[nextIndex].getValid())
                 {
+                    std::cout << "Miss in second line (write)" << std::endl;
                     hit = false;
                     
                     // Fetching the data from the next row and storing it in the corresponding cache line.

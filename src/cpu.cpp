@@ -19,7 +19,7 @@ void Cpu::handleRequests()
         cpuStatistics.requests++;
         std::cout << "" << std::endl;
         std::cout << "###########################################################################################################################################################################" << std::endl;
-        std::cout << "[Cpu]: Request[" << i << "]: " << (requests[i].we ? "W," : "R,") << requests[i].addr << "," << (requests[i].we ? std::to_string(requests[i].data) : "") << std::endl;
+        std::cout << "[Cpu]: Request[" << i << "]: " << (requests[i].we ? "W," : "R,") << std::hex << "0x" << requests[i].addr << std::dec << "," << (requests[i].we ? std::to_string(requests[i].data) : "") << std::endl;
         std::cout << "###########################################################################################################################################################################" << std::endl;
 
         // Send the request to the cache
