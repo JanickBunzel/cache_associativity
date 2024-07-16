@@ -57,6 +57,7 @@ public:
     virtual void calculateBits(unsigned cacheLines, unsigned cacheLineSize) = 0;
 
     void printBits();
+    std::vector<sc_uint<8>> fetchMemoryData(sc_uint<32> address);
 };
 
 #endif
