@@ -35,6 +35,10 @@ std::vector<sc_uint<8>> Cache::fetchMemoryData(sc_uint<32> address)
     // mem starten
     memoryEnableCACHEOut.write(true);
 
+    // TODO comment
+    wait();
+    wait(SC_ZERO_TIME);
+
     // auf mem warten
     while (memoryDoneCACHEIn.read() == false)
     {
@@ -63,7 +67,11 @@ void Cache::writeMemoryData(sc_uint<32> address, sc_uint<32> writeData)
     memoryWriteEnableCACHEOut.write(true);
 
     // mem starten
-    memoryEnableCACHEOut.write(true); // TODO: Auf false setzen?
+    memoryEnableCACHEOut.write(true);
+
+    // TODO comment
+    wait();
+    wait(SC_ZERO_TIME);
 
     // auf mem warten
     while (memoryDoneCACHEIn.read() == false)
@@ -81,7 +89,7 @@ sc_uint<32> Cache::readCacheData(unsigned offset, unsigned indexFirstCacheline, 
 {
     sc_uint<32> result = 0;
 
-    unsigned currentByteIndex = 4;
+    unsigned currentByteIndex = 3;
     unsigned remaining = 4;
 
     // First cacheline

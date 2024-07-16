@@ -31,17 +31,21 @@ void Cpu::handleRequests()
         while (cacheReadDataCPUIn.read() == 0)
         {
             cpuStatistics.cycles++;
-            std::cout << "Cycle[" << cycles++ << "]" << std::endl;
+            std::cout << "Cycles[" << cycles++ << "]" << std::endl;
 
             wait(SC_ZERO_TIME);
+            // Checking for Cpu-Cache Signals
             wait(SC_ZERO_TIME);
+            // Checking for Cache-Memory Signals
             wait(SC_ZERO_TIME);
+            // Checking for Memory-Cache Signals
             wait(SC_ZERO_TIME);
+            // Checking for Cache-Cpu Signals
             wait(SC_ZERO_TIME);
 
             if (cacheDoneCPUIn.read() == true)
             {
-                std::cout << "cpu detected that cache is done" << std::endl;
+                std::cout << "[Cpu]: detected that cache is done" << std::endl;
                 break;
             }
 
@@ -50,7 +54,7 @@ void Cpu::handleRequests()
         std::cout << "" << std::endl;
         std::cout << "###########################################################################################################################################################################" << std::endl;
         std::cout << "[Cpu]: Cache done processing request[" << i << "]" << std::endl;
-        std::cout << "[Cpu]: Read Data: " << cacheReadDataCPUIn.read() << std::endl;
+        std::cout << "[Cpu]: Read Data: 0x" << std::hex << cacheReadDataCPUIn.read() << std::dec << std::endl;
         std::cout << "###########################################################################################################################################################################" << std::endl;
 
         if ( i == requestLength - 1) { break; }
