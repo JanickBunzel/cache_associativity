@@ -5,18 +5,29 @@
 
 class CacheLine {
 public:
+    CacheLine(unsigned const cacheLineSize) : cacheLineSize(cacheLineSize)  { data = std::vector<sc_uint<8>>(cacheLineSize); }
 
+    void setData(std::vector<sc_uint<8>> data) { this -> data = data;}
+    std::vector<sc_uint<8>> getData() { return data;}
+
+    void setTag(sc_uint<32> tag) { this -> tag = tag;}
+    sc_uint<32> getTag() { return tag;}
+
+    void setValid(bool valid) { this -> valid = valid;}
+    bool getValid() { return valid;}
+
+    void setLru(int lru) { this -> lru = lru;}
+    int getLru() { return lru;}
+
+private:
+    // Data stored in the cache line as a vector of bytes
     std::vector<sc_uint<8>> data;
     sc_uint<32> tag = 0;
+    // Least Recently Used counter
     int lru = 0;
+    // Flag to indicate if the cache line is valid
     bool valid = false;
-    unsigned cacheLineSize;
-
-    CacheLine(unsigned cacheLineSize);
-
-    void write(sc_uint<32> newTag, const std::vector<sc_uint<8>>& newData);
-    bool read(sc_uint<32> readTag, std::vector<sc_uint<8>>& outData);
-    void updateLru(int newLru);
-};
+    const unsigned cacheLineSize;
+ };
 
 #endif
