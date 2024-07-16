@@ -126,7 +126,6 @@ void DirectMappedCache::cacheAccess()
             // This is done because the data is 4 bytes long and if the offset + 4 is greater than the cacheLineSize, the data must lie in two rows.
             if (offset + 4 > cacheLineSize)
             {
-                hit = false;
                 // The next address is calculated by adding the cacheLineSize to the current address.
                 sc_uint<32> nextAdress = (address + cacheLineSize);
                 // Extracting the index from the next address.
@@ -134,9 +133,15 @@ void DirectMappedCache::cacheAccess()
                 // Extracting the tag from the next address.
                 sc_uint<32> nextTag = nextAdress.range(31, bits.offset + bits.index);
                 // Fetching the data from the next row and storing it in the corresponding cache line.
-                cacheLinesArray[nextIndex].setData(fetchMemoryData(nextAdress));
-                cacheLinesArray[nextIndex].setTag(nextTag);
-                cacheLinesArray[nextIndex].setValid(true);
+
+                if (cacheLinesArray[nextIndex].getTag() != nextTag || !cacheLinesArray[nextIndex].getValid())
+                {
+                    std::cout << "Miss in second line" << std::endl;
+                    hit = false;
+                    cacheLinesArray[nextIndex].setData(fetchMemoryData(nextAdress));
+                    cacheLinesArray[nextIndex].setTag(nextTag);
+                    cacheLinesArray[nextIndex].setValid(true);
+                }
             }
 
             // Write given data to the cache
