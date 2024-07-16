@@ -12,6 +12,7 @@ Cpu::Cpu(sc_module_name name, Request *requests, const int requestLength)
 void Cpu::handleRequests()
 {
     unsigned cycles = 1;
+    bool cacheDone = false;
 
     for (int i = 0; i < requestLength; i++)
     {
@@ -54,7 +55,7 @@ void Cpu::handleRequests()
         std::cout << "[Cpu]: Cache done processing request[" << i << "]" << std::endl;
         std::cout << std::hex << "[Cpu]: Read Data: " << cacheReadDataCPUIn.read() << std::dec << std::endl;
         std::cout << "###########################################################################################################################################################################" << std::endl;
-
+    
         cacheDone = false;
     }
 
