@@ -68,7 +68,7 @@ sc_uint<32> Cache::readCacheData(unsigned offset, unsigned indexFirstCacheline, 
         
         // Read from the first cacheline
         unsigned byte = cacheLinesArray[indexFirstCacheline].getData()[offset + i];
-        result += byte << 8 * currentByteIndex--;
+        result += byte << (8 * currentByteIndex--);
 
         remaining--;
     }
@@ -78,7 +78,7 @@ sc_uint<32> Cache::readCacheData(unsigned offset, unsigned indexFirstCacheline, 
     {
         // Read from the second cacheline
         unsigned byte = cacheLinesArray[indexSecondCacheline].getData()[i];
-        result += byte << 8 * currentByteIndex--;
+        result += byte << (8 * currentByteIndex--);
     }
     
 
