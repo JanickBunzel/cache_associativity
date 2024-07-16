@@ -84,12 +84,13 @@ void DirectMappedCache::cacheAccess()
                 nextIndex = nextAdress.range(bits.offset + bits.index - 1, bits.offset);
                 // Extracting the tag from the next address.
                 sc_uint<32> nextTag = nextAdress.range(31, bits.offset + bits.index);
-                // Fetching the data from the next row and storing it in the corresponding cache line.
 
+                // The second cacheline also needs to have the right tag and is valid
                 if (cacheLinesArray[nextIndex].getTag() != nextTag || !cacheLinesArray[nextIndex].getValid())
                 {
-                    std::cout << "Miss in second line" << std::endl;
                     hit = false;
+                    
+                    // Fetching the data from the next row and storing it in the corresponding cache line.
                     cacheLinesArray[nextIndex].setData(fetchMemoryData(nextAdress));
                     cacheLinesArray[nextIndex].setTag(nextTag);
                     cacheLinesArray[nextIndex].setValid(true);
@@ -132,12 +133,13 @@ void DirectMappedCache::cacheAccess()
                 nextIndex = nextAdress.range(bits.offset + bits.index - 1, bits.offset);
                 // Extracting the tag from the next address.
                 sc_uint<32> nextTag = nextAdress.range(31, bits.offset + bits.index);
-                // Fetching the data from the next row and storing it in the corresponding cache line.
 
+                // The second cacheline also needs to have the right tag and is valid
                 if (cacheLinesArray[nextIndex].getTag() != nextTag || !cacheLinesArray[nextIndex].getValid())
                 {
-                    std::cout << "Miss in second line" << std::endl;
                     hit = false;
+                    
+                    // Fetching the data from the next row and storing it in the corresponding cache line.
                     cacheLinesArray[nextIndex].setData(fetchMemoryData(nextAdress));
                     cacheLinesArray[nextIndex].setTag(nextTag);
                     cacheLinesArray[nextIndex].setValid(true);
