@@ -32,6 +32,7 @@ SC_MODULE(Memory)
     unsigned memoryLatency;
     unsigned cacheLineSize;
 
+    // This function is the
     void memoryAccess();
     void write(unsigned memoryAddress, sc_uint<32> data);
     std::vector<sc_uint<8>> readBlock(unsigned address);

@@ -33,7 +33,7 @@ public:
     sc_in<bool> memoryDoneCACHEIn;
 
     // --- OUTPUT PORTS --- //
-    sc_out<sc_uint<8>> cacheReadDataCACHEOut;
+    sc_out<sc_uint<32>> cacheReadDataCACHEOut;
     sc_out<bool> cacheDoneCACHEOut;
     sc_out<sc_uint<32>> memoryAddressCACHEOut;
     sc_out<sc_uint<32>> memoryWriteDataCACHEOut;

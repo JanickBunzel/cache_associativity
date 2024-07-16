@@ -53,40 +53,50 @@ void DirectMappedCache::cacheAccess()
         {
             this->statistics.reads++;
             std::vector<sc_uint<8>> rdata;
+            sc_uint<32> nextIndex = 0;
+
+            // Await the cache latency.
             for (unsigned i = 0; i < cacheLatency - 1; i++)
             {
                 wait();
                 wait(SC_ZERO_TIME);
             }
-            const bool hit = cacheLinesArray[index].read(tag, rdata);
-            if (hit)
+
+            bool hit = true;
+            if (!cacheLinesArray[index].getTag() == tag || !cacheLinesArray[index].getValid())
             {
-                this->statistics.hits++;
+                hit = false;
+                // If the data is not present in the cache, the data is fetched from the memory and stored in the corresponding cache line.
+                cacheLinesArray[index].setData(fetchMemoryData(address));
+                cacheLinesArray[index].setTag(tag);
+                cacheLinesArray[index].setValid(true);
             }
-            else
+
+            // This bool cecks if the data lies in two rows by checking if the offset + 4 is greater than the cacheLineSize.
+            // This is done because the data is 4 bytes long and if the offset + 4 is greater than the cacheLineSize, the data must lie in two rows.
+            if (offset + 4 > cacheLineSize)
             {
-                this->statistics.misses++;
-                memoryAddressCACHEOut.write(address);
-                memoryWriteDataCACHEOut.write(false);
-                memoryEnableCACHEOut.write(true);
-                while (memoryDoneCACHEIn.read() == false)
-                {
-                    wait();
-                    wait(SC_ZERO_TIME);
-                }
-                std::vector<sc_uint<8>> memoryData(cacheLineSize);
-                for (unsigned i = 0; i < cacheLineSize; i++)
-                {
-                    memoryData[i] = memoryReadDataCACHEIn[i].read();
-                }
-                std::cout << "Tag: " << tag << std::endl;
-                cacheLinesArray[index].write(tag, memoryData);
-                //for (unsigned i = 0; i < cacheLineSize; ++i)
-                //{
-                    cacheReadDataCACHEOut.write(memoryData[offset]);
-                //}
+                hit = false;
+                // The next address is calculated by adding the cacheLineSize to the current address.
+                sc_uint<32> nextAdress = (address + cacheLineSize);
+                // Extracting the index from the next address.
+                nextIndex = nextAdress.range(bits.offset + bits.index - 1, bits.offset);
+                // Extracting the tag from the next address.
+                sc_uint<32> nextTag = nextAdress.range(31, bits.offset + bits.index);
+                // Fetching the data from the next row and storing it in the corresponding cache line.
+                cacheLinesArray[nextIndex].setData(fetchMemoryData(nextAdress));
+                cacheLinesArray[nextIndex].setTag(nextTag);
+                cacheLinesArray[nextIndex].setValid(true);
             }
+
+            if (hit) { this->statistics.hits++; }
+            else { this->statistics.misses++; }
+
+            // The data is read from the cache and sent to the CPU.
+            cacheReadDataCACHEOut.write(readCacheData(offset, index, nextIndex.to_uint()));
         }
+
+
         else if (cacheWriteEnableCACHEIn.read() == 1)
         {
             this->statistics.writes++;
@@ -178,3 +188,4 @@ void DirectMappedCache::calculateBits(unsigned cacheLines, unsigned cacheLineSiz
         exit(1);
     }
 }
+
