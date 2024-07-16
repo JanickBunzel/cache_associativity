@@ -170,10 +170,10 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
             cacheConfig.fourway = 1;
             break;
         case 'l':
-            // Argument: Cachelines, Expected: int > 0
-            if (!is_integer(optarg) || atoi(optarg) <= 0)
+            // Argument: Cachelines, Expected: int > 0 and power of two
+            if (!is_integer(optarg) || atoi(optarg) <= 0 || (atoi(optarg) & (atoi(optarg) - 1)) != 0)
             {
-                print_help_and_exit_with_error("Error: Die Anzahl der Cachelines muss ein Integer sein und größer als 0\n");
+                print_help_and_exit_with_error("Error: Die Anzahl der Cachelines muss eine positive Zweierpotenz sein\n");
             }
             cacheConfig.cachelines = atoi(optarg);
             break;
@@ -396,7 +396,7 @@ void print_help_and_exit_with_error(char *errorMessage, ...)
 // Prints the description and usage of the arguments
 void print_help()
 {
-    printf("Usage: rahmenprogramm [OPTIONS] <Eingabedatei>\n");
+    printf("Usage: cache_simulation [OPTIONS] <Eingabedatei>\n");
     printf("Options:\n");
     printf("  -c, --cycles <Zahl>         Die Anzahl der Zyklen, die simuliert werden sollen.\n");
     printf("  --directmapped              Simuliert einen direkt assoziativen Cache.\n");
@@ -406,7 +406,7 @@ void print_help()
     printf("  --cache-latency <Zahl>      Die Latenzzeit eines Caches in Zyklen.\n");
     printf("  --memory-latency <Zahl>     Die Latenzzeit des Hauptspeichers in Zyklen.\n");
     printf("  --tf <Dateiname>            Ausgabedatei für ein Tracefile mit allen Signalen.\n");
-    printf("  -h, --help                  Eine Beschreibung aller Optionen des Rahmenprogramms und Verwendung ausgeben und das Programm danach beendet.\n");
+    printf("  -h, --help                  Eine Beschreibung aller Optionen der Cachesimulation und Verwendung ausgeben und das Programm danach beendet.\n");
     printf("  Positional Arguments:\n");
     printf("  <Eingabedatei>              Die .csv Eingabedatei, die die zu verarbeitenden Daten enthält. Zeilenformat: <W, Adresse, Wert> oder <R, Adresse>\n");
     printf("\n");
