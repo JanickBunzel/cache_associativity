@@ -16,10 +16,10 @@ Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cacheLineSi
 // If the address of the byte to be written is not present in the memory, it is added
 void Memory::write(unsigned memoryAddress, sc_uint<32> data)
 {
-    // write byte by byte
+    // write byte by byte with LSB at the highest address
     for (unsigned i = 0; i < 4; ++i)
     {
-        memory[memoryAddress + i] = (data >> (8 * i)) & 0xFF;
+        memory[memoryAddress + (3 - i)] = (data >> (8 * i)) & 0xFF;
     }
 }
 
