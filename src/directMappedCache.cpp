@@ -66,6 +66,7 @@ void DirectMappedCache::cacheAccess()
 
             if (!(cacheLinesArray[index].getTag() == tag) || !cacheLinesArray[index].getValid())
             {
+                std::cout << "Miss in first line" << std::endl;
                 hit = false;
                 // If the data is not present in the cache, the data is fetched from the memory and stored in the corresponding cache line.
                 cacheLinesArray[index].setData(fetchMemoryData(address));
