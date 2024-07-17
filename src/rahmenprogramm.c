@@ -56,8 +56,8 @@ extern "C"
     Result run_simulation(
         int cycles,
         int directMapped,
-        unsigned cacheLines,
-        unsigned cacheLineSize,
+        unsigned cachelines,
+        unsigned cachelineSize,
         unsigned cacheLatency,
         unsigned memoryLatency,
         size_t numRequests,

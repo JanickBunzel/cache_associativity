@@ -41,20 +41,20 @@ public:
     sc_out<bool> memoryEnableCACHEOut;
 
     // --- INTERNAL VARIABLES --- //
-    std::vector<CacheLine> cacheLinesArray;
+    std::vector<CacheLine> cachelinesArray;
     struct statistics statistics;
     struct bits bits;
-    unsigned cacheLineSize;
+    unsigned cachelineSize;
     unsigned cacheLatency;
 
     SC_HAS_PROCESS(Cache);
 
-    Cache(sc_module_name name, unsigned cacheLines, unsigned cacheLineSize, unsigned cacheLatency);
+    Cache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency);
     virtual ~Cache();
 
     virtual void cacheAccess() = 0;
     virtual void printCache() = 0;
-    virtual void calculateBits(unsigned cacheLines, unsigned cacheLineSize) = 0;
+    virtual void calculateBits(unsigned cachelines, unsigned cachelineSize) = 0;
 
     void printBits();
     

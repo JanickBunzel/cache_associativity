@@ -6,8 +6,8 @@
 
 int cycles;
 int directMapped;
-unsigned cacheLines;
-unsigned cacheLineSize;
+unsigned cachelines;
+unsigned cachelineSize;
 unsigned cacheLatency;
 unsigned memoryLatency;
 size_t numRequests;
@@ -19,8 +19,8 @@ extern Result simulationResult;
 extern "C" Result run_simulation(
     int _cycles,
     int _directMapped,
-    unsigned _cacheLines,
-    unsigned _cacheLineSize,
+    unsigned _cachelines,
+    unsigned _cachelineSize,
     unsigned _cacheLatency,
     unsigned _memoryLatency,
     size_t _numRequests,
@@ -29,8 +29,8 @@ extern "C" Result run_simulation(
 {
     cycles = _cycles;
     directMapped = _directMapped;
-    cacheLines = _cacheLines;
-    cacheLineSize = _cacheLineSize;
+    cachelines = _cachelines;
+    cachelineSize = _cachelineSize;
     cacheLatency = _cacheLatency;
     memoryLatency = _memoryLatency;
     numRequests = _numRequests;

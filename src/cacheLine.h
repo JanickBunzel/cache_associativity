@@ -6,7 +6,7 @@
 class CacheLine
 {
 public:
-    CacheLine(unsigned const cacheLineSize) : cacheLineSize(cacheLineSize) { data = std::vector<sc_uint<8>>(cacheLineSize); }
+    CacheLine(unsigned const cachelineSize) : cachelineSize(cachelineSize) { data = std::vector<sc_uint<8>>(cachelineSize); }
 
     void setData(std::vector<sc_uint<8>> data) { this->data = data; }
     std::vector<sc_uint<8>> getData() { return data; }
@@ -28,7 +28,7 @@ private:
     int lru = 0;
     // Flag to indicate if the cache line is valid
     bool valid = false;
-    const unsigned cacheLineSize;
+    const unsigned cachelineSize;
 };
 
 #endif

@@ -3,10 +3,10 @@
 #include <iostream>
 #include <cmath>
 
-DirectMappedCache::DirectMappedCache(sc_module_name name, unsigned cacheLines, unsigned cacheLineSize, unsigned cacheLatency)
-    : Cache(name, cacheLines, cacheLineSize, cacheLatency)
+DirectMappedCache::DirectMappedCache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
+    : Cache(name, cachelines, cachelineSize, cacheLatency)
 {
-    calculateBits(cacheLines, cacheLineSize);
+    calculateBits(cachelines, cachelineSize);
 
     SC_THREAD(cacheAccess);
     dont_initialize();
@@ -64,37 +64,37 @@ void DirectMappedCache::cacheAccess()
                 wait(SC_ZERO_TIME);
             }
 
-            if (!(cacheLinesArray[index].getTag() == tag) || !cacheLinesArray[index].getValid())
+            if (!(cachelinesArray[index].getTag() == tag) || !cachelinesArray[index].getValid())
             {
                 std::cout << "Miss in first line (read)" << std::endl;
                 hit = false;
                 // If the data is not present in the cache, the data is fetched from the memory and stored in the corresponding cache line.
-                cacheLinesArray[index].setData(fetchMemoryData(address));
-                cacheLinesArray[index].setTag(tag);
-                cacheLinesArray[index].setValid(true);
+                cachelinesArray[index].setData(fetchMemoryData(address));
+                cachelinesArray[index].setTag(tag);
+                cachelinesArray[index].setValid(true);
             }
 
-            // This bool cecks if the data lies in two rows by checking if the offset + 4 is greater than the cacheLineSize.
-            // This is done because the data is 4 bytes long and if the offset + 4 is greater than the cacheLineSize, the data must lie in two rows.
-            if (offset + 4 > cacheLineSize)
+            // This bool cecks if the data lies in two rows by checking if the offset + 4 is greater than the cachelineSize.
+            // This is done because the data is 4 bytes long and if the offset + 4 is greater than the cachelineSize, the data must lie in two rows.
+            if (offset + 4 > cachelineSize)
             {
-                // The next address is calculated by adding the cacheLineSize to the current address.
-                sc_uint<32> nextAdress = (address + cacheLineSize);
+                // The next address is calculated by adding the cachelineSize to the current address.
+                sc_uint<32> nextAdress = (address + cachelineSize);
                 // Extracting the index from the next address.
                 nextIndex = nextAdress.range(bits.offset + bits.index - 1, bits.offset);
                 // Extracting the tag from the next address.
                 sc_uint<32> nextTag = nextAdress.range(31, bits.offset + bits.index);
 
                 // The second cacheline also needs to have the right tag and is valid
-                if (cacheLinesArray[nextIndex].getTag() != nextTag || !cacheLinesArray[nextIndex].getValid())
+                if (cachelinesArray[nextIndex].getTag() != nextTag || !cachelinesArray[nextIndex].getValid())
                 {
                     std::cout << "Miss in second line (read)" << std::endl;
                     hit = false;
                     
                     // Fetching the data from the next row and storing it in the corresponding cache line.
-                    cacheLinesArray[nextIndex].setData(fetchMemoryData(nextAdress));
-                    cacheLinesArray[nextIndex].setTag(nextTag);
-                    cacheLinesArray[nextIndex].setValid(true);
+                    cachelinesArray[nextIndex].setData(fetchMemoryData(nextAdress));
+                    cachelinesArray[nextIndex].setTag(nextTag);
+                    cachelinesArray[nextIndex].setValid(true);
                 }
             }
 
@@ -115,37 +115,37 @@ void DirectMappedCache::cacheAccess()
                 wait(SC_ZERO_TIME);
             }
 
-            if (!(cacheLinesArray[index].getTag() == tag) || !cacheLinesArray[index].getValid())
+            if (!(cachelinesArray[index].getTag() == tag) || !cachelinesArray[index].getValid())
             {
                 std::cout << "Miss in first line (write)" << std::endl;
                 hit = false;
                 // If the data is not present in the cache, the data is fetched from the memory and stored in the corresponding cache line.
-                cacheLinesArray[index].setData(fetchMemoryData(address));
-                cacheLinesArray[index].setTag(tag);
-                cacheLinesArray[index].setValid(true);
+                cachelinesArray[index].setData(fetchMemoryData(address));
+                cachelinesArray[index].setTag(tag);
+                cachelinesArray[index].setValid(true);
             }
 
-            // This bool cecks if the data lies in two rows by checking if the offset + 4 is greater than the cacheLineSize.
-            // This is done because the data is 4 bytes long and if the offset + 4 is greater than the cacheLineSize, the data must lie in two rows.
-            if (offset + 4 > cacheLineSize)
+            // This bool cecks if the data lies in two rows by checking if the offset + 4 is greater than the cachelineSize.
+            // This is done because the data is 4 bytes long and if the offset + 4 is greater than the cachelineSize, the data must lie in two rows.
+            if (offset + 4 > cachelineSize)
             {
-                // The next address is calculated by adding the cacheLineSize to the current address.
-                sc_uint<32> nextAdress = (address + cacheLineSize);
+                // The next address is calculated by adding the cachelineSize to the current address.
+                sc_uint<32> nextAdress = (address + cachelineSize);
                 // Extracting the index from the next address.
                 nextIndex = nextAdress.range(bits.offset + bits.index - 1, bits.offset);
                 // Extracting the tag from the next address.
                 sc_uint<32> nextTag = nextAdress.range(31, bits.offset + bits.index);
 
                 // The second cacheline also needs to have the right tag and is valid
-                if (cacheLinesArray[nextIndex].getTag() != nextTag || !cacheLinesArray[nextIndex].getValid())
+                if (cachelinesArray[nextIndex].getTag() != nextTag || !cachelinesArray[nextIndex].getValid())
                 {
                     std::cout << "Miss in second line (write)" << std::endl;
                     hit = false;
                     
                     // Fetching the data from the next row and storing it in the corresponding cache line.
-                    cacheLinesArray[nextIndex].setData(fetchMemoryData(nextAdress));
-                    cacheLinesArray[nextIndex].setTag(nextTag);
-                    cacheLinesArray[nextIndex].setValid(true);
+                    cachelinesArray[nextIndex].setData(fetchMemoryData(nextAdress));
+                    cachelinesArray[nextIndex].setTag(nextTag);
+                    cachelinesArray[nextIndex].setValid(true);
                 }
             }
 
@@ -173,13 +173,13 @@ void DirectMappedCache::printCache()
     std::cout << "Index\tTag\t\tValid\tLRU\tData (Hex/Binary)" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 
-    for (unsigned i = 0; i < cacheLinesArray.size(); ++i)
+    for (unsigned i = 0; i < cachelinesArray.size(); ++i)
     {
         std::cout << i << "\t"
-                  << cacheLinesArray[i].getTag().to_string(SC_HEX) << "\t"
-                  << cacheLinesArray[i].getValid() << "\t"
-                  << cacheLinesArray[i].getLru() << "\t";
-        for (const auto &byte : cacheLinesArray[i].getData())
+                  << cachelinesArray[i].getTag().to_string(SC_HEX) << "\t"
+                  << cachelinesArray[i].getValid() << "\t"
+                  << cachelinesArray[i].getLru() << "\t";
+        for (const auto &byte : cachelinesArray[i].getData())
         {
             std::cout << "("
                       << byte.to_string(SC_HEX) << " / "
@@ -198,10 +198,10 @@ void DirectMappedCache::printCache()
     std::cout << "----------------------------------------" << std::endl;
 }
 
-void DirectMappedCache::calculateBits(unsigned cacheLines, unsigned cacheLineSize)
+void DirectMappedCache::calculateBits(unsigned cachelines, unsigned cachelineSize)
 {
-    bits.offset = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cacheLineSize))));
-    bits.index = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cacheLines))));
+    bits.offset = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cachelineSize))));
+    bits.index = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cachelines))));
     bits.tag = 32 - bits.offset - bits.index;
     
     if (bits.offset < 0 || bits.index < 0 || bits.offset + bits.index > 31)

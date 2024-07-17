@@ -1,13 +1,13 @@
 #include "cache.h"
 #include <iostream>
 
-Cache::Cache(sc_module_name name, unsigned cacheLines, unsigned cacheLineSize, unsigned cacheLatency)
-    : sc_module(name), statistics({0, 0, 0, 0, 0}), bits({0, 0, 0}), cacheLineSize(cacheLineSize),
-      memoryReadDataCACHEIn(cacheLineSize), cacheLatency(cacheLatency)
+Cache::Cache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
+    : sc_module(name), statistics({0, 0, 0, 0, 0}), bits({0, 0, 0}), cachelineSize(cachelineSize),
+      memoryReadDataCACHEIn(cachelineSize), cacheLatency(cacheLatency)
 {
-    for (unsigned i = 0; i < cacheLines; ++i)
+    for (unsigned i = 0; i < cachelines; ++i)
     {
-        cacheLinesArray.emplace_back(cacheLineSize);
+        cachelinesArray.emplace_back(cachelineSize);
     }
 }
 
@@ -47,8 +47,8 @@ std::vector<sc_uint<8>> Cache::fetchMemoryData(sc_uint<32> address)
     }
 
     // cacheline von mem lesen und zurückgeben
-    std::vector<sc_uint<8>> memoryData(cacheLineSize);
-    for (unsigned i = 0; i < cacheLineSize; i++)
+    std::vector<sc_uint<8>> memoryData(cachelineSize);
+    for (unsigned i = 0; i < cachelineSize; i++)
     {
         memoryData[i] = memoryReadDataCACHEIn[i].read();
     }
@@ -95,13 +95,13 @@ sc_uint<32> Cache::readCacheData(unsigned offset, unsigned indexFirstCacheline, 
     // First cacheline
     for (unsigned i = 0; i < 4; i++)
     {
-        if (offset + i >= cacheLineSize)
+        if (offset + i >= cachelineSize)
         {
             break;
         }
 
         // Read from the first cacheline
-        unsigned byte = cacheLinesArray[indexFirstCacheline].getData()[offset + i];
+        unsigned byte = cachelinesArray[indexFirstCacheline].getData()[offset + i];
         result += byte << (8 * currentByteIndex--);
 
         remaining--;
@@ -111,7 +111,7 @@ sc_uint<32> Cache::readCacheData(unsigned offset, unsigned indexFirstCacheline, 
     for (unsigned i = 0; i < remaining; i++)
     {
         // Read from the second cacheline
-        unsigned byte = cacheLinesArray[indexSecondCacheline].getData()[i];
+        unsigned byte = cachelinesArray[indexSecondCacheline].getData()[i];
         result += byte << (8 * currentByteIndex--);
     }
     
@@ -125,24 +125,24 @@ void Cache::writeCacheData(unsigned offset, unsigned indexFirstCacheline, unsign
     unsigned currentByteIndex = 0;
 
     // First cacheline
-    std::vector<sc_uint<8>> cachlineData = cacheLinesArray[indexFirstCacheline].getData();
+    std::vector<sc_uint<8>> cachlineData = cachelinesArray[indexFirstCacheline].getData();
     for (unsigned i = 0; i < 4; i++)
     {
-        if (offset + i >= cacheLineSize) { break; }
+        if (offset + i >= cachelineSize) { break; }
 
         // Write to corresponding byte in first cacheline
         cachlineData[offset + i] = writeData >> (8 * (3 - currentByteIndex++)) & 0xFF;
 
         remaining--;
     }
-    cacheLinesArray[indexFirstCacheline].setData(cachlineData);
+    cachelinesArray[indexFirstCacheline].setData(cachlineData);
 
     // Second cacheline
-    cachlineData = cacheLinesArray[indexSecondCacheline].getData();
+    cachlineData = cachelinesArray[indexSecondCacheline].getData();
     for (unsigned i = 0; i < remaining; i++)
     {
         // Write to corresponding byte in second cacheline
         cachlineData[i] = writeData >> (8 * (3 - currentByteIndex++)) & 0xFF;
     }
-    cacheLinesArray[indexSecondCacheline].setData(cachlineData);
+    cachelinesArray[indexSecondCacheline].setData(cachlineData);
 }

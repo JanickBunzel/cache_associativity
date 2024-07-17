@@ -3,8 +3,8 @@
 #include <bitset>
 
 // Default constructor
-Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cacheLineSize)
-    : sc_module(name), memoryLatency(memoryLatency), cacheLineSize(cacheLineSize), readDataMEMORYOut(cacheLineSize)
+Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cachelineSize)
+    : sc_module(name), memoryLatency(memoryLatency), cachelineSize(cachelineSize), readDataMEMORYOut(cachelineSize)
 {
     SC_THREAD(memoryAccess);
     sensitive << clkMEMORYIn.pos();
@@ -26,11 +26,11 @@ void Memory::write(unsigned memoryAddress, sc_uint<32> data)
 std::vector<sc_uint<8>> Memory::readBlock(unsigned memoryAddress)
 {
     // Calculate the start address of the block
-    unsigned blockStartAddr = memoryAddress - (memoryAddress % cacheLineSize);
+    unsigned blockStartAddr = memoryAddress - (memoryAddress % cachelineSize);
     // block is the cache line that is returned
-    std::vector<sc_uint<8>> block(cacheLineSize);
+    std::vector<sc_uint<8>> block(cachelineSize);
     // fetch all bytes from the memory map starting at the given block address
-    for (unsigned i = 0; i < cacheLineSize; ++i)
+    for (unsigned i = 0; i < cachelineSize; ++i)
     {
         // If the address is not present in the memory, add it with the value 0x00
         if (memory.find(blockStartAddr + i) == memory.end())

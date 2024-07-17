@@ -26,14 +26,15 @@ Systemdesign Gruppe 157, Projektaufgabe A11:
 - [x] Hex oder Dezimal als Adresse oder Wert in CSV richtig verarbeiten
 - [x] Default Werte für Optionen setzen
 - [x] Leerzeichen zwischen csv values checken
-- [ ] Nur Zweierpotenzen bei Anzahl cachelines
+- [x] Nur Zweierpotenzen bei Anzahl cachelines
 
 
 ### SystemC Programm (3.3, s.5):
 - [x] run_simulation connecten
 - [x] **Makefile** erstellen, welches eine klare ausführbare main datei erstellt
 - [x] **Tracefile** während der Simulation erstellen
-- [ ] **Cache** implementieren: direct & fourway
+- [x] **Cache** implementieren: directmapped
+- [ ] **Cache** implementieren: fourway
 
 ### Sonstiges
 - [x] SystemC Path aus _evironment variable_ lesen (statt zurzeit workspace folder) -> Zulip
