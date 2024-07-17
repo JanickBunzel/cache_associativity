@@ -15,9 +15,9 @@ public:
     void calculateBits(unsigned cachelines, unsigned cachelineSize) override;
 
     int searchTagInSet(sc_uint<32> tag, unsigned setIndex);
-    void lruReplacement(unsigned indexToUpdate);
     int searchFreeLineInSet(unsigned setIndex);
-    int searchLeastRecentlyUsedLine(unsigned setIndex);
+    int searchLeastRecentlyUsedLineInSet(unsigned setIndex);
+    void updateLruIndicesInSet(unsigned setIndex, unsigned cachelineIndexToUpdate);
 };
 
 #endif // FOURWAYMAPPEDCACHE_H

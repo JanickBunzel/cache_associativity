@@ -26,145 +26,128 @@ void FourwayMappedCache::cacheAccess()
         this->statistics.accesses++;
 
         sc_uint<32> address = this->cacheAddressCACHEIn.read();
-        
+        int firstCachelineIndex = -1;
+
+        Bits bitValuesSecondAdress;
+        int secondCachelineIndex = -1;
+
         // Extract the offset, index and tag bits from the address
         extractBitsFromAdress(&bitValues, bitCounts, address);
-        
 
+        // Await the cache latency.
+        for (unsigned i = 0; i < cacheLatency - 1; i++)
+        {
+            wait();
+            wait(SC_ZERO_TIME);
+        }
+
+        bool hit = true;
+        sc_uint<32> nextIndex = 0;
+
+        // Check if the first cacheline is present in the Cache
+        firstCachelineIndex = searchTagInSet(bitValues.tag, bitValues.index);
+        if (firstCachelineIndex == -1)
+        {
+            // First cacheline is not present
+            std::cout << "[Cache]: Miss in first cacheline" << std::endl;
+            hit = false;
+
+            // If there is a free cacheline in the set, choose it
+            firstCachelineIndex = searchFreeLineInSet(bitValues.index);
+            if (firstCachelineIndex == -1)
+            {
+                // No free cacheline found in the set, search for the least recently used cacheline
+                firstCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValues.index);
+                if (firstCachelineIndex == -1)
+                {
+                    std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
+                    exit(1);
+                }
+            }
+
+            // Update the LRU counter
+            updateLruIndicesInSet(bitValues.index, firstCachelineIndex);
+
+            // Fetch the cacheline from the memory and write to the cache
+            cachelinesArray[bitValues.index + firstCachelineIndex].setData(fetchMemoryData(address));
+            cachelinesArray[bitValues.index + firstCachelineIndex].setTag(bitValues.tag);
+            cachelinesArray[bitValues.index + firstCachelineIndex].setValid(true);
+        }
+
+        // This bool cecks if the data lies in two rows by checking if the offset + 4 is greater than the cachelineSize.
+        // This is done because the data is 4 bytes long and if the offset + 4 is greater than the cachelineSize, the data must lie in two rows.
+        if (bitValues.offset + 4 > cachelineSize)
+        {
+            // The second address is calculated by adding the cachelineSize to the current address.
+            sc_uint<32> secondAdress = (address + cachelineSize);
+
+            extractBitsFromAdress(&bitValuesSecondAdress, bitCounts, secondAdress);
+
+            // Check if the second cacheline is present in the Cache
+            secondCachelineIndex = searchTagInSet(bitValuesSecondAdress.tag, bitValuesSecondAdress.index);
+            if (secondCachelineIndex == -1)
+            {
+                // Second cacheline is not present
+                std::cout << "[Cache]: Miss in second cacheline" << std::endl;
+                hit = false;
+
+                // If there is a free cacheline in the set, choose it
+                secondCachelineIndex = searchFreeLineInSet(bitValuesSecondAdress.index);
+                if (secondCachelineIndex == -1)
+                {
+                    // No free cacheline found in the set, search for the least recently used cacheline
+                    secondCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValuesSecondAdress.index);
+                    if (secondCachelineIndex == -1)
+                    {
+                        std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
+                        exit(1);
+                    }
+                }
+
+                // Update the LRU counter
+                updateLruIndicesInSet(bitValuesSecondAdress.index, secondCachelineIndex);
+
+                // Fetch the cacheline from the memory and write to the cache
+                cachelinesArray[bitValuesSecondAdress.index + secondCachelineIndex].setData(fetchMemoryData(secondAdress));
+                cachelinesArray[bitValuesSecondAdress.index + secondCachelineIndex].setTag(bitValuesSecondAdress.tag);
+                cachelinesArray[bitValuesSecondAdress.index + secondCachelineIndex].setValid(true);
+            }
+        }
+        // The needed cacheline(s) are now stored in the cache and valid
+
+        int firstCachelineIndexGlobal = firstCachelineIndex + 4 * bitValues.index;
+        int secondCachelineIndexGlobal = secondCachelineIndex + 4 * bitValuesSecondAdress.index;
+
+        // Act depending on Write or Read
         if (cacheWriteEnableCACHEIn.read() == 0)
         {
+            // READ request, update statistics
             this->statistics.reads++;
-            std::vector<sc_uint<8>> rdata;
-            for (unsigned i = 0; i < cacheLatency - 1; i++)
-            {
-                wait();
-                wait(SC_ZERO_TIME);
-            }
-            unsigned setIndex = index * 4;
-            int indexOfTag = searchTagInSet(tag, setIndex);
 
-            // HIT
-            if (indexOfTag != -1)
-            {
-                this->statistics.hits++;
-                lruReplacement(indexOfTag);
-            }
-            // MISS
-            else
-            {
-                this->statistics.misses++;
-                memoryAddressCACHEOut.write(address);
-                memoryWriteDataCACHEOut.write(false);
-                memoryEnableCACHEOut.write(true);
-                while (memoryDoneCACHEIn.read() == false)
-                {
-                    wait();
-                    wait(SC_ZERO_TIME);
-                }
-                std::vector<sc_uint<8>> memoryData(cachelineSize);
-                for (unsigned i = 0; i < cachelineSize; i++)
-                {
-                    memoryData[i] = memoryReadDataCACHEIn[i].read();
-                }
-
-
-                int indexOfFreeLine = searchFreeLineInSet(setIndex);
-                // Found free line
-                if (indexOfFreeLine != -1)
-                {
-                    cachelinesArray[indexOfFreeLine].write(tag, memoryData);
-                    lruReplacement(indexOfFreeLine);
-                    cacheReadDataCACHEOut.write(memoryData[offset]);
-                }
-
-                else
-                {
-                    int indexOfLruLine = searchLeastRecentlyUsedLine(setIndex);
-                    cachelinesArray[indexOfLruLine].write(tag, memoryData);
-                    lruReplacement(indexOfLruLine);
-                    cacheReadDataCACHEOut.write(memoryData[offset]);
-                }
-            }
+            // Read data from the cache and send it to the CPU
+            cacheReadDataCACHEOut.write(readCacheData(bitValues.offset, firstCachelineIndexGlobal, secondCachelineIndexGlobal));
         }
         else if (cacheWriteEnableCACHEIn.read() == 1)
         {
+            // WRITE request, update statistics
             this->statistics.writes++;
-            unsigned setIndex = index * 4;
-            unsigned indexOfWrittenLine = -1;
 
-            for (unsigned i = 0; i < cacheLatency - 1; ++i)
-            {
-                wait();
-                wait(SC_ZERO_TIME);
-            }
-            memoryAddressCACHEOut.write(address);
-            memoryWriteDataCACHEOut.write(cacheWriteDataCACHEIn.read());
-            memoryWriteEnableCACHEOut.write(true);
-            memoryEnableCACHEOut.write(true);
-            while (memoryDoneCACHEIn.read() == false)
-            {
-                wait();
-                wait(SC_ZERO_TIME);
-            }
-            std::vector<sc_uint<8>> memoryData(cachelineSize);
-            for (unsigned i = 0; i < cachelineSize; i++)
-            {
-                memoryData[i] = memoryReadDataCACHEIn[i].read();
-            }
+            // Write given data to the cache
+            writeCacheData(bitValues.offset, firstCachelineIndexGlobal, secondCachelineIndexGlobal, cacheWriteDataCACHEIn.read());
 
-            //erst schauen, ob der Tag schon im Cache ist
-            int isIndexAlreadyInSet = searchTagInSet(tag, setIndex);
-            if (isIndexAlreadyInSet != -1)
-            {
-                cachelinesArray[isIndexAlreadyInSet].write(tag, memoryData);
-                indexOfWrittenLine = isIndexAlreadyInSet;
-                lruReplacement(isIndexAlreadyInSet);
-                cacheReadDataCACHEOut.write(memoryData[offset]);
-            }
-
-            else
-            {
-                //wenn nicht im Cache, dann schauen, ob ein freier Platz im Cache ist
-                int indexOfFreeLine = searchFreeLineInSet(setIndex);
-
-                if (indexOfFreeLine != -1)
-                {
-                    cachelinesArray[indexOfFreeLine].write(tag, memoryData);
-                    indexOfWrittenLine = indexOfFreeLine;
-                    lruReplacement(indexOfFreeLine);
-                    cacheReadDataCACHEOut.write(memoryData[offset]);
-                }
-
-                //wenn kein freier Platz vorhanden ist, dann LRU-Strategie anwenden
-                else
-                {
-                    int indexOfLruLine = searchLeastRecentlyUsedLine(setIndex);
-                    cachelinesArray[indexOfLruLine].write(tag, memoryData);
-                    indexOfWrittenLine = indexOfLruLine;
-                    lruReplacement(indexOfLruLine);
-                    cacheReadDataCACHEOut.write(memoryData[offset]);
-                }
-            }
-
-            // invalidierungstrategie für ggf. invalide cache lines
-            sc_uint<32> nextAddress = address;
-            unsigned numBytes = 32 / 8;
-
-            for (unsigned i = 1; i < numBytes; ++i)
-            {
-                nextAddress = address + i * cachelineSize;
-                sc_uint<32> nextIndex = nextAddress.range(bits.offset + bits.index - 1, bits.offset);
-                sc_uint<32> nextTag = nextAddress.range(31, bits.offset + bits.index);
-
-                int isIndexAlreadyInSet = searchTagInSet(nextTag, nextIndex);
-                if (isIndexAlreadyInSet != -1 && isIndexAlreadyInSet != indexOfWrittenLine)
-                {
-                    cachelinesArray[isIndexAlreadyInSet].valid = false;
-                    lruReplacement(isIndexAlreadyInSet);
-                }
-            }
-
+            // Write given data to the memory
+            writeMemoryData(address, cacheWriteDataCACHEIn.read());
         }
+
+        if (hit)
+        {
+            this->statistics.hits++;
+        }
+        else
+        {
+            this->statistics.misses++;
+        }
+
         memoryEnableCACHEOut.write(false);
         cacheDoneCACHEOut.write(true);
         printCache();
@@ -184,16 +167,16 @@ void FourwayMappedCache::printCache()
         unsigned set = i / 4; // Berechnet die Set-Nummer
         for (unsigned way = 0; way < 4; ++way)
         {
-            const auto& line = cachelinesArray[i + way];
+            CacheLine line = cachelinesArray[i + way];
             std::cout << set << "\t" << way << "\t"
-                << line.tag.to_string(SC_HEX) << "\t"
-                << line.valid << "\t"
-                << static_cast<unsigned>(line.lru & 0x03) << "\t"; // Korrekte Darstellung der 2-Bit LRU-Zahl
-            for (const auto& byte : line.data)
+                      << line.getTag().to_string(SC_HEX) << "\t"
+                      << line.getValid() << "\t"
+                      << static_cast<unsigned>(line.getLru() & 0x03) << "\t"; // Korrekte Darstellung der 2-Bit LRU-Zahl
+            for (const auto &byte : line.getData())
             {
                 std::cout << "("
-                    << byte.to_string(SC_HEX) << " / "
-                    << byte.to_string(SC_BIN) << ") ";
+                          << byte.to_string(SC_HEX) << " / "
+                          << byte.to_string(SC_BIN) << ") ";
             }
             std::cout << std::endl;
         }
@@ -211,14 +194,14 @@ void FourwayMappedCache::printCache()
 
 void FourwayMappedCache::calculateBits(unsigned cachelines, unsigned cachelineSize)
 {
-    bits.offset = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cachelineSize))));
+    bitCounts.offset = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cachelineSize))));
 
     unsigned numSets = std::ceil(static_cast<double>(cachelines) / 4);
-    bits.index = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(numSets))));
+    bitCounts.index = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(numSets))));
 
-    bits.tag = 32 - bits.offset - bits.index;
+    bitCounts.tag = 32 - bitCounts.offset - bitCounts.index;
 
-    if (bits.offset < 0 || bits.index < 0 || bits.offset + bits.index > 31)
+    if (bitCounts.offset < 0 || bitCounts.index < 0 || bitCounts.offset + bitCounts.index > 31)
     {
         std::cerr << "Error: offsetBits and/or indexBits are out of valid range." << std::endl;
         exit(1);
@@ -227,79 +210,55 @@ void FourwayMappedCache::calculateBits(unsigned cachelines, unsigned cachelineSi
 
 int FourwayMappedCache::searchTagInSet(sc_uint<32> tag, const unsigned setIndex)
 {
-    int indexOfTag = -1;
     for (int i = 0; i < 4; i++)
     {
         std::vector<sc_uint<8>> rdata;
-        const bool hit = cachelinesArray[setIndex + i].read(tag, rdata);
-        if (hit)
+        if (cachelinesArray[setIndex + i].getTag() == tag)
         {
-            indexOfTag = setIndex + i;
-            break;
+            // Cacheline found with the right tag
+            return i;
         }
     }
-    return indexOfTag;
-}
 
-void FourwayMappedCache::lruReplacement(unsigned indexToUpdate)
-{
-    if (indexToUpdate >= cachelinesArray.size())
-    {
-        std::cerr << "Error: You are trying to access an Element in lru[] that is out of bounds" << "[Index: " <<
-            indexToUpdate << "]" << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-
-    unsigned cacheSet = indexToUpdate / 4;
-    unsigned cacheSetIndex = 4 * cacheSet;
-    std::cout << "LRU Strategie wurde aufgerufen" << std::endl;
-    std::cout << "IndexToUpdate: " << indexToUpdate << std::endl;
-
-    for (int i = 0; i < 4; i++)
-    {
-        std::cout << "Lru: " << cachelinesArray[cacheSetIndex + i].lru << std::endl;
-        std::cout << "index to update lru: " << cachelinesArray[indexToUpdate].lru << std::endl;
-        if (cachelinesArray[cacheSetIndex + i].lru > cachelinesArray[indexToUpdate].lru && cachelinesArray[cacheSetIndex + i].valid == true)
-        {
-            std::cout << "Index: " << cacheSetIndex + i << " wird um 1 dekrementiert" << std::endl;
-            cachelinesArray[cacheSetIndex + i].updateLru(cachelinesArray[cacheSetIndex + i].lru - 1);
-        }
-    }
-    if (cachelinesArray[indexToUpdate].valid == true)
-    {
-        std::cout << "Index: " << indexToUpdate << " wird auf 3 gesetzt" << std::endl;
-        cachelinesArray[indexToUpdate].updateLru(3);
-    }
-    else
-    {
-        cachelinesArray[indexToUpdate].updateLru(0);
-    }
+    return -1;
 }
 
 int FourwayMappedCache::searchFreeLineInSet(unsigned setIndex)
 {
-    int indexOfFreeLine = -1;
     for (int i = 0; i < 4; i++)
     {
-        if (cachelinesArray[setIndex + i].valid == false)
+        if (cachelinesArray[setIndex + i].getValid() == false)
         {
-            indexOfFreeLine = setIndex + i;
-            break;
+            // Found a free cacheline
+            return i;
         }
     }
-    return indexOfFreeLine;
+
+    return -1;
 }
 
-int FourwayMappedCache::searchLeastRecentlyUsedLine(unsigned setIndex)
+int FourwayMappedCache::searchLeastRecentlyUsedLineInSet(unsigned setIndex)
 {
-    int indexOfLruLine = -1;
     for (int i = 0; i < 4; i++)
     {
-        if (cachelinesArray[setIndex + i].lru == 0 && cachelinesArray[setIndex + i].valid == true)
+        if (cachelinesArray[setIndex + i].getLru() == 0 && cachelinesArray[setIndex + i].getValid() == true)
         {
-            indexOfLruLine = setIndex + i;
-            break;
+            return i;
         }
     }
-    return indexOfLruLine;
+
+    return -1;
+}
+
+void FourwayMappedCache::updateLruIndicesInSet(unsigned setIndex, unsigned cachelineIndexToUpdate)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        if (cachelinesArray[setIndex + i].getLru() > cachelinesArray[setIndex + cachelineIndexToUpdate].getLru() && cachelinesArray[setIndex + i].getValid())
+        {
+            cachelinesArray[setIndex + i].setLru(cachelinesArray[setIndex + i].getLru() - 1);
+        }
+    }
+
+    cachelinesArray[cachelineIndexToUpdate + setIndex].setLru(3);
 }
