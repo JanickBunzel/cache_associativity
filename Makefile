@@ -30,7 +30,7 @@ SIM := src/simulation.cpp
 SCPATH = $(SYSTEMC_HOME)
 
 # Additional flags for the compiler
-CXXFLAGS := -std=c++14 -I"$(SCPATH)/include" -v
+CXXFLAGS := -std=c++14 -I"$(SCPATH)/include"
 LDFLAGS := -L"$(SCPATH)/lib" -lsystemc -lm
 CFLAGS := -std=c18
 
