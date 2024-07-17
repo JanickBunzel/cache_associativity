@@ -164,11 +164,14 @@ void Cache::writeCacheData(unsigned offset, unsigned indexFirstCacheline, unsign
     cachelinesArray[indexFirstCacheline].setData(cachlineData);
 
     // Second cacheline
-    cachlineData = cachelinesArray[indexSecondCacheline].getData();
-    for (unsigned i = 0; i < remaining; i++)
+    if (remaining > 0)
     {
-        // Write to corresponding byte in second cacheline
-        cachlineData[i] = writeData >> (8 * (3 - currentByteIndex++)) & 0xFF;
+        cachlineData = cachelinesArray[indexSecondCacheline].getData();
+        for (unsigned i = 0; i < remaining; i++)
+        {
+            // Write to corresponding byte in second cacheline
+            cachlineData[i] = writeData >> (8 * (3 - currentByteIndex++)) & 0xFF;
+        }
+        cachelinesArray[indexSecondCacheline].setData(cachlineData);
     }
-    cachelinesArray[indexSecondCacheline].setData(cachlineData);
 }
