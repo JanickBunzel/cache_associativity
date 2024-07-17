@@ -5,8 +5,8 @@
 # ignore compiled object file
 *.o
 
-# ignore compiled executable (keep last released version)
-cache_simulation
+# ignore compiled executable (Tracked to skip compilation on artemis)
+# cache_simulation
 
 # ignore local vscode settings
 .vscode

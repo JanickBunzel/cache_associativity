@@ -1,16 +1,16 @@
 # test.csv
-directmapped
-cachelines = 8
-cacheline_size = 4
+--directmapped
+--cachelines = 8
+--cacheline_size = 4
 
 Bits:
 tag = 27
 index = 3
 offset = 2
 
-Requests:
+
 ### 0: Beginning Cache state:
-````
+```
 ----------------------------------------
 Cache State:
 ----------------------------------------
@@ -35,10 +35,19 @@ Reads: 0
 Memory Content:
 Address     Data (Hex)     Data (Binary)
 -----------------------------------------
-````
+```
 
 ### 1 - 8: Fill cache with new tags
-Should come to:
+```
+R,0xaffe
+R,0xafe2
+R,0xafe6
+R,0xafea
+R,0xafee
+R,0xaff2
+R,0xaff6
+R,0xaffa
+```
 ```
 Cache State:
 ----------------------------------------
@@ -65,7 +74,9 @@ Reads: 8
 
 
 ### 9: Fill cacheline 1 with 1s
-Should come to:
+```
+W,0x4,0xffffffff
+```
 ```
 Cache State:
 ----------------------------------------
@@ -90,7 +101,9 @@ Reads: 8
 ```
 
 ### 10: Fill cacheline 2 with 1s (Should write to cacheline 2 with offset 1 -> therefore use first byte of chacheline 3 aswell)
-Should come to:
+```
+W,0x9,0xffffffff
+```
 ```
 Cache State:
 ----------------------------------------
@@ -116,7 +129,9 @@ Reads: 8
 ```
 
 ### 11: Fill cacheline 2 with 01s
-Should come to:
+```
+W,0x8,0xAAAAAAAA
+```
 ```
 Cache State:
 ----------------------------------------
@@ -141,6 +156,5 @@ Reads: 8
 ```
 
 ### 12: TODO
-Should come to:
 ```
 ```

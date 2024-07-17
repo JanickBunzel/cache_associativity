@@ -26,7 +26,7 @@ void DirectMappedCache::cacheAccess()
         this->statistics.accesses++;
 
         sc_uint<32> address = this->cacheAddressCACHEIn.read();
-        
+
         // Extract the offset, index and tag bits from the address
         extractBitsFromAdress(&bitValues, bitCounts, address);
 
@@ -40,12 +40,13 @@ void DirectMappedCache::cacheAccess()
         bool hit = true;
         sc_uint<32> nextIndex = 0;
 
-        
+        // Check if the first cacheline is present in the cache
         if (!(cachelinesArray[bitValues.index].getTag() == bitValues.tag) || !cachelinesArray[bitValues.index].getValid())
         {
-            std::cout << "Miss in first line (write)" << std::endl;
+            std::cout << "[Cache]: Miss in first cacheline" << std::endl;
             hit = false;
-            // If the data is not present in the cache, the data is fetched from the memory and stored in the corresponding cache line.
+
+            // Fetch the cacheline from the memory and write to the cache
             cachelinesArray[bitValues.index].setData(fetchMemoryData(address));
             cachelinesArray[bitValues.index].setTag(bitValues.tag);
             cachelinesArray[bitValues.index].setValid(true);
@@ -65,40 +66,46 @@ void DirectMappedCache::cacheAccess()
             // The second cacheline also needs to have the right tag and is valid
             if (cachelinesArray[nextIndex].getTag() != nextTag || !cachelinesArray[nextIndex].getValid())
             {
-                std::cout << "Miss in second line (write)" << std::endl;
+                std::cout << "[Cache]: Miss in second cacheline" << std::endl;
                 hit = false;
-                
+
                 // Fetching the data from the next row and storing it in the corresponding cache line.
                 cachelinesArray[nextIndex].setData(fetchMemoryData(nextAdress));
                 cachelinesArray[nextIndex].setTag(nextTag);
                 cachelinesArray[nextIndex].setValid(true);
             }
         }
+        // The needed cacheline(s) are now stored in the cache and valid
 
+        // Act depending on Write or Read
         if (cacheWriteEnableCACHEIn.read() == 0)
         {
-            // Update statistics
+            // READ request, update statistics
             this->statistics.reads++;
 
             // Read data from the cache and send it to the CPU
             cacheReadDataCACHEOut.write(readCacheData(bitValues.offset, bitValues.index, nextIndex.to_uint()));
         }
-
-
         else if (cacheWriteEnableCACHEIn.read() == 1)
         {
-            // Update statistics
+            // WRITE request, update statistics
             this->statistics.writes++;
 
             // Write given data to the cache
             writeCacheData(bitValues.offset, bitValues.index, nextIndex.to_uint(), cacheWriteDataCACHEIn.read());
-            
+
             // Write given data to the memory
             writeMemoryData(address, cacheWriteDataCACHEIn.read());
         }
-        
-        if (hit) { this->statistics.hits++; }
-        else { this->statistics.misses++; }
+
+        if (hit)
+        {
+            this->statistics.hits++;
+        }
+        else
+        {
+            this->statistics.misses++;
+        }
 
         memoryEnableCACHEOut.write(false);
         cacheDoneCACHEOut.write(true);
@@ -144,7 +151,7 @@ void DirectMappedCache::calculateBits(unsigned cachelines, unsigned cachelineSiz
     bitCounts.offset = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cachelineSize))));
     bitCounts.index = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cachelines))));
     bitCounts.tag = 32 - bitCounts.offset - bitCounts.index;
-    
+
     if (bitCounts.offset < 0 || bitCounts.index < 0 || bitCounts.offset + bitCounts.index > 31)
     {
         std::cerr << "Error: offsetBits and/or indexBits are out of valid range." << std::endl;

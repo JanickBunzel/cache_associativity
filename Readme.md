@@ -34,7 +34,8 @@ Systemdesign Gruppe 157, Projektaufgabe A11:
 - [x] **Makefile** erstellen, welches eine klare ausführbare main datei erstellt
 - [x] **Tracefile** während der Simulation erstellen
 - [x] **Cache** implementieren: directmapped
-- [ ] **Cache** implementieren: fourway
+- [x] **Cache** implementieren: fourway
+- [ ] Caches weiter testen
 
 ### Sonstiges
 - [x] SystemC Path aus _evironment variable_ lesen (statt zurzeit workspace folder) -> Zulip
@@ -42,6 +43,7 @@ Systemdesign Gruppe 157, Projektaufgabe A11:
 - [ ] Auf _Rechnerhalle_ compilieren!
 - [ ] "Bei Lesezugriffen soll der gelesene Wert in das data-Feld der Anfrage geschrieben werden" -> Seite 7 & [Zulip](https://zulip.in.tum.de/#narrow/stream/2434-GRA-24S-Projektphase---Systemdesign/topic/Cache.20Request.20Data/near/1588151)
 - [ ] Erklärung schreiben, wie latencies zustande kommen und wie wir write hits/misses handlen
+- [ ] MemoryLeaks checken
 
 ### Finish Up:
 - [ ] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments
