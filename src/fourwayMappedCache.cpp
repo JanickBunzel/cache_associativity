@@ -58,21 +58,22 @@ void FourwayMappedCache::cacheAccess()
             {
                 // No free cacheline found in the set, search for the least recently used cacheline
                 firstCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValues.index);
-                if (firstCachelineIndex == -1)
-                {
-                    std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
-                    exit(1);
-                }
             }
-
-            // Update the LRU counter
-            updateLruIndicesInSet(bitValues.index, firstCachelineIndex);
 
             // Fetch the cacheline from the memory and write to the cache
             getCacheline(bitValues.index, firstCachelineIndex).setData(fetchMemoryData(address));
             getCacheline(bitValues.index, firstCachelineIndex).setTag(bitValues.tag);
             getCacheline(bitValues.index, firstCachelineIndex).setValid(true);
         }
+        
+        // If the index is still -1, there was an error (no correct tag found, no free cacheline found, no LRU cacheline found)
+        if (firstCachelineIndex == -1)
+        {
+            std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
+            exit(1);
+        }
+        // Update the LRU counter
+        updateLruIndicesInSet(bitValues.index, firstCachelineIndex);
 
         // This bool cecks if the data lies in two rows by checking if the offset + 4 is greater than the cachelineSize.
         // This is done because the data is 4 bytes long and if the offset + 4 is greater than the cachelineSize, the data must lie in two rows.
@@ -97,21 +98,23 @@ void FourwayMappedCache::cacheAccess()
                 {
                     // No free cacheline found in the set, search for the least recently used cacheline
                     secondCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValuesSecondAdress.index);
-                    if (secondCachelineIndex == -1)
-                    {
-                        std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
-                        exit(1);
-                    }
                 }
-
-                // Update the LRU counter
-                updateLruIndicesInSet(bitValuesSecondAdress.index, secondCachelineIndex);
 
                 // Fetch the cacheline from the memory and write to the cache
                 getCacheline(bitValuesSecondAdress.index, secondCachelineIndex).setData(fetchMemoryData(secondAdress));
                 getCacheline(bitValuesSecondAdress.index, secondCachelineIndex).setTag(bitValuesSecondAdress.tag);
                 getCacheline(bitValuesSecondAdress.index, secondCachelineIndex).setValid(true);
             }
+            
+            // If the index is still -1, there was an error (no correct tag found, no free cacheline found, no LRU cacheline found)
+            if (secondCachelineIndex == -1)
+            {
+                std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
+                exit(1);
+            }
+            
+            // Update the LRU counter
+            updateLruIndicesInSet(bitValuesSecondAdress.index, secondCachelineIndex);
         }
         // The needed cacheline(s) are now stored in the cache and valid
 
