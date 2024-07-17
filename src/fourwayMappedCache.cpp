@@ -69,9 +69,9 @@ void FourwayMappedCache::cacheAccess()
             updateLruIndicesInSet(bitValues.index, firstCachelineIndex);
 
             // Fetch the cacheline from the memory and write to the cache
-            cachelinesArray[bitValues.index + firstCachelineIndex].setData(fetchMemoryData(address));
-            cachelinesArray[bitValues.index + firstCachelineIndex].setTag(bitValues.tag);
-            cachelinesArray[bitValues.index + firstCachelineIndex].setValid(true);
+            getCacheline(bitValues.index, firstCachelineIndex).setData(fetchMemoryData(address));
+            getCacheline(bitValues.index, firstCachelineIndex).setTag(bitValues.tag);
+            getCacheline(bitValues.index, firstCachelineIndex).setValid(true);
         }
 
         // This bool cecks if the data lies in two rows by checking if the offset + 4 is greater than the cachelineSize.
@@ -108,9 +108,9 @@ void FourwayMappedCache::cacheAccess()
                 updateLruIndicesInSet(bitValuesSecondAdress.index, secondCachelineIndex);
 
                 // Fetch the cacheline from the memory and write to the cache
-                cachelinesArray[bitValuesSecondAdress.index + secondCachelineIndex].setData(fetchMemoryData(secondAdress));
-                cachelinesArray[bitValuesSecondAdress.index + secondCachelineIndex].setTag(bitValuesSecondAdress.tag);
-                cachelinesArray[bitValuesSecondAdress.index + secondCachelineIndex].setValid(true);
+                getCacheline(bitValuesSecondAdress.index, secondCachelineIndex).setData(fetchMemoryData(secondAdress));
+                getCacheline(bitValuesSecondAdress.index, secondCachelineIndex).setTag(bitValuesSecondAdress.tag);
+                getCacheline(bitValuesSecondAdress.index, secondCachelineIndex).setValid(true);
             }
         }
         // The needed cacheline(s) are now stored in the cache and valid
@@ -208,11 +208,16 @@ void FourwayMappedCache::calculateBits(unsigned cachelines, unsigned cachelineSi
     }
 }
 
-int FourwayMappedCache::searchTagInSet(sc_uint<32> tag, const unsigned setIndex)
+CacheLine& FourwayMappedCache::getCacheline(unsigned setIndex, unsigned cachelineIndex)
+{
+    return cachelinesArray[4 * setIndex + cachelineIndex];
+}
+
+int FourwayMappedCache::searchTagInSet(sc_uint<32> tag, unsigned setIndex)
 {
     for (int i = 0; i < 4; i++)
     {
-        if (cachelinesArray[setIndex + i].getTag() == tag)
+        if (getCacheline(setIndex, i).getTag() == tag && getCacheline(setIndex, i).getValid())
         {
             // Cacheline found with the right tag
             return i;
@@ -226,7 +231,7 @@ int FourwayMappedCache::searchFreeLineInSet(unsigned setIndex)
 {
     for (int i = 0; i < 4; i++)
     {
-        if (cachelinesArray[setIndex + i].getValid() == false)
+        if (getCacheline(setIndex, i).getValid() == false)
         {
             // Found a free cacheline
             return i;
@@ -240,7 +245,7 @@ int FourwayMappedCache::searchLeastRecentlyUsedLineInSet(unsigned setIndex)
 {
     for (int i = 0; i < 4; i++)
     {
-        if (cachelinesArray[setIndex + i].getLru() == 0 && cachelinesArray[setIndex + i].getValid() == true)
+        if (getCacheline(setIndex, i).getLru() == 0 && getCacheline(setIndex, i).getValid() == true)
         {
             return i;
         }
@@ -253,11 +258,11 @@ void FourwayMappedCache::updateLruIndicesInSet(unsigned setIndex, unsigned cache
 {
     for (int i = 0; i < 4; i++)
     {
-        if (cachelinesArray[setIndex + i].getLru() > cachelinesArray[setIndex + cachelineIndexToUpdate].getLru() && cachelinesArray[setIndex + i].getValid())
+        if (getCacheline(setIndex, i).getLru() > getCacheline(setIndex, cachelineIndexToUpdate).getLru() && getCacheline(setIndex, i).getValid())
         {
-            cachelinesArray[setIndex + i].setLru(cachelinesArray[setIndex + i].getLru() - 1);
+            getCacheline(setIndex, i).setLru(getCacheline(setIndex, i).getLru() - 1);
         }
     }
 
-    cachelinesArray[cachelineIndexToUpdate + setIndex].setLru(3);
+    getCacheline(setIndex, cachelineIndexToUpdate).setLru(3);
 }
