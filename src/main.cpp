@@ -5,7 +5,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "directMappedCache.h"
-// #include "fourwayMappedCache.h"
+#include "fourwayMappedCache.h"
 
 extern int cycles;
 extern int directMapped;
@@ -33,7 +33,7 @@ int sc_main(int argc, char *argv[])
     }
     else
     {
-        // cache = new FourwayMappedCache("cache_inst", cachelines, cachelineSize, cacheLatency);
+        cache = new FourwayMappedCache("cache_inst", cachelines, cachelineSize, cacheLatency);
     }
     cache->clkCACHEIn(clk);
 
@@ -91,21 +91,11 @@ int sc_main(int argc, char *argv[])
     cache->memoryEnableCACHEOut(memoryEnableSignal);
     memory.enableMEMORYIn(memoryEnableSignal);
     // - Memory read data
-    std::vector<sc_signal<sc_uint<8>> *> memoryReadDataSignals(cachelineSize, nullptr);
-    // TODO Julian: 3 for loops in eine?
+    std::vector<sc_signal<sc_uint<8>>> memoryReadDataSignals(cachelineSize);
     for (size_t i = 0; i < cachelineSize; i++)
     {
-        memoryReadDataSignals[i] = new sc_signal<sc_uint<8>>();
-    }
-    for (size_t i = 0; i < cachelineSize; i++)
-    {
-        auto signal = memoryReadDataSignals[i];
-        cache->memoryReadDataCACHEIn[i](*signal);
-    }
-    for (size_t i = 0; i < cachelineSize; i++)
-    {
-        auto signal = memoryReadDataSignals[i];
-        memory.readDataMEMORYOut[i](*signal);
+        cache->memoryReadDataCACHEIn[i](memoryReadDataSignals[i]);
+        memory.readDataMEMORYOut[i](memoryReadDataSignals[i]);
     }
 
     // Create a tracefile to track all simulation signals
@@ -145,10 +135,6 @@ int sc_main(int argc, char *argv[])
     simulationResult.primitiveGateCount = primitiveGateCount();
 
     // Clean up dynamically allocated memory
-    for (auto signal : memoryReadDataSignals)
-    {
-        delete signal;
-    }
     delete cache;
 
     return 0;

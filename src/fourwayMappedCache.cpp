@@ -28,7 +28,7 @@ void FourwayMappedCache::cacheAccess()
         sc_uint<32> address = this->cacheAddressCACHEIn.read();
         int firstCachelineIndex = -1;
 
-        Bits bitValuesSecondAdress;
+        Bits bitValuesSecondAdress = {0, 0, 0};
         int secondCachelineIndex = -1;
 
         // Extract the offset, index and tag bits from the address
@@ -212,7 +212,6 @@ int FourwayMappedCache::searchTagInSet(sc_uint<32> tag, const unsigned setIndex)
 {
     for (int i = 0; i < 4; i++)
     {
-        std::vector<sc_uint<8>> rdata;
         if (cachelinesArray[setIndex + i].getTag() == tag)
         {
             // Cacheline found with the right tag
