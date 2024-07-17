@@ -35,6 +35,8 @@ SC_MODULE(Cpu)
     int requestLength;
 
     void handleRequests();
+    void printProccessingOfRequest(unsigned requestIndex);
+    void printResultOfRequest(unsigned requestIndex);
 
     SC_CTOR(Cpu);
 

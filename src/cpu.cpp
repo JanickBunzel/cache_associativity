@@ -17,10 +17,7 @@ void Cpu::handleRequests()
     for (int i = 0; i < requestLength; i++)
     {
         cpuStatistics.requests++;
-        std::cout << "" << std::endl;
-        std::cout << "###########################################################################################################################################################################" << std::endl;
-        std::cout << "[Cpu]: Request[" << i << "]: " << (requests[i].we ? "W," : "R,") << std::hex << "0x" << requests[i].addr << std::dec << "," << (requests[i].we ? std::to_string(requests[i].data) : "") << std::endl;
-        std::cout << "###########################################################################################################################################################################" << std::endl;
+        printProccessingOfRequest(i);
 
         // Send the request to the cache
         addressCPUOut.write(requests[i].addr);
@@ -44,25 +41,36 @@ void Cpu::handleRequests()
 
             if (cacheDoneCPUIn.read() == true && i == requestLength - 1)
             {
-                std::cout << "" << std::endl;
-                std::cout << "###########################################################################################################################################################################" << std::endl;
-                std::cout << "[Cpu]: Cache done processing request[" << i << "]" << std::endl;
-                std::cout << std::hex << "[Cpu]: Read Data: 0x" << cacheReadDataCPUIn.read() << std::dec << std::endl;
-                std::cout << "###########################################################################################################################################################################" << std::endl;
+                printResultOfRequest(i);
                 sc_stop();
             }
 
             wait();
             cacheDone = cacheDoneCPUIn.read();
         }
-        std::cout << "" << std::endl;
-        std::cout << "###########################################################################################################################################################################" << std::endl;
-        std::cout << "[Cpu]: Cache done processing request[" << i << "]" << std::endl;
-        std::cout << std::hex << "[Cpu]: Read Data: 0x" << cacheReadDataCPUIn.read() << std::dec << std::endl;
-        std::cout << "###########################################################################################################################################################################" << std::endl;
-    
+        printResultOfRequest(i);
+
         cacheDone = false;
     }
 
     sc_stop();
+}
+
+void Cpu::printProccessingOfRequest(unsigned requestIndex)
+{
+    std::cout << "\033[0;36m" << std::endl;
+    std::cout << "###########################################################################################################################################################################" << std::endl;
+    std::cout << "[Cpu]: Processing... Request[" << requestIndex << "]: " << (requests[requestIndex].we ? "W," : "R,") << std::hex << "0x" << requests[requestIndex].addr << std::dec << "," << (requests[requestIndex].we ? std::to_string(requests[requestIndex].data) : "") << std::endl;
+    std::cout << "###########################################################################################################################################################################";
+    std::cout << "\033[0m" << std::endl;
+}
+
+void Cpu::printResultOfRequest(unsigned requestIndex)
+{
+    std::cout << "\033[0;36m";
+    std::cout << "###########################################################################################################################################################################" << std::endl;
+    std::cout << "[Cpu]: Cache done processing request[" << requestIndex << "]" << std::endl;
+    std::cout << std::hex << "[Cpu]: Read Data: 0x" << cacheReadDataCPUIn.read() << std::dec << std::endl;
+    std::cout << "###########################################################################################################################################################################";
+    std::cout << "\033[0m" << std::endl;
 }

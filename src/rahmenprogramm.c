@@ -95,12 +95,26 @@ int main(int argc, char *argv[])
         requests,
         cacheConfig.tracefile);
 
+    
+    printf("\033[0;36m"); // Start cyan color for the simulation result prints
+
     // Print the result
     printf("\nSimulation Result:\n");
     printf(" - Cycles: %zu\n", result.cycles);
     printf(" - Cache misses: %zu\n", result.misses);
     printf(" - Cache hits: %zu\n", result.hits);
     printf(" - Primitive gate count: %zu\n", result.primitiveGateCount);
+    
+    // TODO: Remove this debug info?
+    print_cacheConfig(cacheConfig);
+    double hitRate = (double)result.hits / (result.hits + result.misses);
+    double missRate = (double)result.misses / (result.hits + result.misses);
+    double avgCyclesPerRequest = (double)result.cycles / numRequests;
+    printf("\nAdditional Debug Info:");
+    printf("\n - Hit Rate: %.2f%%", hitRate * 100);
+    printf("\n - Miss Rate: %.2f%%", missRate * 100);
+    printf("\n - Average Cycles per Request: %.2f\n", avgCyclesPerRequest);
+    printf("\033[0m"); // Reset color
 
     // Free allocated space
     free(requests);

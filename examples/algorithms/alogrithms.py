@@ -8,18 +8,18 @@ WRITE_CSV = True
 
 PRINT_ARRAYS = True
 
-ARRAY_SIZE = 10
+ARRAY_SIZE = 100
 ARRAY_MIN = 1
 ARRAY_MAX = 1000
 
 QUICKSORT_ENABLED = False
-QUICKSORT_OUTPUT = 'examples/quicksort_requests.csv'
+QUICKSORT_OUTPUT = 'examples/algorithms/quicksort_requests.csv'
 
 MERGESORT_ENABLED = False
-MERGESORT_OUTPUT = 'examples/mergesort_requests.csv'
+MERGESORT_OUTPUT = 'examples/algorithms/mergesort_requests.csv'
 
-ITERATE_ENABLED = True
-ITERATE_OUTPUT = 'examples/iterate_requests.csv'
+ITERATE_ENABLED = False
+ITERATE_OUTPUT = 'examples/algorithms/iterate_requests.csv'
 
 # endregion Config -----------------------------------------------------------------------------------------------
 
