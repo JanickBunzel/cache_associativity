@@ -40,7 +40,7 @@ Systemdesign Gruppe 157, Projektaufgabe A11:
 ### Sonstiges
 - [x] SystemC Path aus _evironment variable_ lesen (statt zurzeit workspace folder) -> Zulip
 - [x] Cycles richtig handlen (Aufgabenstellung)
-- [ ] Auf _Rechnerhalle_ compilieren!
+- [x] Auf _Rechnerhalle_ compilieren!
 - [ ] "Bei Lesezugriffen soll der gelesene Wert in das data-Feld der Anfrage geschrieben werden" -> Seite 7 & [Zulip](https://zulip.in.tum.de/#narrow/stream/2434-GRA-24S-Projektphase---Systemdesign/topic/Cache.20Request.20Data/near/1588151)
 - [ ] Erklärung schreiben, wie latencies zustande kommen und wie wir write hits/misses handlen
 - [ ] MemoryLeaks checken
