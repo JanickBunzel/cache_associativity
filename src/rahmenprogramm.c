@@ -27,7 +27,7 @@ CacheConfig cacheConfig = {
     .cycles = 3000,       // allows the cache to process TODO requests (with a hit rate of TODO%, and average cycles/request TODO as below)
     .directmapped = 1,    // Using direct mapped cache as default
     .fourway = 0,         // Using direct mapped cache as default
-    .cachelines = 8,     // with each line of TODO bytes, this provides an TODOKB cache
+    .cachelines = 8,      // with each line of TODO bytes, this provides an TODOKB cache
     .cachelineSize = 4,   // Standard size that balances spatial locality and overhead
     .cacheLatency = 5,    // quick access for first-level cache
     .memoryLatency = 10,  // realistic gap between cache and main access time
@@ -306,7 +306,6 @@ int count_requests_in_file(char *filename)
             {
                 lastBlankLineNumber = currentLineNumber;
             }
-            
         }
         else
         {
@@ -328,7 +327,8 @@ int count_requests_in_file(char *filename)
         }
 
         // Count non-empty lines
-        if (*trimmedLine != '\0') {
+        if (*trimmedLine != '\0')
+        {
             numRequests++;
         }
     }

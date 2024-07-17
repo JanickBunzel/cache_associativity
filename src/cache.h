@@ -14,12 +14,12 @@ struct statistics
     unsigned reads;
 };
 
-struct bits
+typedef struct Bits
 {
     unsigned offset;
     unsigned index;
     unsigned tag;
-};
+} Bits;
 
 class Cache : public sc_module
 {
@@ -43,7 +43,8 @@ public:
     // --- INTERNAL VARIABLES --- //
     std::vector<CacheLine> cachelinesArray;
     struct statistics statistics;
-    struct bits bits;
+    Bits bitCounts;
+    Bits bitValues;
     unsigned cachelineSize;
     unsigned cacheLatency;
 
@@ -56,11 +57,15 @@ public:
     virtual void printCache() = 0;
     virtual void calculateBits(unsigned cachelines, unsigned cachelineSize) = 0;
 
+    // General Cache methods for all types
     void printBits();
+    void extractBitsFromAdress(Bits* bitValues, Bits bitCounts, sc_uint<32> address);
     
+    // Method to Read and Write data from the Memory
     std::vector<sc_uint<8>> fetchMemoryData(sc_uint<32> address);
     void writeMemoryData(sc_uint<32> address, sc_uint<32> data);
     
+    // Method to Read and Write data from the Cache
     sc_uint<32> readCacheData(unsigned offset, unsigned indexFirstCacheline, unsigned indexSecondCacheline);
     void writeCacheData(unsigned offset,  unsigned indexFirstCacheline, unsigned indexSecondCacheline, sc_uint<32> writeData);
 };
