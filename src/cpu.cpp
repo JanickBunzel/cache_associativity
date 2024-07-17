@@ -47,7 +47,7 @@ void Cpu::handleRequests()
                 std::cout << "" << std::endl;
                 std::cout << "###########################################################################################################################################################################" << std::endl;
                 std::cout << "[Cpu]: Cache done processing request[" << i << "]" << std::endl;
-                std::cout << std::hex << "[Cpu]: Read Data: " << cacheReadDataCPUIn.read() << std::dec << std::endl;
+                std::cout << std::hex << "[Cpu]: Read Data: 0x" << cacheReadDataCPUIn.read() << std::dec << std::endl;
                 std::cout << "###########################################################################################################################################################################" << std::endl;
                 sc_stop();
             }
@@ -58,7 +58,7 @@ void Cpu::handleRequests()
         std::cout << "" << std::endl;
         std::cout << "###########################################################################################################################################################################" << std::endl;
         std::cout << "[Cpu]: Cache done processing request[" << i << "]" << std::endl;
-        std::cout << std::hex << "[Cpu]: Read Data: " << cacheReadDataCPUIn.read() << std::dec << std::endl;
+        std::cout << std::hex << "[Cpu]: Read Data: 0x" << cacheReadDataCPUIn.read() << std::dec << std::endl;
         std::cout << "###########################################################################################################################################################################" << std::endl;
     
         cacheDone = false;
