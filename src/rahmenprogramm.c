@@ -79,13 +79,6 @@ int main(int argc, char *argv[])
     // Process the read and write requests
     Request *requests = read_requests_from_file(numRequests, cacheConfig.eingabedatei);
 
-    printf("\033[0;32m[Rahmenprogramm]: numRequests: %d\033[0m\n", numRequests);
-    printf("\033[0;32m[Rahmenprogramm]: Requests:\033[0m\n");
-    for (int i = 0; i < numRequests; i++)
-    {
-        printf("\033[0;32m[Rahmenprogramm]: Request %d: %s, %x, %x\033[0m\n", i, requests[i].we ? "W" : "R", requests[i].addr, requests[i].data);
-    }
-
     // Summary of the cache configuration
     print_cacheConfig(cacheConfig);
 
