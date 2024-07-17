@@ -26,28 +26,10 @@ void FourwayMappedCache::cacheAccess()
         this->statistics.accesses++;
 
         sc_uint<32> address = this->cacheAddressCACHEIn.read();
-        sc_uint<32> offset = 0, index = 0, tag;
-
-        if (bits.offset == 0 && bits.index == 0)
-        {
-            tag = address;
-        }
-        else if (bits.offset == 0)
-        {
-            index = address.range(bits.index - 1, 0);
-            tag = address.range(31, bits.index);
-        }
-        else if (bits.index == 0)
-        {
-            offset = address.range(bits.offset - 1, 0);
-            tag = address.range(31, bits.offset);
-        }
-        else
-        {
-            offset = address.range(bits.offset - 1, 0);
-            index = address.range(bits.offset + bits.index - 1, bits.offset);
-            tag = address.range(31, bits.offset + bits.index);
-        }
+        
+        // Extract the offset, index and tag bits from the address
+        extractBitsFromAdress(&bitValues, bitCounts, address);
+        
 
         if (cacheWriteEnableCACHEIn.read() == 0)
         {
