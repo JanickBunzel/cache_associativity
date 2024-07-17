@@ -30,7 +30,7 @@ SC_MODULE(Memory)
 
     std::unordered_map<unsigned, sc_uint<8>> memory;
     unsigned memoryLatency;
-    unsigned cacheLineSize;
+    unsigned cachelineSize;
 
     void memoryAccess();
     void write(unsigned memoryAddress, sc_uint<32> data);
@@ -39,7 +39,7 @@ SC_MODULE(Memory)
 
     SC_CTOR(Memory);
 
-    Memory(sc_module_name name, unsigned memoryLatency, unsigned cacheLineSize);
+    Memory(sc_module_name name, unsigned memoryLatency, unsigned cachelineSize);
 };
 
 #endif

@@ -26,19 +26,22 @@ Systemdesign Gruppe 157, Projektaufgabe A11:
 - [x] Hex oder Dezimal als Adresse oder Wert in CSV richtig verarbeiten
 - [x] Default Werte für Optionen setzen
 - [x] Leerzeichen zwischen csv values checken
+- [x] Nur Zweierpotenzen bei Anzahl cachelines
 
 
 ### SystemC Programm (3.3, s.5):
 - [x] run_simulation connecten
 - [x] **Makefile** erstellen, welches eine klare ausführbare main datei erstellt
 - [x] **Tracefile** während der Simulation erstellen
-- [ ] **Cache** implementieren: direct & fourway
+- [x] **Cache** implementieren: directmapped
+- [ ] **Cache** implementieren: fourway
 
 ### Sonstiges
 - [x] SystemC Path aus _evironment variable_ lesen (statt zurzeit workspace folder) -> Zulip
 - [x] Cycles richtig handlen (Aufgabenstellung)
 - [ ] Auf _Rechnerhalle_ compilieren!
 - [ ] "Bei Lesezugriffen soll der gelesene Wert in das data-Feld der Anfrage geschrieben werden" -> Seite 7 & [Zulip](https://zulip.in.tum.de/#narrow/stream/2434-GRA-24S-Projektphase---Systemdesign/topic/Cache.20Request.20Data/near/1588151)
+- [ ] Erklärung schreiben, wie latencies zustande kommen und wie wir write hits/misses handlen
 
 ### Finish Up:
 - [ ] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments

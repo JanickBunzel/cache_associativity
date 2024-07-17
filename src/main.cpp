@@ -5,12 +5,12 @@
 #include "memory.h"
 #include "cache.h"
 #include "directMappedCache.h"
-#include "fourwayMappedCache.h"
+// #include "fourwayMappedCache.h"
 
 extern int cycles;
 extern int directMapped;
-extern unsigned cacheLines;
-extern unsigned cacheLineSize;
+extern unsigned cachelines;
+extern unsigned cachelineSize;
 extern unsigned cacheLatency;
 extern unsigned memoryLatency;
 extern size_t numRequests;
@@ -29,11 +29,11 @@ int sc_main(int argc, char *argv[])
     Cache *cache;
     if (directMapped)
     {
-        cache = new DirectMappedCache("cache_inst", cacheLines, cacheLineSize, cacheLatency);
+        cache = new DirectMappedCache("cache_inst", cachelines, cachelineSize, cacheLatency);
     }
     else
     {
-        cache = new FourwayMappedCache("cache_inst", cacheLines, cacheLineSize, cacheLatency);
+        // cache = new FourwayMappedCache("cache_inst", cachelines, cachelineSize, cacheLatency);
     }
     cache->clkCACHEIn(clk);
 
@@ -42,7 +42,7 @@ int sc_main(int argc, char *argv[])
     cpu.clkCPUIn(clk);
 
     // ----- Memory ----- //
-    Memory memory("memory_inst", memoryLatency, cacheLineSize);
+    Memory memory("memory_inst", memoryLatency, cachelineSize);
     memory.clkMEMORYIn(clk);
 
     // ----- Signals Cache ----- //
@@ -64,7 +64,7 @@ int sc_main(int argc, char *argv[])
     cpu.writeEnableCPUOut(cacheWriteEnableSignal);
     cache->cacheWriteEnableCACHEIn(cacheWriteEnableSignal);
     // - Cache read data
-    sc_signal<sc_uint<8>> cacheReadDataSignal;
+    sc_signal<sc_uint<32>> cacheReadDataSignal;
     cpu.cacheReadDataCPUIn(cacheReadDataSignal);
     cache->cacheReadDataCACHEOut(cacheReadDataSignal);
 
@@ -91,18 +91,18 @@ int sc_main(int argc, char *argv[])
     cache->memoryEnableCACHEOut(memoryEnableSignal);
     memory.enableMEMORYIn(memoryEnableSignal);
     // - Memory read data
-    std::vector<sc_signal<sc_uint<8>> *> memoryReadDataSignals(cacheLineSize, nullptr);
+    std::vector<sc_signal<sc_uint<8>> *> memoryReadDataSignals(cachelineSize, nullptr);
     // TODO Julian: 3 for loops in eine?
-    for (size_t i = 0; i < cacheLineSize; i++)
+    for (size_t i = 0; i < cachelineSize; i++)
     {
         memoryReadDataSignals[i] = new sc_signal<sc_uint<8>>();
     }
-    for (size_t i = 0; i < cacheLineSize; i++)
+    for (size_t i = 0; i < cachelineSize; i++)
     {
         auto signal = memoryReadDataSignals[i];
         cache->memoryReadDataCACHEIn[i](*signal);
     }
-    for (size_t i = 0; i < cacheLineSize; i++)
+    for (size_t i = 0; i < cachelineSize; i++)
     {
         auto signal = memoryReadDataSignals[i];
         memory.readDataMEMORYOut[i](*signal);
@@ -123,14 +123,14 @@ int sc_main(int argc, char *argv[])
         sc_trace(tf, memoryWriteEnableSignal, "memoryWriteEnableSignal");
         sc_trace(tf, memoryEnableSignal, "memoryEnableSignal");
         sc_trace(tf, memoryDoneSignal, "memoryDoneSignal");
-        for (size_t i = 0; i < cacheLineSize; i++)
+        for (size_t i = 0; i < cachelineSize; i++)
         {
             sc_trace(tf, memoryReadDataSignals[i], "memoryReadDataSignal" + std::to_string(i));
         }
     }
 
     // Start the simulation with the given number of cycles
-    sc_start();
+    sc_start(cycles, SC_NS);
 
     // Close the tracefile
     if (strcmp(tracefile, "") != 0)
@@ -158,24 +158,24 @@ int primitiveGateCount()
 {
     int primitiveGateCount = 0;
 
-    primitiveGateCount = cacheLineSize * 8 * 5;             // 5 gates per Flip Flop one FLip Flop for each bit of the cache line * 8 in byte
-    primitiveGateCount *= cacheLines;                       // multiply with the number of cache lines
-    primitiveGateCount += cacheLines * 2 ^ cacheLineSize;   // control Unit for each cache line (multiplexer)
-    primitiveGateCount += 150 * cacheLines * cacheLineSize; // 150 gates for each cache line for adding
-    primitiveGateCount += 150 * cacheLines;                 // 150 gates for each cache line for Hit or Miss structure
+    primitiveGateCount = cachelineSize * 8 * 5;             // 5 gates per Flip Flop one FLip Flop for each bit of the cache line * 8 in byte
+    primitiveGateCount *= cachelines;                       // multiply with the number of cache lines
+    primitiveGateCount += cachelines * 2 ^ cachelineSize;   // control Unit for each cache line (multiplexer)
+    primitiveGateCount += 150 * cachelines * cachelineSize; // 150 gates for each cache line for adding
+    primitiveGateCount += 150 * cachelines;                 // 150 gates for each cache line for Hit or Miss structure
 
     if (directMapped)
     {
-        primitiveGateCount += 2 ^ cacheLines; // control Unit for each cache line (multiplexer)
+        primitiveGateCount += 2 ^ cachelines; // control Unit for each cache line (multiplexer)
     }
     else
     {
         int extra = 0;               // extra gates for 4 way associative
-        extra += 2 ^ cacheLines / 4; // control Unit for each cache line (multiplexer) for 4 way associative
-        extra += cacheLineSize * 8 * 5;
-        extra *= cacheLines;
+        extra += 2 ^ cachelines / 4; // control Unit for each cache line (multiplexer) for 4 way associative
+        extra += cachelineSize * 8 * 5;
+        extra *= cachelines;
         primitiveGateCount += extra;
-        primitiveGateCount += 150 * cacheLines / 4; // LRU Unit for each cache line for 4 way associative
+        primitiveGateCount += 150 * cachelines / 4; // LRU Unit for each cache line for 4 way associative
     }
 
     return primitiveGateCount;

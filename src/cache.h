@@ -33,7 +33,7 @@ public:
     sc_in<bool> memoryDoneCACHEIn;
 
     // --- OUTPUT PORTS --- //
-    sc_out<sc_uint<8>> cacheReadDataCACHEOut;
+    sc_out<sc_uint<32>> cacheReadDataCACHEOut;
     sc_out<bool> cacheDoneCACHEOut;
     sc_out<sc_uint<32>> memoryAddressCACHEOut;
     sc_out<sc_uint<32>> memoryWriteDataCACHEOut;
@@ -41,22 +41,28 @@ public:
     sc_out<bool> memoryEnableCACHEOut;
 
     // --- INTERNAL VARIABLES --- //
-    std::vector<CacheLine> cacheLinesArray;
+    std::vector<CacheLine> cachelinesArray;
     struct statistics statistics;
     struct bits bits;
-    unsigned cacheLineSize;
+    unsigned cachelineSize;
     unsigned cacheLatency;
 
     SC_HAS_PROCESS(Cache);
 
-    Cache(sc_module_name name, unsigned cacheLines, unsigned cacheLineSize, unsigned cacheLatency);
+    Cache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency);
     virtual ~Cache();
 
     virtual void cacheAccess() = 0;
     virtual void printCache() = 0;
-    virtual void calculateBits(unsigned cacheLines, unsigned cacheLineSize) = 0;
+    virtual void calculateBits(unsigned cachelines, unsigned cachelineSize) = 0;
 
     void printBits();
+    
+    std::vector<sc_uint<8>> fetchMemoryData(sc_uint<32> address);
+    void writeMemoryData(sc_uint<32> address, sc_uint<32> data);
+    
+    sc_uint<32> readCacheData(unsigned offset, unsigned indexFirstCacheline, unsigned indexSecondCacheline);
+    void writeCacheData(unsigned offset,  unsigned indexFirstCacheline, unsigned indexSecondCacheline, sc_uint<32> writeData);
 };
 
 #endif

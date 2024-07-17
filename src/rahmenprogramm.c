@@ -27,7 +27,7 @@ CacheConfig cacheConfig = {
     .cycles = 3000,       // allows the cache to process TODO requests (with a hit rate of TODO%, and average cycles/request TODO as below)
     .directmapped = 1,    // Using direct mapped cache as default
     .fourway = 0,         // Using direct mapped cache as default
-    .cachelines = 10,     // with each line of TODO bytes, this provides an TODOKB cache
+    .cachelines = 8,     // with each line of TODO bytes, this provides an TODOKB cache
     .cachelineSize = 4,   // Standard size that balances spatial locality and overhead
     .cacheLatency = 5,    // quick access for first-level cache
     .memoryLatency = 10,  // realistic gap between cache and main access time
@@ -41,7 +41,7 @@ int MAX_REQUEST_LINE_LENGTH = 256;
 // Function declarations
 CacheConfig arguments_to_cacheConfig(int argc, char *argv[]);
 void print_cacheConfig(CacheConfig cacheConfig);
-int count_lines_in_file(char *filename);
+int count_requests_in_file(char *filename);
 Request *read_requests_from_file(int numRequests, char *filename);
 void print_help_and_exit_with_error(char *errorMessage, ...);
 void print_help();
@@ -56,8 +56,8 @@ extern "C"
     Result run_simulation(
         int cycles,
         int directMapped,
-        unsigned cacheLines,
-        unsigned cacheLineSize,
+        unsigned cachelines,
+        unsigned cachelineSize,
         unsigned cacheLatency,
         unsigned memoryLatency,
         size_t numRequests,
@@ -73,14 +73,21 @@ int main(int argc, char *argv[])
     // Process the given parameters
     CacheConfig cacheConfig = arguments_to_cacheConfig(argc, argv);
 
-    // Feedback
-    print_cacheConfig(cacheConfig);
-
     // Count the requests
-    int numRequests = count_lines_in_file(cacheConfig.eingabedatei);
+    int numRequests = count_requests_in_file(cacheConfig.eingabedatei);
 
     // Process the read and write requests
     Request *requests = read_requests_from_file(numRequests, cacheConfig.eingabedatei);
+
+    printf("\033[0;32m[Rahmenprogramm]: numRequests: %d\033[0m\n", numRequests);
+    printf("\033[0;32m[Rahmenprogramm]: Requests:\033[0m\n");
+    for (int i = 0; i < numRequests; i++)
+    {
+        printf("\033[0;32m[Rahmenprogramm]: Request %d: %s, %x, %x\033[0m\n", i, requests[i].we ? "W" : "R", requests[i].addr, requests[i].data);
+    }
+
+    // Summary of the cache configuration
+    print_cacheConfig(cacheConfig);
 
     // Run the SystemC simulation
     printf("Starting the SystemC Simulation...\n");
@@ -170,10 +177,10 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
             cacheConfig.fourway = 1;
             break;
         case 'l':
-            // Argument: Cachelines, Expected: int > 0
-            if (!is_integer(optarg) || atoi(optarg) <= 0)
+            // Argument: Cachelines, Expected: int > 0 and power of two
+            if (!is_integer(optarg) || atoi(optarg) <= 0 || (atoi(optarg) & (atoi(optarg) - 1)) != 0)
             {
-                print_help_and_exit_with_error("Error: Die Anzahl der Cachelines muss ein Integer sein und größer als 0\n");
+                print_help_and_exit_with_error("Error: Die Anzahl der Cachelines muss eine Zweierpotenz größer 0 sein\n");
             }
             cacheConfig.cachelines = atoi(optarg);
             break;
@@ -269,8 +276,8 @@ void print_cacheConfig(CacheConfig cacheConfig)
     printf("\n");
 }
 
-// Counts the lines in the given file
-int count_lines_in_file(char *filename)
+// Counts the requests in the given file, throwing an error when encountering a blank line in between requests. Format: <W/R, Adress, Value>
+int count_requests_in_file(char *filename)
 {
     FILE *file = fopen(filename, "r");
     if (file == NULL)
@@ -278,16 +285,64 @@ int count_lines_in_file(char *filename)
         print_help_and_exit_with_error("Error: Fehler beim Öffnen der Datei: %s\n", filename);
     }
 
-    int lines = 0;
+    int numRequests = 0;
+    int currentLineNumber = 0;
+    int firstBlankLineNumber = -1;
+    int lastBlankLineNumber = -1;
     char line[256];
     while (fgets(line, sizeof(line), file))
     {
-        lines++;
+        currentLineNumber++;
+
+        // Remove leading whitespace
+        char *trimmedLine = line;
+        while (isspace((unsigned char)*trimmedLine))
+        {
+            trimmedLine++;
+        }
+
+        // Check if the line is empty (excluding trailing blank lines)
+        if (*trimmedLine == '\0' && !feof(file))
+        {
+            // Store empty line number
+            if (firstBlankLineNumber == -1)
+            {
+                firstBlankLineNumber = currentLineNumber;
+            }
+            else if (lastBlankLineNumber != -1)
+            {
+                lastBlankLineNumber = currentLineNumber;
+            }
+            
+        }
+        else
+        {
+            // If a non-empty line comes after a blank line, throw an error because blank lines are not allowed between requests
+            if (firstBlankLineNumber != -1)
+            {
+                // Blank line exists between requests, throw an error for either single or multiple blank lines
+                if (lastBlankLineNumber == -1 || firstBlankLineNumber == lastBlankLineNumber)
+                {
+                    // Single blank line in between requests
+                    print_help_and_exit_with_error("Error: Zeile %d ist nicht im Format <W/R, Adresse, Wert> (Leere Zeilen dürfen nicht zwischen den Requests stehen)\n", firstBlankLineNumber);
+                }
+                else
+                {
+                    // Multiple blank lines in between requests
+                    print_help_and_exit_with_error("Error: Zeilen %d bis %d sind nicht im Format <W/R, Adresse, Wert> (Leere Zeilen dürfen nicht zwischen den Requests stehen)\n", firstBlankLineNumber, lastBlankLineNumber);
+                }
+            }
+        }
+
+        // Count non-empty lines
+        if (*trimmedLine != '\0') {
+            numRequests++;
+        }
     }
 
     fclose(file);
 
-    return lines;
+    return numRequests;
 }
 
 // Reads the requests from the given .csv file
@@ -380,15 +435,16 @@ Request *read_requests_from_file(int numRequests, char *filename)
 // Variadic function to print the error and help message and exits the program
 void print_help_and_exit_with_error(char *errorMessage, ...)
 {
-    print_help();
-
     va_list args;
     va_start(args, errorMessage);
 
-    fprintf(stderr, "Error: ");
+    fprintf(stderr, "\033[1;31mError: ");
     vfprintf(stderr, errorMessage, args);
+    fprintf(stderr, "\033[0m");
 
     va_end(args);
+
+    print_help();
 
     exit(1);
 }
@@ -396,7 +452,7 @@ void print_help_and_exit_with_error(char *errorMessage, ...)
 // Prints the description and usage of the arguments
 void print_help()
 {
-    printf("Usage: rahmenprogramm [OPTIONS] <Eingabedatei>\n");
+    printf("Usage: cache_simulation [OPTIONS] <Eingabedatei>\n");
     printf("Options:\n");
     printf("  -c, --cycles <Zahl>         Die Anzahl der Zyklen, die simuliert werden sollen.\n");
     printf("  --directmapped              Simuliert einen direkt assoziativen Cache.\n");
@@ -406,7 +462,7 @@ void print_help()
     printf("  --cache-latency <Zahl>      Die Latenzzeit eines Caches in Zyklen.\n");
     printf("  --memory-latency <Zahl>     Die Latenzzeit des Hauptspeichers in Zyklen.\n");
     printf("  --tf <Dateiname>            Ausgabedatei für ein Tracefile mit allen Signalen.\n");
-    printf("  -h, --help                  Eine Beschreibung aller Optionen des Rahmenprogramms und Verwendung ausgeben und das Programm danach beendet.\n");
+    printf("  -h, --help                  Eine Beschreibung aller Optionen der Cachesimulation und Verwendung ausgeben und das Programm danach beendet.\n");
     printf("  Positional Arguments:\n");
     printf("  <Eingabedatei>              Die .csv Eingabedatei, die die zu verarbeitenden Daten enthält. Zeilenformat: <W, Adresse, Wert> oder <R, Adresse>\n");
     printf("\n");
