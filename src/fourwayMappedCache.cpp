@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cmath>
 
+extern int printsEnabled;
+
 FourwayMappedCache::FourwayMappedCache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
     : Cache(name, cachelines, cachelineSize, cacheLatency)
 {
@@ -49,7 +51,7 @@ void FourwayMappedCache::cacheAccess()
         if (firstCachelineIndex == -1)
         {
             // First cacheline is not present
-            std::cout << "[Cache]: Miss in first cacheline" << std::endl;
+            if(printsEnabled) std::cout << "[Cache]: Miss in first cacheline" << std::endl;
             hit = false;
 
             // If there is a free cacheline in the set, choose it
@@ -69,7 +71,7 @@ void FourwayMappedCache::cacheAccess()
         // If the index is still -1, there was an error (no correct tag found, no free cacheline found, no LRU cacheline found)
         if (firstCachelineIndex == -1)
         {
-            std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
+            if(printsEnabled) std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
             exit(1);
         }
         // Update the LRU counter
@@ -89,7 +91,7 @@ void FourwayMappedCache::cacheAccess()
             if (secondCachelineIndex == -1)
             {
                 // Second cacheline is not present
-                std::cout << "[Cache]: Miss in second cacheline" << std::endl;
+                if(printsEnabled) std::cout << "[Cache]: Miss in second cacheline" << std::endl;
                 hit = false;
 
                 // If there is a free cacheline in the set, choose it
@@ -109,7 +111,7 @@ void FourwayMappedCache::cacheAccess()
             // If the index is still -1, there was an error (no correct tag found, no free cacheline found, no LRU cacheline found)
             if (secondCachelineIndex == -1)
             {
-                std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
+                if(printsEnabled) std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
                 exit(1);
             }
             
@@ -160,6 +162,11 @@ void FourwayMappedCache::cacheAccess()
 
 void FourwayMappedCache::printCache()
 {
+    if(!printsEnabled)
+    {
+        return;
+    }
+
     std::cout << "Cache State:" << std::endl;
     std::cout << "-----------------------------------------------------" << std::endl;
     std::cout << "Set\tWay\tTag\t\tValid\tLRU\tData (Hex/Binary)" << std::endl;

@@ -1,6 +1,8 @@
 #include "cache.h"
 #include <iostream>
 
+extern int printsEnabled;
+
 Cache::Cache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
     : sc_module(name), statistics({0, 0, 0, 0, 0}), bitCounts({0, 0, 0}), bitValues({0, 0, 0}), cachelineSize(cachelineSize), memoryReadDataCACHEIn(cachelineSize), cacheLatency(cacheLatency)
 {
@@ -17,6 +19,11 @@ Cache::~Cache()
 
 void Cache::printBits()
 {
+    if (!printsEnabled)
+    {
+        return;
+    }
+
     std::cout << "Bits:" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
     std::cout << "Offset: " << bitCounts.offset << std::endl;
@@ -26,7 +33,7 @@ void Cache::printBits()
 }
 
 // Extracts the offset, index and tag bits from the address and writes it into the bitValues struct given as parameter
-void Cache::extractBitsFromAdress(Bits* bitValues, Bits bitCounts, sc_uint<32> address)
+void Cache::extractBitsFromAdress(Bits *bitValues, Bits bitCounts, sc_uint<32> address)
 {
     if (bitCounts.offset == 0 && bitCounts.index == 0)
     {

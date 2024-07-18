@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cmath>
 
+extern int printsEnabled;
+
 DirectMappedCache::DirectMappedCache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
     : Cache(name, cachelines, cachelineSize, cacheLatency)
 {
@@ -43,7 +45,7 @@ void DirectMappedCache::cacheAccess()
         // Check if the first cacheline is present in the cache
         if (!(cachelinesArray[bitValues.index].getTag() == bitValues.tag) || !cachelinesArray[bitValues.index].getValid())
         {
-            std::cout << "[Cache]: Miss in first cacheline" << std::endl;
+            if(printsEnabled) std::cout << "[Cache]: Miss in first cacheline" << std::endl;
             hit = false;
 
             // Fetch the cacheline from the memory and write to the cache
@@ -66,7 +68,7 @@ void DirectMappedCache::cacheAccess()
             // The second cacheline also needs to have the right tag and is valid
             if (cachelinesArray[nextIndex].getTag() != nextTag || !cachelinesArray[nextIndex].getValid())
             {
-                std::cout << "[Cache]: Miss in second cacheline" << std::endl;
+                if(printsEnabled) std::cout << "[Cache]: Miss in second cacheline" << std::endl;
                 hit = false;
 
                 // Fetching the data from the next row and storing it in the corresponding cache line.
@@ -116,6 +118,11 @@ void DirectMappedCache::cacheAccess()
 
 void DirectMappedCache::printCache()
 {
+    if(!printsEnabled)
+    {
+        return;
+    }
+
     std::cout << "Cache State:" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
     std::cout << "Index\tTag\t\tValid\tLRU\tData (Hex/Binary)" << std::endl;

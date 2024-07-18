@@ -38,6 +38,9 @@ CacheConfig cacheConfig = {
 // Macro to handle request lines in the input file
 int MAX_REQUEST_LINE_LENGTH = 256;
 
+// Flag to enable/disable print statements in the simulation
+int printsEnabled = 0;
+
 // Function declarations
 CacheConfig arguments_to_cacheConfig(int argc, char *argv[]);
 void print_cacheConfig(CacheConfig cacheConfig);
@@ -45,6 +48,7 @@ int count_requests_in_file(char *filename);
 Request *read_requests_from_file(int numRequests, char *filename);
 void print_help_and_exit_with_error(char *errorMessage, ...);
 void print_help();
+void print_simulation_result(CacheConfig cacheConfig, Result result, int numRequests);
 int is_integer(char *str);
 unsigned parse_value(char *value);
 
@@ -69,6 +73,7 @@ extern "C"
 }
 #endif
 
+// Main function, entry point of the program
 int main(int argc, char *argv[])
 {
     // Process the given parameters
@@ -85,36 +90,10 @@ int main(int argc, char *argv[])
 
     // Run the SystemC simulation
     printf("Starting the SystemC Simulation...\n");
-    Result result = run_simulation(
-        cacheConfig.cycles,
-        cacheConfig.directmapped,
-        cacheConfig.cachelines,
-        cacheConfig.cachelineSize,
-        cacheConfig.cacheLatency,
-        cacheConfig.memoryLatency,
-        numRequests,
-        requests,
-        cacheConfig.tracefile);
-
-    printf("\033[0;36m"); // Start cyan color for the simulation result prints
+    Result result = run_simulation(cacheConfig.cycles, cacheConfig.directmapped, cacheConfig.cachelines, cacheConfig.cachelineSize, cacheConfig.cacheLatency, cacheConfig.memoryLatency, numRequests, requests, cacheConfig.tracefile);
 
     // Print the result
-    printf("\nSimulation Result:\n");
-    printf(" - Cycles: %zu\n", result.cycles);
-    printf(" - Cache misses: %zu\n", result.misses);
-    printf(" - Cache hits: %zu\n", result.hits);
-    printf(" - Primitive gate count: %zu\n", result.primitiveGateCount);
-
-    // TODO: Remove this debug info?
-    print_cacheConfig(cacheConfig);
-    double hitRate = (double)result.hits / (result.hits + result.misses);
-    double missRate = (double)result.misses / (result.hits + result.misses);
-    double avgCyclesPerRequest = (double)result.cycles / numRequests;
-    printf("\nAdditional Debug Info:");
-    printf("\n - Hit Rate: %.2f%%", hitRate * 100);
-    printf("\n - Miss Rate: %.2f%%", missRate * 100);
-    printf("\n - Average Cycles per Request: %.2f\n", avgCyclesPerRequest);
-    printf("\033[0m"); // Reset color
+    print_simulation_result(cacheConfig, result, numRequests);
 
     // Free allocated space
     free(requests);
@@ -134,11 +113,12 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
     // Loop depending on number of arguments (controlled using getopt_long)
     while (1)
     {
-        const char *optstring = "c:dfs:l:a:m:t:h";
+        const char *optstring = "c:dfpl:s:a:m:t:h";
         static struct option longopts[] = {
             {"cycles", required_argument, NULL, 'c'},
             {"directmapped", no_argument, NULL, 'd'},
             {"fourway", no_argument, NULL, 'f'},
+            {"enable-prints", no_argument, NULL, 'p'},
             {"cachelines", required_argument, NULL, 'l'},
             {"cacheline-size", required_argument, NULL, 's'},
             {"cache-latency", required_argument, NULL, 'a'},
@@ -182,6 +162,10 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
                 print_help_and_exit_with_error("Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
             }
             cacheConfig.fourway = 1;
+            break;
+        case 'p':
+            // Argument: enable-prints, Expected: no argument, just a flag
+            printsEnabled = 1;
             break;
         case 'l':
             // Argument: Cachelines, Expected: int > 0 and power of two
@@ -470,9 +454,40 @@ void print_help()
     printf("  --memory-latency <Zahl>     Die Latenzzeit des Hauptspeichers in Zyklen.\n");
     printf("  --tf <Dateiname>            Ausgabedatei für ein Tracefile mit allen Signalen.\n");
     printf("  -h, --help                  Eine Beschreibung aller Optionen der Cachesimulation und Verwendung ausgeben und das Programm danach beendet.\n");
+    printf("  -p, --enable-prints         Aktiviert zusätzliches Feedback der Simulation.\n");
     printf("  Positional Arguments:\n");
     printf("  <Eingabedatei>              Die .csv Eingabedatei, die die zu verarbeitenden Daten enthält. Zeilenformat: <W, Adresse, Wert> oder <R, Adresse>\n");
     printf("\n");
+}
+
+// Prints the simulation result, depending on the printsEnabled flag the standard or additional debug info is printed
+void print_simulation_result(CacheConfig cacheConfig, Result result, int numRequests)
+{
+    // Print the standard simulation result
+    printf("\nSimulation Result:\n");
+    printf(" - Cycles: %zu\n", result.cycles);
+    printf(" - Cache misses: %zu\n", result.misses);
+    printf(" - Cache hits: %zu\n", result.hits);
+    printf(" - Primitive gate count: %zu\n", result.primitiveGateCount);
+
+    // Print additional debug info
+    printf("\033[0;36m"); // Start cyan color for the simulation result prints
+    printf("\nAdditional Debug Info:");
+
+    double hitRate = (double)result.hits / (result.hits + result.misses);
+    double missRate = (double)result.misses / (result.hits + result.misses);
+    double avgCyclesPerRequest = (double)result.cycles / numRequests;
+    printf("\n - Hit Rate: %.2f%%", hitRate * 100);
+    printf("\n - Miss Rate: %.2f%%", missRate * 100);
+    printf("\n - Average Cycles per Request: %.2f\n", avgCyclesPerRequest);
+
+    if (printsEnabled)
+    {
+        // Print the cacheConfig because of large amount of debug info on printsEnabled
+        print_cacheConfig(cacheConfig);
+    }
+
+    printf("\033[0m"); // Reset color
 }
 
 // Checks if a string is an integer

@@ -1,6 +1,8 @@
 #include "cpu.hpp"
 #include <iostream>
 
+extern int printsEnabled;
+
 Cpu::Cpu(sc_module_name name, Request *requests, const int requestLength)
     : sc_module(name), cpuStatistics({0, 0}), requests(requests), requestLength(requestLength)
 {
@@ -28,7 +30,7 @@ void Cpu::handleRequests()
         while (cacheDone == false)
         {
             cpuStatistics.cycles++;
-            std::cout << "Cycles[" << cycles++ << "]" << std::endl;
+            if (printsEnabled) std::cout << "Cycles[" << cycles++ << "]" << std::endl;
 
             // Wait for the Cpu-Cache signals
             wait(SC_ZERO_TIME);
@@ -58,6 +60,11 @@ void Cpu::handleRequests()
 
 void Cpu::printProccessingOfRequest(unsigned requestIndex)
 {
+    if (!printsEnabled)
+    {
+        return;
+    }
+
     std::cout << "\033[0;36m" << std::endl;
     std::cout << "###########################################################################################################################################################################" << std::endl;
     std::cout << "[Cpu]: Processing... Request[" << requestIndex << "]: " << (requests[requestIndex].we ? "W," : "R,") << std::hex << "0x" << requests[requestIndex].addr << std::dec << "," << (requests[requestIndex].we ? std::to_string(requests[requestIndex].data) : "") << std::endl;
@@ -67,6 +74,11 @@ void Cpu::printProccessingOfRequest(unsigned requestIndex)
 
 void Cpu::printResultOfRequest(unsigned requestIndex)
 {
+    if (!printsEnabled)
+    {
+        return;
+    }
+    
     std::cout << "\033[0;36m";
     std::cout << "###########################################################################################################################################################################" << std::endl;
     std::cout << "[Cpu]: Cache done processing request[" << requestIndex << "]" << std::endl;

@@ -2,6 +2,8 @@
 #include <iomanip>
 #include <bitset>
 
+extern int printsEnabled;
+
 // Default constructor
 Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cachelineSize)
     : sc_module(name), memoryLatency(memoryLatency), cachelineSize(cachelineSize), readDataMEMORYOut(cachelineSize)
@@ -83,6 +85,11 @@ void Memory::memoryAccess()
 
 void Memory::printMemory()
 {
+    if(!printsEnabled)
+    {
+        return;
+    }
+
     std::cout << "Memory Content:" << std::endl;
     std::cout << "Address     Data (Hex)     Data (Binary)" << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
