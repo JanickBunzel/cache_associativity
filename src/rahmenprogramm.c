@@ -24,7 +24,7 @@ typedef struct
 
 // Default cache configuration
 CacheConfig cacheConfig = {
-    .cycles = 3000,       // allows the cache to process TODO requests (with a hit rate of TODO%, and average cycles/request TODO as below)
+    .cycles = 4294967295, //[TODO! REMOVE THIS]3000,       // allows the cache to process TODO requests (with a hit rate of TODO%, and average cycles/request TODO as below)
     .directmapped = 1,    // Using direct mapped cache as default
     .fourway = 0,         // Using direct mapped cache as default
     .cachelines = 8,      // with each line of TODO bytes, this provides an TODOKB cache
@@ -257,7 +257,7 @@ void print_cacheConfig(CacheConfig cacheConfig)
 {
     printf("\nCache Configuration:\n");
     printf("  - Cycles: %d\n", cacheConfig.cycles);
-    printf("  - DirectMapped/Fourway: %s\n", cacheConfig.directmapped ? "DirectMapped" : "Fourway");
+    printf("  - DirectMapped/Fourway: \033[0;95m%s\033[0m\n", cacheConfig.directmapped ? "DirectMapped" : "Fourway");
     printf("  - Cachelines: %d\n", cacheConfig.cachelines);
     printf("  - Cacheline size: %d\n", cacheConfig.cachelineSize);
     printf("  - Cache latency: %d\n", cacheConfig.cacheLatency);
@@ -483,6 +483,8 @@ void print_simulation_result(CacheConfig cacheConfig, Result result, int numRequ
 
     if (printsEnabled)
     {
+        printf("\033[0m"); // Reset color
+
         // Print the cacheConfig because of large amount of debug info on printsEnabled
         print_cacheConfig(cacheConfig);
     }

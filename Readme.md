@@ -27,6 +27,7 @@ Systemdesign Gruppe 157, Projektaufgabe A11:
 - [x] Default Werte für Optionen setzen
 - [x] Leerzeichen zwischen csv values checken
 - [x] Nur Zweierpotenzen bei Anzahl cachelines
+- [x] Optional: Flag for printing cache/memory states
 
 
 ### SystemC Programm (3.3, s.5):
@@ -44,8 +45,7 @@ Systemdesign Gruppe 157, Projektaufgabe A11:
 - [ ] "Bei Lesezugriffen soll der gelesene Wert in das data-Feld der Anfrage geschrieben werden" -> Seite 7 & [Zulip](https://zulip.in.tum.de/#narrow/stream/2434-GRA-24S-Projektphase---Systemdesign/topic/Cache.20Request.20Data/near/1588151)
 - [ ] Erklärung schreiben, wie latencies zustande kommen und wie wir write hits/misses handlen
 - [ ] MemoryLeaks checken
-- [ ] Optional: Flag for printing cache/memory states
-- [ ] Conflict misses tracken?
+- [ ] NiceToHave: Conflict misses tracken?
 
 ### Finish Up:
 - [ ] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments
