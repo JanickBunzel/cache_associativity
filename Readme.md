@@ -45,6 +45,7 @@ Systemdesign Gruppe 157, Projektaufgabe A11:
 - [ ] Erklärung schreiben, wie latencies zustande kommen und wie wir write hits/misses handlen
 - [ ] MemoryLeaks checken
 - [ ] Optional: Flag for printing cache/memory states
+- [ ] Conflict misses tracken?
 
 ### Finish Up:
 - [ ] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments

@@ -46,6 +46,7 @@ Request *read_requests_from_file(int numRequests, char *filename);
 void print_help_and_exit_with_error(char *errorMessage, ...);
 void print_help();
 int is_integer(char *str);
+unsigned parse_value(char *value);
 
 // Declaration of the extern C++ function
 #ifdef __cplusplus
@@ -95,7 +96,6 @@ int main(int argc, char *argv[])
         requests,
         cacheConfig.tracefile);
 
-    
     printf("\033[0;36m"); // Start cyan color for the simulation result prints
 
     // Print the result
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
     printf(" - Cache misses: %zu\n", result.misses);
     printf(" - Cache hits: %zu\n", result.hits);
     printf(" - Primitive gate count: %zu\n", result.primitiveGateCount);
-    
+
     // TODO: Remove this debug info?
     print_cacheConfig(cacheConfig);
     double hitRate = (double)result.hits / (result.hits + result.misses);
@@ -369,8 +369,8 @@ Request *read_requests_from_file(int numRequests, char *filename)
     while (fgets(line, sizeof(line), file))
     {
         char rw;
-        unsigned int addr;
-        unsigned int data = 0; // Initialize data to 0, as it might not be present for read requests
+        char addr_str[32];
+        char data_str[32] = "0"; // Initialize data to "0", as it might not be present for read requests
 
         // Remove any leading and trailing whitespace from the line
         char *trimmedLine = line;
@@ -392,7 +392,7 @@ Request *read_requests_from_file(int numRequests, char *filename)
         end[1] = '\0';
 
         // Scan the format of the current line and store the entries in the local variables
-        int numEntries = sscanf(trimmedLine, "%c , %x , %x", &rw, &addr, &data);
+        int numEntries = sscanf(trimmedLine, "%c , %31[^,] , %31s", &rw, addr_str, data_str);
 
         // Check if the line is in the correct format
         if (numEntries == 2)
@@ -406,7 +406,7 @@ Request *read_requests_from_file(int numRequests, char *filename)
             {
                 // Read request
                 requests[index].we = 0;
-                requests[index].addr = addr;
+                requests[index].addr = parse_value(addr_str);
                 requests[index].data = 0; // No data for read requests
             }
         }
@@ -421,8 +421,8 @@ Request *read_requests_from_file(int numRequests, char *filename)
             {
                 // Write request
                 requests[index].we = 1;
-                requests[index].addr = addr;
-                requests[index].data = data;
+                requests[index].addr = parse_value(addr_str);
+                requests[index].data = parse_value(data_str);
             }
         }
         else
@@ -487,4 +487,19 @@ int is_integer(char *str)
         str++;
     }
     return 1;
+}
+
+// Parses the value from the given string, supporting both decimal and hexadecimal values depending on the prefix "" or "0x"/"0X"
+unsigned parse_value(char *value)
+{
+    if (strstr(value, "0x") != NULL || strstr(value, "0X") != NULL)
+    {
+        // Hexadecimal value
+        return strtoul(value, NULL, 16);
+    }
+    else
+    {
+        // Decimal value
+        return strtoul(value, NULL, 10);
+    }
 }
