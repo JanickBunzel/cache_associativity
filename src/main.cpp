@@ -137,31 +137,42 @@ int sc_main(int argc, char *argv[])
     // Clean up dynamically allocated memory
     delete cache;
 
+    
+
     return 0;
 }
 
 int primitiveGateCount()
 {
+    
     int primitiveGateCount = 0;
+    
+    // 4 Gates per Bit and cachelineSize is in Bytes
+    primitiveGateCount = cachelineSize * 8 * 4;
 
-    primitiveGateCount = cachelineSize * 8 * 5;             // 5 gates per Flip Flop one FLip Flop for each bit of the cache line * 8 in byte
-    primitiveGateCount *= cachelines;                       // multiply with the number of cache lines
-    primitiveGateCount += cachelines * 2 ^ cachelineSize;   // control Unit for each cache line (multiplexer)
-    primitiveGateCount += 150 * cachelines * cachelineSize; // 150 gates for each cache line for adding
-    primitiveGateCount += 150 * cachelines;                 // 150 gates for each cache line for Hit or Miss structure
+    // times our cacheLines (before was only for one cacheline)
+    primitiveGateCount = primitiveGateCount * cachelines;
 
-    if (directMapped)
+    // 300 gates for extracting our Tag/Index/Offset - Bits
+    primitiveGateCount = primitiveGateCount + 300;
+
+    // Hit or miss structure (comparing the tag)
+    int offset_bits = static_cast<int>(std::log2(cachelineSize));
+    int index_bits = static_cast<int>(std::log2(cachelines));
+    int tag_bits = 32 - offset_bits - index_bits;
+
+    // 10 gates for the hit or miss check for each line
+    primitiveGateCount = primitiveGateCount + tag_bits * cachelines * 10;
+
+    // controlling-unit for index and offset
+        primitiveGateCount = primitiveGateCount + 750;
+
+    // checking if cache is fourway or not
+    if (!directMapped)
     {
-        primitiveGateCount += 2 ^ cachelines; // control Unit for each cache line (multiplexer)
-    }
-    else
-    {
-        int extra = 0;               // extra gates for 4 way associative
-        extra += 2 ^ cachelines / 4; // control Unit for each cache line (multiplexer) for 4 way associative
-        extra += cachelineSize * 8 * 5;
-        extra *= cachelines;
-        primitiveGateCount += extra;
-        primitiveGateCount += 150 * cachelines / 4; // LRU Unit for each cache line for 4 way associative
+        // LRU-unit 4 gates for saving each bit and updating it
+        primitiveGateCount = primitiveGateCount + cachelines * 4 * 50;
+
     }
 
     return primitiveGateCount;
