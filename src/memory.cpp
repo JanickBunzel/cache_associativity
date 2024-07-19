@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <bitset>
 
+// Flag passed from the rahmenprogramm (cache_simulaton parameter)
 extern int printsEnabled;
 
 // Default constructor
@@ -14,39 +15,7 @@ Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cachelineSi
     printMemory();
 }
 
-// Write data to memory starting at the given address
-// If the address of the byte to be written is not present in the memory, it is added
-void Memory::write(unsigned memoryAddress, sc_uint<32> data)
-{
-    // write byte by byte with LSB at the highest address
-    for (unsigned i = 0; i < 4; ++i)
-    {
-        memory[memoryAddress + (3 - i)] = (data >> (8 * i)) & 0xFF;
-    }
-}
-
-std::vector<sc_uint<8>> Memory::readBlock(unsigned memoryAddress)
-{
-    // Calculate the start address of the block
-    unsigned blockStartAddr = memoryAddress - (memoryAddress % cachelineSize);
-    // block is the cache line that is returned
-    std::vector<sc_uint<8>> block(cachelineSize);
-    // fetch all bytes from the memory map starting at the given block address
-    for (unsigned i = 0; i < cachelineSize; ++i)
-    {
-        // If the address is not present in the memory, add it with the value 0x00
-        if (memory.find(blockStartAddr + i) == memory.end())
-        {
-            memory[blockStartAddr + i] = 0x00;
-        }
-        // Read the byte from the memory map
-        sc_uint<8> byte = memory[blockStartAddr + i];
-        // Write the byte to the block
-        block[i] = byte;
-    }
-    return block;
-}
-
+// Main method for all memory usage
 void Memory::memoryAccess()
 {
     while (true)
@@ -81,6 +50,39 @@ void Memory::memoryAccess()
         }
         wait();
     }
+}
+
+// Write data to memory starting at the given address
+// If the address of the byte to be written is not present in the memory, it is added
+void Memory::write(unsigned memoryAddress, sc_uint<32> data)
+{
+    // write byte by byte with LSB at the highest address
+    for (unsigned i = 0; i < 4; ++i)
+    {
+        memory[memoryAddress + (3 - i)] = (data >> (8 * i)) & 0xFF;
+    }
+}
+
+std::vector<sc_uint<8>> Memory::readBlock(unsigned memoryAddress)
+{
+    // Calculate the start address of the block
+    unsigned blockStartAddr = memoryAddress - (memoryAddress % cachelineSize);
+    // block is the cache line that is returned
+    std::vector<sc_uint<8>> block(cachelineSize);
+    // fetch all bytes from the memory map starting at the given block address
+    for (unsigned i = 0; i < cachelineSize; ++i)
+    {
+        // If the address is not present in the memory, add it with the value 0x00
+        if (memory.find(blockStartAddr + i) == memory.end())
+        {
+            memory[blockStartAddr + i] = 0x00;
+        }
+        // Read the byte from the memory map
+        sc_uint<8> byte = memory[blockStartAddr + i];
+        // Write the byte to the block
+        block[i] = byte;
+    }
+    return block;
 }
 
 void Memory::printMemory()

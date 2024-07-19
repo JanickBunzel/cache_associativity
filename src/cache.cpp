@@ -1,10 +1,18 @@
 #include "cache.h"
 #include <iostream>
 
+// Flag passed from the rahmenprogramm (cache_simulaton parameter)
 extern int printsEnabled;
 
 Cache::Cache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
-    : sc_module(name), statistics({0, 0, 0, 0, 0}), bitCounts({0, 0, 0}), bitValues({0, 0, 0}), cachelineSize(cachelineSize), memoryReadDataCACHEIn(cachelineSize), cacheLatency(cacheLatency)
+    : sc_module(name),
+    statistics({0, 0, 0, 0, 0}),
+    bitCounts({0, 0, 0}), 
+    bitValuesFirstAddress({0, 0, 0}),
+    bitValuesSecondAddress({0, 0, 0}),
+    cachelineSize(cachelineSize),
+    memoryReadDataCACHEIn(cachelineSize),
+    cacheLatency(cacheLatency)
 {
     for (unsigned i = 0; i < cachelines; ++i)
     {
@@ -33,7 +41,7 @@ void Cache::printBits()
 }
 
 // Extracts the offset, index and tag bits from the address and writes it into the bitValues struct given as parameter
-void Cache::extractBitsFromAdress(Bits *bitValues, Bits bitCounts, sc_uint<32> address)
+void Cache::extractBitsFromAddress(Bits *bitValues, Bits bitCounts, sc_uint<32> address)
 {
     if (bitCounts.offset == 0 && bitCounts.index == 0)
     {

@@ -5,14 +5,14 @@
 #include <vector>
 #include "cacheLine.h"
 
-struct statistics
+typedef struct Statistics
 {
     unsigned hits;
     unsigned misses;
     unsigned accesses;
     unsigned writes;
     unsigned reads;
-};
+} Statistics;
 
 typedef struct Bits
 {
@@ -42,9 +42,10 @@ public:
 
     // --- INTERNAL VARIABLES --- //
     std::vector<CacheLine> cachelinesArray;
-    struct statistics statistics;
+    Statistics statistics;
     Bits bitCounts;
-    Bits bitValues;
+    Bits bitValuesFirstAddress;
+    Bits bitValuesSecondAddress;
     unsigned cachelineSize;
     unsigned cacheLatency;
 
@@ -55,11 +56,11 @@ public:
 
     virtual void cacheAccess() = 0;
     virtual void printCache() = 0;
-    virtual void calculateBits(unsigned cachelines, unsigned cachelineSize) = 0;
+    virtual void calculateBitCounts(unsigned cachelines, unsigned cachelineSize) = 0;
 
     // General Cache methods for all types
     void printBits();
-    void extractBitsFromAdress(Bits* bitValues, Bits bitCounts, sc_uint<32> address);
+    void extractBitsFromAddress(Bits* bitValues, Bits bitCounts, sc_uint<32> address);
     
     // Method to Read and Write data from the Memory
     std::vector<sc_uint<8>> fetchMemoryData(sc_uint<32> address);

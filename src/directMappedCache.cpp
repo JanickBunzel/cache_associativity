@@ -3,34 +3,39 @@
 #include <iostream>
 #include <cmath>
 
+// Flag passed from the rahmenprogramm (cache_simulaton parameter)
 extern int printsEnabled;
 
 DirectMappedCache::DirectMappedCache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
     : Cache(name, cachelines, cachelineSize, cacheLatency)
 {
-    calculateBits(cachelines, cachelineSize);
+    // Caclulate the number of bits for the offset, index and tag
+    calculateBitCounts(cachelines, cachelineSize);
 
+    // Set up the cache acess method, which is a SystemC thread and sensitive to the clock signal
     SC_THREAD(cacheAccess);
     dont_initialize();
     sensitive << clkCACHEIn.pos();
 
+    // Print debug information
     printBits();
     printCache();
 }
 
+// Main method for every request
 void DirectMappedCache::cacheAccess()
 {
+    // While loop dependent on the clock signal
     while (true)
     {
+        // Wait for the signals to be propagated
         wait(SC_ZERO_TIME);
 
+        // Communicate that the cache is now processing the request
         cacheDoneCACHEOut.write(false);
+
+        // Update statistics
         this->statistics.accesses++;
-
-        sc_uint<32> address = this->cacheAddressCACHEIn.read();
-
-        // Extract the offset, index and tag bits from the address
-        extractBitsFromAdress(&bitValues, bitCounts, address);
 
         // Await the cache latency.
         for (unsigned i = 0; i < cacheLatency - 1; i++)
@@ -39,42 +44,44 @@ void DirectMappedCache::cacheAccess()
             wait(SC_ZERO_TIME);
         }
 
+        // Prepare the variables used during the cache access
+        sc_uint<32> address = this->cacheAddressCACHEIn.read();
         bool hit = true;
-        sc_uint<32> nextIndex = 0;
+
+        // Extract the actual offset, index and tag bits from the address
+        extractBitsFromAddress(&bitValuesFirstAddress, bitCounts, address);
 
         // Check if the first cacheline is present in the cache
-        if (!(cachelinesArray[bitValues.index].getTag() == bitValues.tag) || !cachelinesArray[bitValues.index].getValid())
+        if (!(cachelinesArray[bitValuesFirstAddress.index].getTag() == bitValuesFirstAddress.tag) || !cachelinesArray[bitValuesFirstAddress.index].getValid())
         {
-            if(printsEnabled) std::cout << "[Cache]: Miss in first cacheline" << std::endl;
+            if (printsEnabled)
+                std::cout << "[Cache]: Miss in first cacheline" << std::endl;
             hit = false;
 
             // Fetch the cacheline from the memory and write to the cache
-            cachelinesArray[bitValues.index].setData(fetchMemoryData(address));
-            cachelinesArray[bitValues.index].setTag(bitValues.tag);
-            cachelinesArray[bitValues.index].setValid(true);
+            cachelinesArray[bitValuesFirstAddress.index].setData(fetchMemoryData(address));
+            cachelinesArray[bitValuesFirstAddress.index].setTag(bitValuesFirstAddress.tag);
+            cachelinesArray[bitValuesFirstAddress.index].setValid(true);
         }
 
-        // This bool cecks if the data lies in two rows by checking if the offset + 4 is greater than the cachelineSize.
-        // This is done because the data is 4 bytes long and if the offset + 4 is greater than the cachelineSize, the data must lie in two rows.
-        if (bitValues.offset + 4 > cachelineSize)
+        // Check if the second cacheline is present in the cache, if due to the offset second cacheline is needed
+        if (bitValuesFirstAddress.offset + 4 > cachelineSize)
         {
             // The next address is calculated by adding the cachelineSize to the current address.
-            sc_uint<32> nextAdress = (address + cachelineSize);
-            // Extracting the index from the next address.
-            nextIndex = nextAdress.range(bitCounts.offset + bitCounts.index - 1, bitCounts.offset);
-            // Extracting the tag from the next address.
-            sc_uint<32> nextTag = nextAdress.range(31, bitCounts.offset + bitCounts.index);
+            sc_uint<32> secondAddress = (address + 4);
+            extractBitsFromAddress(&bitValuesSecondAddress, bitCounts, secondAddress);
 
-            // The second cacheline also needs to have the right tag and is valid
-            if (cachelinesArray[nextIndex].getTag() != nextTag || !cachelinesArray[nextIndex].getValid())
+            // Check if the second cacheline is present in the Cache
+            if (cachelinesArray[bitValuesSecondAddress.index].getTag() != bitValuesSecondAddress.tag || !cachelinesArray[bitValuesSecondAddress.index].getValid())
             {
-                if(printsEnabled) std::cout << "[Cache]: Miss in second cacheline" << std::endl;
+                if (printsEnabled)
+                    std::cout << "[Cache]: Miss in second cacheline" << std::endl;
                 hit = false;
 
-                // Fetching the data from the next row and storing it in the corresponding cache line.
-                cachelinesArray[nextIndex].setData(fetchMemoryData(nextAdress));
-                cachelinesArray[nextIndex].setTag(nextTag);
-                cachelinesArray[nextIndex].setValid(true);
+                // Fetch the second cacheline from the memory and write to the cache
+                cachelinesArray[bitValuesSecondAddress.index].setData(fetchMemoryData(secondAddress));
+                cachelinesArray[bitValuesSecondAddress.index].setTag(bitValuesSecondAddress.tag);
+                cachelinesArray[bitValuesSecondAddress.index].setValid(true);
             }
         }
         // The needed cacheline(s) are now stored in the cache and valid
@@ -86,7 +93,7 @@ void DirectMappedCache::cacheAccess()
             this->statistics.reads++;
 
             // Read data from the cache and send it to the CPU
-            cacheReadDataCACHEOut.write(readCacheData(bitValues.offset, bitValues.index, nextIndex.to_uint()));
+            cacheReadDataCACHEOut.write(readCacheData(bitValuesFirstAddress.offset, bitValuesFirstAddress.index, bitValuesSecondAddress.index));
         }
         else if (cacheWriteEnableCACHEIn.read() == 1)
         {
@@ -94,12 +101,13 @@ void DirectMappedCache::cacheAccess()
             this->statistics.writes++;
 
             // Write given data to the cache
-            writeCacheData(bitValues.offset, bitValues.index, nextIndex.to_uint(), cacheWriteDataCACHEIn.read());
+            writeCacheData(bitValuesFirstAddress.offset, bitValuesFirstAddress.index, bitValuesSecondAddress.index, cacheWriteDataCACHEIn.read());
 
             // Write given data to the memory
             writeMemoryData(address, cacheWriteDataCACHEIn.read());
         }
 
+        // Access Done
         if (hit)
         {
             this->statistics.hits++;
@@ -109,16 +117,23 @@ void DirectMappedCache::cacheAccess()
             this->statistics.misses++;
         }
 
+        // Disable the memory
         memoryEnableCACHEOut.write(false);
+
+        // Communicate that the cache is done via the output port
         cacheDoneCACHEOut.write(true);
+
+        // Debug info of the cache state
         printCache();
+
+        // Wait for the next clock cycle
         wait();
     }
 }
 
 void DirectMappedCache::printCache()
 {
-    if(!printsEnabled)
+    if (!printsEnabled)
     {
         return;
     }
@@ -153,7 +168,7 @@ void DirectMappedCache::printCache()
     std::cout << "----------------------------------------" << std::endl;
 }
 
-void DirectMappedCache::calculateBits(unsigned cachelines, unsigned cachelineSize)
+void DirectMappedCache::calculateBitCounts(unsigned cachelines, unsigned cachelineSize)
 {
     bitCounts.offset = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cachelineSize))));
     bitCounts.index = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cachelines))));

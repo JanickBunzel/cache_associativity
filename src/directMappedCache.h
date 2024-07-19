@@ -12,7 +12,7 @@ public:
 
     void cacheAccess() override;
     void printCache() override;
-    void calculateBits(unsigned cachelines, unsigned cachelineSize) override;
+    void calculateBitCounts(unsigned cachelines, unsigned cachelineSize) override;
 };
 
 #endif // DIRECTMAPPEDCACHE_H

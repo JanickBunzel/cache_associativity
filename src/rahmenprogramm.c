@@ -9,7 +9,7 @@
 #include "result.h"
 
 // Struct to store properties of the cache
-typedef struct
+typedef struct CacheConfig
 {
     int cycles;        // Number of cycles to simulate
     int directmapped;  // bool
@@ -267,7 +267,7 @@ void print_cacheConfig(CacheConfig cacheConfig)
     printf("\n");
 }
 
-// Counts the requests in the given file, throwing an error when encountering a blank line in between requests. Format: <W/R, Adress, Value>
+// Counts the requests in the given file, throwing an error when encountering a blank line in between requests. Format: <W/R, Address, Value>
 int count_requests_in_file(char *filename)
 {
     FILE *file = fopen(filename, "r");

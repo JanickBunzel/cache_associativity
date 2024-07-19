@@ -52,9 +52,9 @@ int sc_main(int argc, char *argv[])
     cpu.cacheDoneCPUIn(cacheDoneSignal);
     cache->cacheDoneCACHEOut(cacheDoneSignal);
     // - Address of the next request
-    sc_signal<sc_uint<32>> cacheAdressSignal;
-    cpu.addressCPUOut(cacheAdressSignal);
-    cache->cacheAddressCACHEIn(cacheAdressSignal);
+    sc_signal<sc_uint<32>> cacheAddressSignal;
+    cpu.addressCPUOut(cacheAddressSignal);
+    cache->cacheAddressCACHEIn(cacheAddressSignal);
     // - Value of the next request
     sc_signal<sc_uint<32>> cacheWriteDataSignal;
     cpu.writeDataCPUOut(cacheWriteDataSignal);
@@ -104,7 +104,7 @@ int sc_main(int argc, char *argv[])
     {
         tf = sc_create_vcd_trace_file(tracefile);
         sc_trace(tf, cacheDoneSignal, "cacheDoneSignal");
-        sc_trace(tf, cacheAdressSignal, "cacheAdressSignal");
+        sc_trace(tf, cacheAddressSignal, "cacheAddressSignal");
         sc_trace(tf, cacheWriteDataSignal, "cacheWriteDataSignal");
         sc_trace(tf, cacheWriteEnableSignal, "cacheWriteEnableSignal");
         sc_trace(tf, cacheReadDataSignal, "cacheReadDataSignal");
@@ -137,42 +137,38 @@ int sc_main(int argc, char *argv[])
     // Clean up dynamically allocated memory
     delete cache;
 
-    
-
     return 0;
 }
 
 int primitiveGateCount()
 {
-    
+
     int primitiveGateCount = 0;
-    
+
     // 4 Gates per Bit and cachelineSize is in Bytes
     primitiveGateCount = cachelineSize * 8 * 4;
 
-    // times our cacheLines (before was only for one cacheline)
+    // Times the cacheLines
     primitiveGateCount = primitiveGateCount * cachelines;
 
     // 300 gates for extracting our Tag/Index/Offset - Bits
     primitiveGateCount = primitiveGateCount + 300;
 
     // Hit or miss structure (comparing the tag)
-    int offset_bits = static_cast<int>(std::log2(cachelineSize));
+    int offset_bits = static_cast<int>(std::log2(directMapped ? cachelineSize : cachelineSize / 4)); // Offset bits vary depending on the cache type
     int index_bits = static_cast<int>(std::log2(cachelines));
     int tag_bits = 32 - offset_bits - index_bits;
 
     // 10 gates for the hit or miss check for each line
     primitiveGateCount = primitiveGateCount + tag_bits * cachelines * 10;
 
-    // controlling-unit for index and offset
-        primitiveGateCount = primitiveGateCount + 750;
+    // Controlling-units for index and offset
+    primitiveGateCount = primitiveGateCount + 750;
 
-    // checking if cache is fourway or not
     if (!directMapped)
     {
-        // LRU-unit 4 gates for saving each bit and updating it
-        primitiveGateCount = primitiveGateCount + cachelines * 4 * 50;
-
+        // 4 gates per bit, 2 bits per cacheline, 50 gates for lru logic
+        primitiveGateCount += cachelines * 4 * 2 * 50;
     }
 
     return primitiveGateCount;

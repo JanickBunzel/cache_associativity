@@ -1,6 +1,7 @@
 #include "cpu.hpp"
 #include <iostream>
 
+// Flag passed from the rahmenprogramm (cache_simulaton parameter)
 extern int printsEnabled;
 
 Cpu::Cpu(sc_module_name name, Request *requests, const int requestLength)
@@ -41,8 +42,14 @@ void Cpu::handleRequests()
             // Wait for the Cache-Cpu signals
             wait(SC_ZERO_TIME);
 
+            // If all requests have been processed, don't wait another cycle and stop the simulation
             if (cacheDoneCPUIn.read() == true && i == requestLength - 1)
             {
+                // Handle the result of a read request (write result back and print)
+                if (!requests[i].we)
+                {
+                    requests[i].data = cacheReadDataCPUIn.read();
+                }
                 printResultOfRequest(i);
                 sc_stop();
             }
@@ -50,8 +57,14 @@ void Cpu::handleRequests()
             wait();
             cacheDone = cacheDoneCPUIn.read();
         }
+        // Handle the result of a read request (write result back and print)
+        if (!requests[i].we)
+        {
+            requests[i].data = cacheReadDataCPUIn.read();
+        }
         printResultOfRequest(i);
 
+        // Reset the cacheDone flag
         cacheDone = false;
     }
 

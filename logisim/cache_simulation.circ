@@ -56,46 +56,44 @@
     <a name="circuit" val="main"/>
     <a name="circuitnamedboxfixedsize" val="true"/>
     <a name="simulationFrequency" val="1.0"/>
-    <comp lib="0" loc="(150,410)" name="Clock">
+    <comp lib="0" loc="(430,380)" name="Clock">
       <a name="label" val="clk"/>
     </comp>
-    <comp loc="(1210,390)" name="memory"/>
-    <comp loc="(470,390)" name="cpu"/>
-    <comp loc="(830,370)" name="cache"/>
-    <wire from="(1210,390)" to="(1280,390)"/>
-    <wire from="(1210,410)" to="(1260,410)"/>
-    <wire from="(1260,410)" to="(1260,590)"/>
-    <wire from="(1280,390)" to="(1280,610)"/>
-    <wire from="(150,410)" to="(160,410)"/>
-    <wire from="(160,330)" to="(160,410)"/>
-    <wire from="(160,330)" to="(250,330)"/>
-    <wire from="(210,410)" to="(210,710)"/>
-    <wire from="(210,410)" to="(250,410)"/>
-    <wire from="(210,710)" to="(910,710)"/>
-    <wire from="(230,430)" to="(230,690)"/>
-    <wire from="(230,430)" to="(250,430)"/>
-    <wire from="(230,690)" to="(890,690)"/>
-    <wire from="(250,330)" to="(250,390)"/>
-    <wire from="(250,330)" to="(610,330)"/>
-    <wire from="(470,390)" to="(610,390)"/>
-    <wire from="(470,410)" to="(610,410)"/>
-    <wire from="(470,430)" to="(610,430)"/>
-    <wire from="(590,450)" to="(590,610)"/>
-    <wire from="(590,450)" to="(610,450)"/>
-    <wire from="(590,610)" to="(1280,610)"/>
-    <wire from="(610,330)" to="(610,370)"/>
-    <wire from="(610,330)" to="(990,330)"/>
-    <wire from="(610,470)" to="(610,590)"/>
-    <wire from="(610,590)" to="(1260,590)"/>
-    <wire from="(830,370)" to="(890,370)"/>
-    <wire from="(830,390)" to="(910,390)"/>
-    <wire from="(830,410)" to="(990,410)"/>
-    <wire from="(830,430)" to="(990,430)"/>
-    <wire from="(830,450)" to="(990,450)"/>
-    <wire from="(830,470)" to="(990,470)"/>
-    <wire from="(890,370)" to="(890,690)"/>
-    <wire from="(910,390)" to="(910,710)"/>
-    <wire from="(990,330)" to="(990,390)"/>
+    <comp loc="(1110,420)" name="cache"/>
+    <comp loc="(1490,440)" name="memory"/>
+    <comp loc="(750,440)" name="cpu"/>
+    <wire from="(1110,420)" to="(1170,420)"/>
+    <wire from="(1110,440)" to="(1190,440)"/>
+    <wire from="(1110,460)" to="(1270,460)"/>
+    <wire from="(1110,480)" to="(1270,480)"/>
+    <wire from="(1110,500)" to="(1270,500)"/>
+    <wire from="(1110,520)" to="(1270,520)"/>
+    <wire from="(1170,420)" to="(1170,740)"/>
+    <wire from="(1190,440)" to="(1190,760)"/>
+    <wire from="(1270,380)" to="(1270,440)"/>
+    <wire from="(1490,440)" to="(1560,440)"/>
+    <wire from="(1490,460)" to="(1540,460)"/>
+    <wire from="(1540,460)" to="(1540,640)"/>
+    <wire from="(1560,440)" to="(1560,660)"/>
+    <wire from="(430,380)" to="(530,380)"/>
+    <wire from="(490,460)" to="(490,760)"/>
+    <wire from="(490,460)" to="(530,460)"/>
+    <wire from="(490,760)" to="(1190,760)"/>
+    <wire from="(510,480)" to="(510,740)"/>
+    <wire from="(510,480)" to="(530,480)"/>
+    <wire from="(510,740)" to="(1170,740)"/>
+    <wire from="(530,380)" to="(530,440)"/>
+    <wire from="(530,380)" to="(890,380)"/>
+    <wire from="(750,440)" to="(890,440)"/>
+    <wire from="(750,460)" to="(890,460)"/>
+    <wire from="(750,480)" to="(890,480)"/>
+    <wire from="(870,500)" to="(870,660)"/>
+    <wire from="(870,500)" to="(890,500)"/>
+    <wire from="(870,660)" to="(1560,660)"/>
+    <wire from="(890,380)" to="(1270,380)"/>
+    <wire from="(890,380)" to="(890,420)"/>
+    <wire from="(890,520)" to="(890,640)"/>
+    <wire from="(890,640)" to="(1540,640)"/>
   </circuit>
   <circuit name="cpu">
     <a name="appearance" val="logisim_evolution"/>
@@ -118,7 +116,7 @@
     <comp lib="0" loc="(580,160)" name="Pin">
       <a name="appearance" val="NewPins"/>
       <a name="facing" val="west"/>
-      <a name="label" val="adress"/>
+      <a name="label" val="address"/>
       <a name="output" val="true"/>
       <a name="radix" val="16"/>
       <a name="width" val="32"/>
@@ -162,7 +160,7 @@
     </comp>
     <comp lib="0" loc="(320,190)" name="Pin">
       <a name="appearance" val="NewPins"/>
-      <a name="label" val="adress"/>
+      <a name="label" val="address"/>
       <a name="radix" val="16"/>
       <a name="width" val="32"/>
     </comp>
@@ -188,7 +186,7 @@
     <comp lib="0" loc="(500,280)" name="Pin">
       <a name="appearance" val="NewPins"/>
       <a name="facing" val="west"/>
-      <a name="label" val="memoryAdressOut"/>
+      <a name="label" val="memoryAddressOut"/>
       <a name="output" val="true"/>
       <a name="radix" val="16"/>
       <a name="width" val="32"/>
@@ -225,7 +223,7 @@
     </comp>
     <comp lib="0" loc="(310,190)" name="Pin">
       <a name="appearance" val="NewPins"/>
-      <a name="label" val="adress"/>
+      <a name="label" val="address"/>
       <a name="radix" val="16"/>
       <a name="width" val="32"/>
     </comp>

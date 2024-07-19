@@ -3,11 +3,11 @@
 #include <systemc.h>
 #include "request.h"
 
-struct cpuStatistics
+typedef struct CpuStatistics
 {
     int cycles;
     int requests;
-};
+} CpuStatistics;
 
 SC_MODULE(Cpu)
 {
@@ -30,7 +30,7 @@ SC_MODULE(Cpu)
 
     // --- INTERNAL VARIABLES --- //
 
-    struct cpuStatistics cpuStatistics;
+    CpuStatistics cpuStatistics;
     Request *requests;
     int requestLength;
 
