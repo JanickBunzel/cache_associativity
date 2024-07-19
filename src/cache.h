@@ -60,15 +60,15 @@ public:
 
     // General Cache methods for all types
     void printBits();
-    void extractBitsFromAddress(Bits* bitValues, Bits bitCounts, sc_uint<32> address);
-    
+    void extractBitsFromAddress(Bits *bitValues, Bits bitCounts, sc_uint<32> address);
+
     // Method to Read and Write data from the Memory
     std::vector<sc_uint<8>> fetchMemoryData(sc_uint<32> address);
     void writeMemoryData(sc_uint<32> address, sc_uint<32> data);
-    
+
     // Method to Read and Write data from the Cache
     sc_uint<32> readCacheData(unsigned offset, unsigned indexFirstCacheline, unsigned indexSecondCacheline);
-    void writeCacheData(unsigned offset,  unsigned indexFirstCacheline, unsigned indexSecondCacheline, sc_uint<32> writeData);
+    void writeCacheData(unsigned offset, unsigned indexFirstCacheline, unsigned indexSecondCacheline, sc_uint<32> writeData);
 };
 
 #endif

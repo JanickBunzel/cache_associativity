@@ -30,7 +30,7 @@ private:
 
     // Flag to indicate if the cache line is valid
     bool valid = false;
-    
+
     const unsigned cachelineSize;
 };
 

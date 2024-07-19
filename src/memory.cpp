@@ -12,6 +12,7 @@ Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cachelineSi
     SC_THREAD(memoryAccess);
     sensitive << clkMEMORYIn.pos();
     dont_initialize();
+
     printMemory();
 }
 
@@ -41,7 +42,10 @@ void Memory::memoryAccess()
                 // write to the output ports
                 for (unsigned i = 0; i < dataWord.size(); ++i)
                 {
-                    readDataMEMORYOut[i].write(dataWord[i]);
+                    if (i < readDataMEMORYOut.size()) // Ensure we do not go out of bounds
+                    {
+                        readDataMEMORYOut[i].write(dataWord[i]);
+                    }
                 }
             }
 
@@ -87,7 +91,7 @@ std::vector<sc_uint<8>> Memory::readBlock(unsigned memoryAddress)
 
 void Memory::printMemory()
 {
-    if(!printsEnabled)
+    if (!printsEnabled)
     {
         return;
     }
@@ -99,20 +103,20 @@ void Memory::printMemory()
     // Copy memory entries to a vector and sort them by address
     std::vector<std::pair<unsigned, sc_uint<8>>> sorted_memory(memory.begin(), memory.end());
     std::sort(sorted_memory.begin(), sorted_memory.end(),
-              [](const std::pair<unsigned, sc_uint<8>>& a, const std::pair<unsigned, sc_uint<8>>& b)
+              [](const std::pair<unsigned, sc_uint<8>> &a, const std::pair<unsigned, sc_uint<8>> &b)
               {
                   return a.first < b.first;
               });
 
     // Print sorted memory
-    for (const auto& entry : sorted_memory)
+    for (const auto &entry : sorted_memory)
     {
         unsigned address = entry.first;
         sc_uint<8> data = entry.second;
 
         std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << address
-            << "   0x" << std::setw(2) << std::setfill('0') << std::hex << data.to_uint()
-            << "       " << std::bitset<8>(data.to_uint())
-            << std::dec << std::endl;
+                  << "   0x" << std::setw(2) << std::setfill('0') << std::hex << data.to_uint()
+                  << "       " << std::bitset<8>(data.to_uint())
+                  << std::dec << std::endl;
     }
 }

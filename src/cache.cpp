@@ -6,14 +6,15 @@ extern int printsEnabled;
 
 Cache::Cache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
     : sc_module(name),
-    statistics({0, 0, 0, 0, 0}),
-    bitCounts({0, 0, 0}), 
-    bitValuesFirstAddress({0, 0, 0}),
-    bitValuesSecondAddress({0, 0, 0}),
-    cachelineSize(cachelineSize),
-    memoryReadDataCACHEIn(cachelineSize),
-    cacheLatency(cacheLatency)
+      statistics({0, 0, 0, 0, 0}),
+      bitCounts({0, 0, 0}),
+      bitValuesFirstAddress({0, 0, 0}),
+      bitValuesSecondAddress({0, 0, 0}),
+      cachelineSize(cachelineSize),
+      memoryReadDataCACHEIn(cachelineSize),
+      cacheLatency(cacheLatency)
 {
+    // Initialize the cachelinesArray with the given amount of cachelines and cachelineSize
     for (unsigned i = 0; i < cachelines; ++i)
     {
         cachelinesArray.emplace_back(cachelineSize);
@@ -25,6 +26,7 @@ Cache::~Cache()
 {
 }
 
+// Prints the amounts of offset, index and tag bits
 void Cache::printBits()
 {
     if (!printsEnabled)
@@ -67,32 +69,28 @@ void Cache::extractBitsFromAddress(Bits *bitValues, Bits bitCounts, sc_uint<32> 
 
 std::vector<sc_uint<8>> Cache::fetchMemoryData(sc_uint<32> address)
 {
-    // mem signals anlegen
+    // Propagate the address and read to the memory
     memoryAddressCACHEOut.write(address);
     memoryWriteEnableCACHEOut.write(false);
 
-    // mem starten
+    // Enable the memory
     memoryEnableCACHEOut.write(true);
 
-    // TODO comment
-    wait();
-    wait(SC_ZERO_TIME);
-
-    // auf mem warten
-    while (memoryDoneCACHEIn.read() == false)
+    // Wait for the memory to process the fetch, which starts in the next cycle
+    do
     {
         wait();
         wait(SC_ZERO_TIME);
-    }
+    } while (memoryDoneCACHEIn.read() == false);
 
-    // cacheline von mem lesen und zurückgeben
+    // Read the data propagated back from the memory
     std::vector<sc_uint<8>> memoryData(cachelineSize);
     for (unsigned i = 0; i < cachelineSize; i++)
     {
         memoryData[i] = memoryReadDataCACHEIn[i].read();
     }
 
-    // mem deaktivieren
+    // Deactivate the memory again
     memoryEnableCACHEOut.write(false);
 
     return memoryData;
@@ -100,26 +98,22 @@ std::vector<sc_uint<8>> Cache::fetchMemoryData(sc_uint<32> address)
 
 void Cache::writeMemoryData(sc_uint<32> address, sc_uint<32> writeData)
 {
-    // mem signals anlegen
+    // Propagate the address and read to the memory
     memoryAddressCACHEOut.write(address);
     memoryWriteDataCACHEOut.write(writeData);
     memoryWriteEnableCACHEOut.write(true);
 
-    // mem starten
+    // Enable the memory
     memoryEnableCACHEOut.write(true);
 
-    // TODO comment
-    wait();
-    wait(SC_ZERO_TIME);
-
-    // auf mem warten
-    while (memoryDoneCACHEIn.read() == false)
+    // Wait for the memory to process the fetch, which starts in the next cycle
+    do
     {
         wait();
         wait(SC_ZERO_TIME);
-    }
+    } while (memoryDoneCACHEIn.read() == false);
 
-    // mem deaktivieren
+    // Deactivate the memory again
     memoryEnableCACHEOut.write(false);
 }
 
@@ -157,6 +151,7 @@ sc_uint<32> Cache::readCacheData(unsigned offset, unsigned indexFirstCacheline, 
     return result;
 }
 
+// Writes 4 bytes to the offset, using the second index if a second cacheline needs to be written -> Assuming cachelines being written are valid
 void Cache::writeCacheData(unsigned offset, unsigned indexFirstCacheline, unsigned indexSecondCacheline, sc_uint<32> writeData)
 {
     unsigned remaining = 4;

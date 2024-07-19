@@ -31,7 +31,10 @@ void Cpu::handleRequests()
         while (cacheDone == false)
         {
             cpuStatistics.cycles++;
-            if (printsEnabled) std::cout << "Cycles[" << cycles++ << "]" << std::endl;
+            if (printsEnabled)
+            {
+                std::cout << "Cycles[" << cycles++ << "]" << std::endl;
+            }
 
             // Wait for the Cpu-Cache signals
             wait(SC_ZERO_TIME);
@@ -52,6 +55,7 @@ void Cpu::handleRequests()
                 }
                 printResultOfRequest(i);
                 sc_stop();
+                return;
             }
 
             wait();
@@ -69,6 +73,7 @@ void Cpu::handleRequests()
     }
 
     sc_stop();
+    return;
 }
 
 void Cpu::printProccessingOfRequest(unsigned requestIndex)
@@ -91,7 +96,7 @@ void Cpu::printResultOfRequest(unsigned requestIndex)
     {
         return;
     }
-    
+
     std::cout << "\033[0;36m";
     std::cout << "###########################################################################################################################################################################" << std::endl;
     std::cout << "[Cpu]: Cache done processing request[" << requestIndex << "]" << std::endl;

@@ -38,7 +38,7 @@ CacheConfig cacheConfig = {
 // Macro to handle request lines in the input file
 int MAX_REQUEST_LINE_LENGTH = 256;
 
-// Flag to enable/disable print statements in the simulation
+// Flag to enable/disable print statements in the simulation, disabled by default
 int printsEnabled = 0;
 
 // Function declarations

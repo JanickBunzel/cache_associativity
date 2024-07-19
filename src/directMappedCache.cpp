@@ -55,7 +55,9 @@ void DirectMappedCache::cacheAccess()
         if (!(cachelinesArray[bitValuesFirstAddress.index].getTag() == bitValuesFirstAddress.tag) || !cachelinesArray[bitValuesFirstAddress.index].getValid())
         {
             if (printsEnabled)
+            {
                 std::cout << "[Cache]: Miss in first cacheline" << std::endl;
+            }
             hit = false;
 
             // Fetch the cacheline from the memory and write to the cache
@@ -75,7 +77,9 @@ void DirectMappedCache::cacheAccess()
             if (cachelinesArray[bitValuesSecondAddress.index].getTag() != bitValuesSecondAddress.tag || !cachelinesArray[bitValuesSecondAddress.index].getValid())
             {
                 if (printsEnabled)
+                {
                     std::cout << "[Cache]: Miss in second cacheline" << std::endl;
+                }
                 hit = false;
 
                 // Fetch the second cacheline from the memory and write to the cache

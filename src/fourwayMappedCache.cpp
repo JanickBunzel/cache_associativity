@@ -50,7 +50,7 @@ void FourwayMappedCache::cacheAccess()
 
         // Extract the offset, index and tag bits from the address
         extractBitsFromAddress(&bitValuesFirstAddress, bitCounts, address);
-        
+
         // Indexes for the lines respective to a set
         int firstCachelineIndex = -1;
         int secondCachelineIndex = -1;
@@ -60,7 +60,10 @@ void FourwayMappedCache::cacheAccess()
         if (firstCachelineIndex == -1)
         {
             // First cacheline is not present
-            if(printsEnabled) std::cout << "[Cache]: Miss in first cacheline" << std::endl;
+            if (printsEnabled)
+            {
+                std::cout << "[Cache]: Miss in first cacheline" << std::endl;
+            }
             hit = false;
 
             // If there is a free cacheline in the set, choose it
@@ -71,7 +74,10 @@ void FourwayMappedCache::cacheAccess()
                 firstCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValuesFirstAddress.index);
                 if (firstCachelineIndex == -1)
                 {
-                    if(printsEnabled) std::cerr << "[Cache]: Error when trying to find the least recently used cacheline (no correct tag found, no free cacheline found, no LRU cacheline found)" << std::endl;
+                    if (printsEnabled)
+                    {
+                        std::cerr << "[Cache]: Error when trying to find the least recently used cacheline (no correct tag found, no free cacheline found, no LRU cacheline found)" << std::endl;
+                    }
                     exit(1);
                 }
             }
@@ -81,7 +87,7 @@ void FourwayMappedCache::cacheAccess()
             getCacheline(bitValuesFirstAddress.index, firstCachelineIndex).setTag(bitValuesFirstAddress.tag);
             getCacheline(bitValuesFirstAddress.index, firstCachelineIndex).setValid(true);
         }
-        
+
         // Update the LRU counter for the set of the first cacheline
         updateLruIndicesInSet(bitValuesFirstAddress.index, firstCachelineIndex);
 
@@ -97,7 +103,10 @@ void FourwayMappedCache::cacheAccess()
             if (secondCachelineIndex == -1)
             {
                 // Second cacheline is not present
-                if(printsEnabled) std::cout << "[Cache]: Miss in second cacheline" << std::endl;
+                if (printsEnabled)
+                {
+                    std::cout << "[Cache]: Miss in second cacheline" << std::endl;
+                }
                 hit = false;
 
                 // If there is a free cacheline in the set, choose it
@@ -108,7 +117,10 @@ void FourwayMappedCache::cacheAccess()
                     secondCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValuesSecondAddress.index);
                     if (firstCachelineIndex == -1)
                     {
-                        if(printsEnabled) std::cerr << "[Cache]: Error when trying to find the least recently used cacheline (no correct tag found, no free cacheline found, no LRU cacheline found)" << std::endl;
+                        if (printsEnabled)
+                        {
+                            std::cerr << "[Cache]: Error when trying to find the least recently used cacheline (no correct tag found, no free cacheline found, no LRU cacheline found)" << std::endl;
+                        }
                         exit(1);
                     }
                 }
@@ -118,7 +130,7 @@ void FourwayMappedCache::cacheAccess()
                 getCacheline(bitValuesSecondAddress.index, secondCachelineIndex).setTag(bitValuesSecondAddress.tag);
                 getCacheline(bitValuesSecondAddress.index, secondCachelineIndex).setValid(true);
             }
-            
+
             // Update the LRU counter for the set of the second cacheline
             updateLruIndicesInSet(bitValuesSecondAddress.index, secondCachelineIndex);
         }
@@ -174,7 +186,7 @@ void FourwayMappedCache::cacheAccess()
 
 void FourwayMappedCache::printCache()
 {
-    if(!printsEnabled)
+    if (!printsEnabled)
     {
         return;
     }
@@ -230,7 +242,7 @@ void FourwayMappedCache::calculateBitCounts(unsigned cachelines, unsigned cachel
     }
 }
 
-CacheLine& FourwayMappedCache::getCacheline(unsigned setIndex, unsigned cachelineIndex)
+CacheLine &FourwayMappedCache::getCacheline(unsigned setIndex, unsigned cachelineIndex)
 {
     return cachelinesArray[4 * setIndex + cachelineIndex];
 }
