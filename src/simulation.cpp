@@ -170,7 +170,7 @@ int sc_main(int argc, char *argv[])
     }
 
     // Store the simulation results after the simulation has finished
-    simulationResult.cycles = cpu.cpuStatistics.cycles > cycles ? SIZE_MAX : cpu.cpuStatistics.cycles; // If the simulation has not finished in the given number of cycles, return SIZE_MAX
+    simulationResult.cycles = cpu.cpuStatistics.allRequestsProcessed ? cpu.cpuStatistics.cycles : SIZE_MAX; // If the simulation has not finished in the given number of cycles, return SIZE_MAX
     simulationResult.misses = cache->statistics.misses;
     simulationResult.hits = cache->statistics.hits;
     simulationResult.primitiveGateCount = primitiveGateCount();

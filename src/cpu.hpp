@@ -6,8 +6,9 @@
 
 typedef struct CpuStatistics
 {
-    int cycles;
-    int requests;
+    unsigned cycles;
+    unsigned requests;
+    bool allRequestsProcessed;
 } CpuStatistics;
 
 SC_MODULE(Cpu)
