@@ -8,7 +8,7 @@ extern char *highlightColor;
 extern char *resetColor;
 
 Cpu::Cpu(sc_module_name name, Request *requests, const int requestLength)
-    : sc_module(name), cpuStatistics({0, 0}), requests(requests), requestLength(requestLength)
+    : sc_module(name), cpuStatistics({0, 0, 0}), requests(requests), requestLength(requestLength)
 {
     SC_THREAD(handleRequests);
     dont_initialize();
@@ -51,6 +51,8 @@ void Cpu::handleRequests()
             // If all requests have been processed, don't wait another cycle and stop the simulation
             if (cacheDoneCPUIn.read() == true && i == requestLength - 1)
             {
+                cpuStatistics.allRequestsProcessed = true;
+
                 // Handle the result of a read request (write result back and print)
                 if (!requests[i].we)
                 {
@@ -64,6 +66,7 @@ void Cpu::handleRequests()
             wait();
             cacheDone = cacheDoneCPUIn.read();
         }
+
         // Handle the result of a read request (write result back and print)
         if (!requests[i].we)
         {
