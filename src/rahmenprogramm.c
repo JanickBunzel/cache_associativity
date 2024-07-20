@@ -28,10 +28,10 @@ CacheConfig cacheConfig = {
     .cycles = 34000,      // With a hit rate of 70%, therefore 17 cycles/request on average, this covers roughly 2000 requests
     .directmapped = 1,    // Using direct mapped cache as default
     .fourway = 0,         // Using direct mapped cache as default
-    .cachelines = 512,    // With 512 cachelines of 32 bytes, this provides an 16KB cache
+    .cachelines = 512,    // With 512 cachelines of 32 bytes, this provides an 16KB cache, typical size of a L1 cache
     .cachelineSize = 32,  // Standard size that balances spatial locality and overhead
-    .cacheLatency = 5,    // Quick access for first-level cache
-    .memoryLatency = 40,  // Slower access for main memory
+    .cacheLatency = 4,    // Quick access for first-level cache
+    .memoryLatency = 30,  // Slower access for main memory
     .tracefile = "",      // By default, no tracefile is generated
     .eingabedatei = NULL, // Input file needs to be provided
 };
