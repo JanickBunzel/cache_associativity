@@ -198,7 +198,7 @@ void FourwayMappedCache::printCache()
         unsigned set = i / 4;
         for (unsigned way = 0; way < 4; ++way)
         {
-            if (cachelinesArray[i + way].getValid() == 1)
+            if (cachelinesArray[i + way].getValid() == 1 && printsLevel > 0)
             {
                 std::cout << highlightDataColor; // Highlight valid cache lines
             }
@@ -215,7 +215,10 @@ void FourwayMappedCache::printCache()
                 std::cout << "0x" << std::setw(2) << std::setfill('0') << std::hex << (0xFF & byte) << std::dec << " ";
             }
 
-            std::cout << resetColor; // Reset the color
+            if (cachelinesArray[i + way].getValid() == 1 && printsLevel > 0)
+            {
+                std::cout << resetColor; // Reset the color
+            }
             std::cout << std::endl;
         }
         std::cout << "------------------------------------------------" << std::endl;

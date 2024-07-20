@@ -152,7 +152,7 @@ void DirectMappedCache::printCache()
 
     for (unsigned i = 0; i < cachelinesArray.size(); ++i)
     {
-        if (cachelinesArray[i].getValid() == 1)
+        if (cachelinesArray[i].getValid() == 1 && printsLevel > 0)
         {
             std::cout << highlightDataColor; // Highlight valid cache lines
         }
@@ -168,7 +168,10 @@ void DirectMappedCache::printCache()
             std::cout << "0x" << std::setw(2) << std::setfill('0') << std::hex << (0xFF & byte) << std::dec << " ";
         }
 
-        std::cout << resetColor; // Reset the color
+        if (cachelinesArray[i].getValid() == 1 && printsLevel > 0)
+        {
+            std::cout << resetColor; // Reset the color
+        }
         std::cout << std::endl;
     }
 
