@@ -3,8 +3,10 @@
 #include <iostream>
 #include <cmath>
 
-// Global variable provided by the rahmenprogramm (cache_simulaton option), specifies the amount of debug information to be printed
+// Global variables provided by the rahmenprogramm (cache_simulaton option), specifies how the debug information is printed
 extern int printsLevel;
+extern char *highlightDataColor;
+extern char *resetColor;
 
 DirectMappedCache::DirectMappedCache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
     : Cache(name, cachelines, cachelineSize, cacheLatency)
@@ -149,9 +151,9 @@ void DirectMappedCache::printCache()
 
     for (unsigned i = 0; i < cachelinesArray.size(); ++i)
     {
-        if (cachelinesArray[i].getValid() == 0)
+        if (cachelinesArray[i].getValid() == 1)
         {
-            std::cout << "\033[90m"; // Set the color to dark gray
+            std::cout << highlightDataColor; // Highlight valid cache lines
         }
 
         // Print the cache line
@@ -165,7 +167,7 @@ void DirectMappedCache::printCache()
             std::cout << "0x" << std::setw(2) << std::setfill('0') << std::hex << (0xFF & byte) << std::dec << " ";
         }
 
-        std::cout << "\033[97m"; // Reset the color
+        std::cout << resetColor; // Reset the color
         std::cout << std::endl;
     }
 

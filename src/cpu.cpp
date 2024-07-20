@@ -1,8 +1,10 @@
 #include "cpu.hpp"
 #include <iostream>
 
-// Global variable provided by the rahmenprogramm (cache_simulaton option), specifies the amount of debug information to be printed
+// Global variables provided by the rahmenprogramm (cache_simulaton option), specifies how the debug information is printed
 extern int printsLevel;
+extern char *highlightColor;
+extern char *resetColor;
 
 Cpu::Cpu(sc_module_name name, Request *requests, const int requestLength)
     : sc_module(name), cpuStatistics({0, 0}), requests(requests), requestLength(requestLength)
@@ -83,9 +85,9 @@ void Cpu::printProccessingOfRequest(unsigned requestIndex)
         return;
     }
 
-    std::cout << "\033[0;36m" << std::endl; // Start cyan color
+    std::cout << highlightColor; // Start highlight color
     std::cout << "[Cpu]: Now processing request[" << requestIndex << "]: " << (requests[requestIndex].we ? "W," : "R,") << std::hex << "0x" << requests[requestIndex].addr << std::dec << "," << (requests[requestIndex].we ? std::to_string(requests[requestIndex].data) : "") << std::endl;
-    std::cout << "\033[0m" << std::endl; // Reset color back to white
+    std::cout << resetColor << std::endl; // Reset color back to white
 }
 
 void Cpu::printResultOfRequest(unsigned requestIndex)
@@ -95,7 +97,7 @@ void Cpu::printResultOfRequest(unsigned requestIndex)
         return;
     }
 
-    std::cout << "\033[0;36m"; // Start cyan color
+    std::cout << highlightColor; // Start highlight color
     
     std::cout << "[Cpu]: Cache done processing request[" << requestIndex << "].";
     if (!requests[requestIndex].we)
@@ -104,5 +106,5 @@ void Cpu::printResultOfRequest(unsigned requestIndex)
     }
     std::cout << std::endl;
 
-    std::cout << "\033[0m" << std::endl; // Reset color back to white
+    std::cout << resetColor << std::endl; // Reset color back to white
 }

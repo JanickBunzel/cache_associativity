@@ -2,8 +2,10 @@
 #include <iomanip>
 #include <bitset>
 
-// Global variable provided by the rahmenprogramm (cache_simulaton option), specifies the amount of debug information to be printed
+// Global variables provided by the rahmenprogramm (cache_simulaton option), specifies how the debug information is printed
 extern int printsLevel;
+extern char *highlightDataColor;
+extern char *resetColor;
 
 // Default constructor
 Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cachelineSize)
@@ -118,17 +120,17 @@ void Memory::printMemory()
         // Address
         std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << address;
 
-        if (data.to_uint() == 0)
+        if (data.to_uint() != 0)
         {
-            std::cout << "\033[90m"; // Set the color to dark gray
+            std::cout << highlightDataColor; // Highlight present data
         }
         // Data
         std::cout << "   0x" << std::setw(2) << std::setfill('0') << std::hex << data.to_uint()
                   << "       " << std::bitset<8>(data.to_uint())
                   << std::dec << std::endl;
-        if (data.to_uint() == 0)
+        if (data.to_uint() != 0)
         {
-            std::cout << "\033[97m"; // Reset the color
+            std::cout << resetColor; // Reset the color
         }
     }
 }

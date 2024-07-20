@@ -40,6 +40,9 @@ int MAX_REQUEST_LINE_LENGTH = 256;
 
 // Global variable to enable additional debug prints, controlled by the -p argument and disabled by default
 int printsLevel = 0;
+char *highlightColor = "\033[0;36m";
+char *highlightDataColor = "\033[0;32m";
+char *resetColor = "\033[0m";
 
 // Function declarations
 CacheConfig arguments_to_cacheConfig(int argc, char *argv[]);
@@ -261,7 +264,7 @@ void print_cacheConfig(CacheConfig cacheConfig)
 {
     if (printsLevel >= 1)
     {
-        printf("\033[0;36m"); // Start cyan color for the cache configuration
+        printf("%s", highlightColor); // Start highlighted color for the cache configuration
     }
 
     printf("\nCache Configuration:\n");
@@ -269,11 +272,11 @@ void print_cacheConfig(CacheConfig cacheConfig)
     // Print the cache type pink if additional debug prints are enabled
     if (printsLevel >= 1)
     {
-        printf("  - DirectMapped/Fourway: \033[0;95m%s\n\033[0;36m", cacheConfig.directmapped ? "DirectMapped" : "Fourway");
+        printf("  - DirectMapped/Fourway: \033[0;95m%s\n%s", cacheConfig.directmapped ? "DirectMapped" : "Fourway", highlightColor);
     }
     else
     {
-        printf("  - DirectMapped/Fourway: %s\n\033[0m", cacheConfig.directmapped ? "DirectMapped" : "Fourway");
+        printf("  - DirectMapped/Fourway: %s\n%s", cacheConfig.directmapped ? "DirectMapped" : "Fourway", resetColor);
     }
     printf("  - Cachelines: %d\n", cacheConfig.cachelines);
     printf("  - Cacheline size: %d\n", cacheConfig.cachelineSize);
@@ -285,7 +288,7 @@ void print_cacheConfig(CacheConfig cacheConfig)
 
     if (printsLevel >= 1)
     {
-        printf("\033[0m"); // Reset color back to white
+        printf("%s", resetColor); // Reset color
     }
 }
 
@@ -478,7 +481,7 @@ void print_help()
     printf("  -h, --help                    Eine Beschreibung aller Optionen der Cachesimulation und Verwendung ausgeben und das Programm danach beendet.\n");
     printf("  <Eingabedatei>                Positional Argument mit der .csv Eingabedatei, die die zu verarbeitenden Daten enthält. Zeilenformat: <W, Adresse, Wert> oder <R, Adresse>\n");
     printf("\n");
-    printf("  -p, --verbose-prints <Zahl>   Aktiviert zusätzliches Feedback der Simulation. 0 Für Standardrückgabe, 3 Levels für ausführliche Debug Informationen:\n");
+    printf("  -p, --verbose-prints <Zahl>   Aktiviert zusätzliches Feedback der Simulation. 3 Level für ausführliche Debug Informationen:\n");
     printf("                                    - 0: Standardrückgabe\n");
     printf("                                    - 1: + Cache States\n");
     printf("                                    - 2: + Memory States & Cachline Misses/Hits\n");
@@ -491,7 +494,7 @@ void print_simulation_result(CacheConfig cacheConfig, Result result, int numRequ
 {
     if (printsLevel >= 1)
     {
-        printf("\033[0;36m"); // Start cyan color for the summary of the simulation
+        printf("%s", highlightColor); // Start highlighted color for the summary of the simulation
     }
 
     // Print the standard simulation result
@@ -516,7 +519,7 @@ void print_simulation_result(CacheConfig cacheConfig, Result result, int numRequ
         // Print the cacheConfig again because of large amount of debug info was printed
         print_cacheConfig(cacheConfig);
 
-        printf("\033[0m"); // Reset color back to white
+        printf("%s", resetColor); // Reset color
     }
 }
 
