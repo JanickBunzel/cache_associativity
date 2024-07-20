@@ -116,7 +116,7 @@ void Memory::printMemory()
         unsigned address = entry.first;
         sc_uint<8> data = entry.second;
 
-        if (data.to_uint() != 0)
+        if (data.to_uint() != 0 && printsLevel > 0)
         {
             std::cout << highlightDataColor; // Highlight present data
         }
@@ -128,7 +128,7 @@ void Memory::printMemory()
         std::cout << "   0x" << std::setw(2) << std::setfill('0') << std::hex << data.to_uint()
                   << "       " << std::bitset<8>(data.to_uint())
                   << std::dec << std::endl;
-        if (data.to_uint() != 0)
+        if (data.to_uint() != 0 && printsLevel > 0)
         {
             std::cout << resetColor; // Reset the color
         }

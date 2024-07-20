@@ -277,7 +277,7 @@ void print_cacheConfig(CacheConfig cacheConfig)
     }
     else
     {
-        printf("  - DirectMapped/Fourway: %s\n%s", cacheConfig.directmapped ? "DirectMapped" : "Fourway", resetColor);
+        printf("  - DirectMapped/Fourway: %s\n", cacheConfig.directmapped ? "DirectMapped" : "Fourway");
     }
     printf("  - Cachelines: %d\n", cacheConfig.cachelines);
     printf("  - Cacheline size: %d\n", cacheConfig.cachelineSize);
