@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include "cpu.hpp"
 
 // Global variables provided by the rahmenprogramm (cache_simulaton option), specifies how the debug information is printed
@@ -98,7 +99,7 @@ void Cpu::printResultOfRequest(unsigned requestIndex)
     }
 
     std::cout << highlightColor; // Start highlight color
-    
+
     std::cout << "[Cpu]: Cache done processing request[" << requestIndex << "].";
     if (!requests[requestIndex].we)
     {
