@@ -146,9 +146,9 @@ void DirectMappedCache::printCache()
     }
 
     std::cout << "Cache State:" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
-    std::cout << "Index\tTag\t\tValid\tLRU\tData" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
+    std::cout << "--------------------------------" << std::endl;
+    std::cout << "Index\tTag\t\tValid\tData" << std::endl;
+    std::cout << "--------------------------------" << std::endl;
 
     for (unsigned i = 0; i < cachelinesArray.size(); ++i)
     {
@@ -160,8 +160,7 @@ void DirectMappedCache::printCache()
         // Print the cache line
         std::cout << i << "\t"
                   << cachelinesArray[i].getTag().to_string(SC_HEX) << "\t"
-                  << cachelinesArray[i].getValid() << "\t"
-                  << cachelinesArray[i].getLru() << "\t";
+                  << cachelinesArray[i].getValid() << "\t";
         // Data
         for (const auto &byte : cachelinesArray[i].getData())
         {
@@ -175,14 +174,14 @@ void DirectMappedCache::printCache()
         std::cout << std::endl;
     }
 
-    std::cout << "----------------------------------------" << std::endl;
+    std::cout << "--------------------------------" << std::endl;
     std::cout << "Statistics:" << std::endl;
     std::cout << "Hits: " << statistics.hits << std::endl;
     std::cout << "Misses: " << statistics.misses << std::endl;
     std::cout << "Accesses: " << statistics.accesses << std::endl;
     std::cout << "Writes: " << statistics.writes << std::endl;
     std::cout << "Reads: " << statistics.reads << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
+    std::cout << "--------------------------------" << std::endl;
 }
 
 void DirectMappedCache::calculateBitCounts(unsigned cachelines, unsigned cachelineSize)
