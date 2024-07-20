@@ -3,8 +3,8 @@
 #include <iostream>
 #include <cmath>
 
-// Flag passed from the rahmenprogramm (cache_simulaton parameter)
-extern int printsEnabled;
+// Global variable provided by the rahmenprogramm (cache_simulaton option), specifies the amount of debug information to be printed
+extern int printsLevel;
 
 FourwayMappedCache::FourwayMappedCache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
     : Cache(name, cachelines, cachelineSize, cacheLatency)
@@ -60,7 +60,7 @@ void FourwayMappedCache::cacheAccess()
         if (firstCachelineIndex == -1)
         {
             // First cacheline is not present
-            if (printsEnabled)
+            if (printsLevel >= 2)
             {
                 std::cout << "[Cache]: Miss in first cacheline" << std::endl;
             }
@@ -74,10 +74,7 @@ void FourwayMappedCache::cacheAccess()
                 firstCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValuesFirstAddress.index);
                 if (firstCachelineIndex == -1)
                 {
-                    if (printsEnabled)
-                    {
-                        std::cerr << "[Cache]: Error when trying to find the least recently used cacheline (no correct tag found, no free cacheline found, no LRU cacheline found)" << std::endl;
-                    }
+                    std::cerr << "[Cache]: Error when trying to find the least recently used cacheline (no correct tag found, no free cacheline found, no LRU cacheline found)" << std::endl;
                     exit(1);
                 }
             }
@@ -103,7 +100,7 @@ void FourwayMappedCache::cacheAccess()
             if (secondCachelineIndex == -1)
             {
                 // Second cacheline is not present
-                if (printsEnabled)
+                if (printsLevel >= 2)
                 {
                     std::cout << "[Cache]: Miss in second cacheline" << std::endl;
                 }
@@ -117,10 +114,7 @@ void FourwayMappedCache::cacheAccess()
                     secondCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValuesSecondAddress.index);
                     if (firstCachelineIndex == -1)
                     {
-                        if (printsEnabled)
-                        {
-                            std::cerr << "[Cache]: Error when trying to find the least recently used cacheline (no correct tag found, no free cacheline found, no LRU cacheline found)" << std::endl;
-                        }
+                        std::cerr << "[Cache]: Error when trying to find the least recently used cacheline (no correct tag found, no free cacheline found, no LRU cacheline found)" << std::endl;
                         exit(1);
                     }
                 }
@@ -186,35 +180,42 @@ void FourwayMappedCache::cacheAccess()
 
 void FourwayMappedCache::printCache()
 {
-    if (!printsEnabled)
+    if (printsLevel == 0)
     {
         return;
     }
 
     std::cout << "Cache State:" << std::endl;
-    std::cout << "-----------------------------------------------------" << std::endl;
-    std::cout << "Set\tWay\tTag\t\tValid\tLRU\tData (Hex/Binary)" << std::endl;
-    std::cout << "-----------------------------------------------------" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << "Set\tWay\tTag\t\tValid\tLRU\tData" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
 
     for (unsigned i = 0; i < cachelinesArray.size(); i += 4)
     {
-        unsigned set = i / 4; // Berechnet die Set-Nummer
+        unsigned set = i / 4;
         for (unsigned way = 0; way < 4; ++way)
         {
+            if (cachelinesArray[i + way].getValid() == 0)
+            {
+                std::cout << "\033[90m"; // Set the color to dark gray
+            }
+
             CacheLine line = cachelinesArray[i + way];
             std::cout << set << "\t" << way << "\t"
-                      << line.getTag().to_string(SC_HEX) << "\t"
+                      << "0x" << std::setw(8) << std::setfill('0') << std::hex << (0xFFFFFFFF & line.getTag()) << "\t" << std::dec
                       << line.getValid() << "\t"
-                      << static_cast<unsigned>(line.getLru() & 0x03) << "\t"; // Korrekte Darstellung der 2-Bit LRU-Zahl
+                      << static_cast<unsigned>(line.getLru() & 0x03) << "\t";
+
+            // Data
             for (const auto &byte : line.getData())
             {
-                std::cout << "("
-                          << byte.to_string(SC_HEX) << " / "
-                          << byte.to_string(SC_BIN) << ") ";
+                std::cout << "0x" << std::setw(2) << std::setfill('0') << std::hex << (0xFF & byte) << std::dec << " ";
             }
+
+            std::cout << "\033[97m"; // Reset the color
             std::cout << std::endl;
         }
-        std::cout << "-----------------------------------------------------" << std::endl;
+        std::cout << "------------------------------------------------" << std::endl;
     }
 
     std::cout << "Statistics:" << std::endl;
@@ -223,7 +224,7 @@ void FourwayMappedCache::printCache()
     std::cout << "Accesses: " << statistics.accesses << std::endl;
     std::cout << "Writes: " << statistics.writes << std::endl;
     std::cout << "Reads: " << statistics.reads << std::endl;
-    std::cout << "-----------------------------------------------------" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
 }
 
 void FourwayMappedCache::calculateBitCounts(unsigned cachelines, unsigned cachelineSize)

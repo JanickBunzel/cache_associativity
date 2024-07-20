@@ -3,8 +3,8 @@
 #include <iostream>
 #include <cmath>
 
-// Flag passed from the rahmenprogramm (cache_simulaton parameter)
-extern int printsEnabled;
+// Global variable provided by the rahmenprogramm (cache_simulaton option), specifies the amount of debug information to be printed
+extern int printsLevel;
 
 DirectMappedCache::DirectMappedCache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
     : Cache(name, cachelines, cachelineSize, cacheLatency)
@@ -54,7 +54,7 @@ void DirectMappedCache::cacheAccess()
         // Check if the first cacheline is present in the cache
         if (!(cachelinesArray[bitValuesFirstAddress.index].getTag() == bitValuesFirstAddress.tag) || !cachelinesArray[bitValuesFirstAddress.index].getValid())
         {
-            if (printsEnabled)
+            if (printsLevel >= 2)
             {
                 std::cout << "[Cache]: Miss in first cacheline" << std::endl;
             }
@@ -76,7 +76,7 @@ void DirectMappedCache::cacheAccess()
             // Check if the second cacheline is present in the Cache
             if (cachelinesArray[bitValuesSecondAddress.index].getTag() != bitValuesSecondAddress.tag || !cachelinesArray[bitValuesSecondAddress.index].getValid())
             {
-                if (printsEnabled)
+                if (printsLevel >= 2)
                 {
                     std::cout << "[Cache]: Miss in second cacheline" << std::endl;
                 }
@@ -137,28 +137,35 @@ void DirectMappedCache::cacheAccess()
 
 void DirectMappedCache::printCache()
 {
-    if (!printsEnabled)
+    if (printsLevel == 0)
     {
         return;
     }
 
     std::cout << "Cache State:" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
-    std::cout << "Index\tTag\t\tValid\tLRU\tData (Hex/Binary)" << std::endl;
+    std::cout << "Index\tTag\t\tValid\tLRU\tData" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 
     for (unsigned i = 0; i < cachelinesArray.size(); ++i)
     {
+        if (cachelinesArray[i].getValid() == 0)
+        {
+            std::cout << "\033[90m"; // Set the color to dark gray
+        }
+
+        // Print the cache line
         std::cout << i << "\t"
                   << cachelinesArray[i].getTag().to_string(SC_HEX) << "\t"
                   << cachelinesArray[i].getValid() << "\t"
                   << cachelinesArray[i].getLru() << "\t";
+        // Data
         for (const auto &byte : cachelinesArray[i].getData())
         {
-            std::cout << "("
-                      << byte.to_string(SC_HEX) << " / "
-                      << byte.to_string(SC_BIN) << ") ";
+            std::cout << "0x" << std::setw(2) << std::setfill('0') << std::hex << (0xFF & byte) << std::dec << " ";
         }
+
+        std::cout << "\033[97m"; // Reset the color
         std::cout << std::endl;
     }
 

@@ -1,8 +1,8 @@
 #include "cache.h"
 #include <iostream>
 
-// Flag passed from the rahmenprogramm (cache_simulaton parameter)
-extern int printsEnabled;
+// Global variable provided by the rahmenprogramm (cache_simulaton option), specifies the amount of debug information to be printed
+extern int printsLevel;
 
 Cache::Cache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
     : sc_module(name),
@@ -29,7 +29,7 @@ Cache::~Cache()
 // Prints the amounts of offset, index and tag bits
 void Cache::printBits()
 {
-    if (!printsEnabled)
+    if (printsLevel == 0)
     {
         return;
     }

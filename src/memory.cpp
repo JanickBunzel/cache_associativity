@@ -2,8 +2,8 @@
 #include <iomanip>
 #include <bitset>
 
-// Flag passed from the rahmenprogramm (cache_simulaton parameter)
-extern int printsEnabled;
+// Global variable provided by the rahmenprogramm (cache_simulaton option), specifies the amount of debug information to be printed
+extern int printsLevel;
 
 // Default constructor
 Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cachelineSize)
@@ -91,13 +91,14 @@ std::vector<sc_uint<8>> Memory::readBlock(unsigned memoryAddress)
 
 void Memory::printMemory()
 {
-    if (!printsEnabled)
+    if (printsLevel < 2)
     {
         return;
     }
 
-    std::cout << "Memory Content:" << std::endl;
-    std::cout << "Address     Data (Hex)     Data (Binary)" << std::endl;
+    std::cout << "[Memory]: Memory Content:" << std::endl;
+    std::cout << "-----------------------------------------" << std::endl;
+    std::cout << "Address      Data(Hex)  Data(Binary)" << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
 
     // Copy memory entries to a vector and sort them by address
@@ -114,9 +115,20 @@ void Memory::printMemory()
         unsigned address = entry.first;
         sc_uint<8> data = entry.second;
 
-        std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << address
-                  << "   0x" << std::setw(2) << std::setfill('0') << std::hex << data.to_uint()
+        // Address
+        std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << address;
+
+        if (data.to_uint() == 0)
+        {
+            std::cout << "\033[90m"; // Set the color to dark gray
+        }
+        // Data
+        std::cout << "   0x" << std::setw(2) << std::setfill('0') << std::hex << data.to_uint()
                   << "       " << std::bitset<8>(data.to_uint())
                   << std::dec << std::endl;
+        if (data.to_uint() == 0)
+        {
+            std::cout << "\033[97m"; // Reset the color
+        }
     }
 }

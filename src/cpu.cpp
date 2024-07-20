@@ -1,8 +1,8 @@
 #include "cpu.hpp"
 #include <iostream>
 
-// Flag passed from the rahmenprogramm (cache_simulaton parameter)
-extern int printsEnabled;
+// Global variable provided by the rahmenprogramm (cache_simulaton option), specifies the amount of debug information to be printed
+extern int printsLevel;
 
 Cpu::Cpu(sc_module_name name, Request *requests, const int requestLength)
     : sc_module(name), cpuStatistics({0, 0}), requests(requests), requestLength(requestLength)
@@ -31,7 +31,7 @@ void Cpu::handleRequests()
         while (cacheDone == false)
         {
             cpuStatistics.cycles++;
-            if (printsEnabled)
+            if (printsLevel >= 3)
             {
                 std::cout << "Cycles[" << cycles++ << "]" << std::endl;
             }
@@ -78,29 +78,31 @@ void Cpu::handleRequests()
 
 void Cpu::printProccessingOfRequest(unsigned requestIndex)
 {
-    if (!printsEnabled)
+    if (printsLevel == 0)
     {
         return;
     }
 
-    std::cout << "\033[0;36m" << std::endl;
-    std::cout << "###########################################################################################################################################################################" << std::endl;
-    std::cout << "[Cpu]: Processing... Request[" << requestIndex << "]: " << (requests[requestIndex].we ? "W," : "R,") << std::hex << "0x" << requests[requestIndex].addr << std::dec << "," << (requests[requestIndex].we ? std::to_string(requests[requestIndex].data) : "") << std::endl;
-    std::cout << "###########################################################################################################################################################################";
-    std::cout << "\033[0m" << std::endl;
+    std::cout << "\033[0;36m" << std::endl; // Start cyan color
+    std::cout << "[Cpu]: Now processing request[" << requestIndex << "]: " << (requests[requestIndex].we ? "W," : "R,") << std::hex << "0x" << requests[requestIndex].addr << std::dec << "," << (requests[requestIndex].we ? std::to_string(requests[requestIndex].data) : "") << std::endl;
+    std::cout << "\033[0m" << std::endl; // Reset color back to white
 }
 
 void Cpu::printResultOfRequest(unsigned requestIndex)
 {
-    if (!printsEnabled)
+    if (printsLevel == 0)
     {
         return;
     }
 
-    std::cout << "\033[0;36m";
-    std::cout << "###########################################################################################################################################################################" << std::endl;
-    std::cout << "[Cpu]: Cache done processing request[" << requestIndex << "]" << std::endl;
-    std::cout << std::hex << "[Cpu]: Read Data: 0x" << cacheReadDataCPUIn.read() << std::dec << std::endl;
-    std::cout << "###########################################################################################################################################################################";
-    std::cout << "\033[0m" << std::endl;
+    std::cout << "\033[0;36m"; // Start cyan color
+    
+    std::cout << "[Cpu]: Cache done processing request[" << requestIndex << "].";
+    if (!requests[requestIndex].we)
+    {
+        std::cout << " (Read request, data received: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0xFFFFFFFF & cacheReadDataCPUIn.read()) << std::dec << ")" << std::endl;
+    }
+    std::cout << std::endl;
+
+    std::cout << "\033[0m" << std::endl; // Reset color back to white
 }
