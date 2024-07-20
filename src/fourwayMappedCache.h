@@ -14,7 +14,7 @@ public:
     void printCache() override;
     void calculateBitCounts(unsigned cachelines, unsigned cachelineSize) override;
 
-    CacheLine &getCacheline(unsigned setIndex, unsigned cachelineIndex);
+    Cacheline &getCacheline(unsigned setIndex, unsigned cachelineIndex);
     int searchTagInSet(sc_uint<32> tag, unsigned setIndex);
     int searchFreeLineInSet(unsigned setIndex);
     int searchLeastRecentlyUsedLineInSet(unsigned setIndex);

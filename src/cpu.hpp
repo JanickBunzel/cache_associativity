@@ -1,5 +1,6 @@
 #ifndef CPU_HPP
 #define CPU_HPP
+
 #include <systemc.h>
 #include "request.h"
 

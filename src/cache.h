@@ -3,7 +3,7 @@
 
 #include <systemc.h>
 #include <vector>
-#include "cacheLine.h"
+#include "cacheline.h"
 
 typedef struct Statistics
 {
@@ -41,7 +41,7 @@ public:
     sc_out<bool> memoryEnableCACHEOut;
 
     // --- INTERNAL VARIABLES --- //
-    std::vector<CacheLine> cachelinesArray;
+    std::vector<Cacheline> cachelinesArray;
     Statistics statistics;
     Bits bitCounts;
     Bits bitValuesFirstAddress;

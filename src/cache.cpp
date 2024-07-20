@@ -1,5 +1,5 @@
-#include "cache.h"
 #include <iostream>
+#include "cache.h"
 
 // Global variable provided by the rahmenprogramm (cache_simulaton option), specifies the amount of debug information to be printed
 extern int printsLevel;

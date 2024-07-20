@@ -1,5 +1,5 @@
-#include "cpu.hpp"
 #include <iostream>
+#include "cpu.hpp"
 
 // Global variables provided by the rahmenprogramm (cache_simulaton option), specifies how the debug information is printed
 extern int printsLevel;
