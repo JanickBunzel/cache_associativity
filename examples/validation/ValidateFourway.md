@@ -1,7 +1,7 @@
 # validate.csv
 --fourway
 --cachelines = 8
---cacheline_size = 4
+--cacheline-size = 4
 
 Bits:
 tag = 29
@@ -156,7 +156,7 @@ Reads: 8
 -----------------------------------------------------
 ```
 
-### 12: Write 0x9
+### 12: Write 0x9 in 0x6
 ```
 W,0x6,0x9
 ```

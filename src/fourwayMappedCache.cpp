@@ -1,38 +1,40 @@
-#include "fourwayMappedCache.h"
-#include "cache.h"
-#include <iostream>
 #include <cmath>
+#include <iostream>
+#include "cache.h"
+#include "fourwayMappedCache.h"
+
+// Global variables provided by the rahmenprogramm (cache_simulaton option), specifies how the debug information is printed
+extern int printsLevel;
+extern char *highlightDataColor;
+extern char *resetColor;
 
 FourwayMappedCache::FourwayMappedCache(sc_module_name name, unsigned cachelines, unsigned cachelineSize, unsigned cacheLatency)
     : Cache(name, cachelines, cachelineSize, cacheLatency)
 {
-    calculateBits(cachelines, cachelineSize);
+    // Caclulate the number of bits for the offset, index and tag
+    calculateBitCounts(cachelines, cachelineSize);
 
+    // Set up the cache acess method, which is a SystemC thread and sensitive to the clock signal
     SC_THREAD(cacheAccess);
     dont_initialize();
     sensitive << clkCACHEIn.pos();
 
+    // Print debug information
     printBits();
     printCache();
 }
 
+// Main method for every request
 void FourwayMappedCache::cacheAccess()
 {
+    // While loop dependent on the clock signal
     while (true)
     {
+        // Wait for the signals to be propagated
         wait(SC_ZERO_TIME);
 
+        // Communicate that the cache is now processing the request
         cacheDoneCACHEOut.write(false);
-        this->statistics.accesses++;
-
-        sc_uint<32> address = this->cacheAddressCACHEIn.read();
-        int firstCachelineIndex = -1;
-
-        Bits bitValuesSecondAdress = {0, 0, 0};
-        int secondCachelineIndex = -1;
-
-        // Extract the offset, index and tag bits from the address
-        extractBitsFromAdress(&bitValues, bitCounts, address);
 
         // Await the cache latency.
         for (unsigned i = 0; i < cacheLatency - 1; i++)
@@ -41,85 +43,97 @@ void FourwayMappedCache::cacheAccess()
             wait(SC_ZERO_TIME);
         }
 
+        // Update statistics
+        this->statistics.accesses++;
+
+        // Prepare the variables used during the cache access
+        sc_uint<32> address = this->cacheAddressCACHEIn.read();
         bool hit = true;
-        sc_uint<32> nextIndex = 0;
+
+        // Extract the offset, index and tag bits from the address
+        extractBitsFromAddress(&bitValuesFirstAddress, bitCounts, address);
+
+        // Indexes for the lines respective to a set
+        int firstCachelineIndex = -1;
+        int secondCachelineIndex = -1;
 
         // Check if the first cacheline is present in the Cache
-        firstCachelineIndex = searchTagInSet(bitValues.tag, bitValues.index);
+        firstCachelineIndex = searchTagInSet(bitValuesFirstAddress.tag, bitValuesFirstAddress.index);
         if (firstCachelineIndex == -1)
         {
             // First cacheline is not present
-            std::cout << "[Cache]: Miss in first cacheline" << std::endl;
+            if (printsLevel >= 2)
+            {
+                std::cout << "[Cache]: Miss in first cacheline" << std::endl;
+            }
             hit = false;
 
             // If there is a free cacheline in the set, choose it
-            firstCachelineIndex = searchFreeLineInSet(bitValues.index);
+            firstCachelineIndex = searchFreeLineInSet(bitValuesFirstAddress.index);
             if (firstCachelineIndex == -1)
             {
                 // No free cacheline found in the set, search for the least recently used cacheline
-                firstCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValues.index);
+                firstCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValuesFirstAddress.index);
+                if (firstCachelineIndex == -1)
+                {
+                    std::cerr << "[Cache]: Error when trying to find the least recently used cacheline (no correct tag found, no free cacheline found, no LRU cacheline found)" << std::endl;
+                    exit(1);
+                }
             }
 
             // Fetch the cacheline from the memory and write to the cache
-            getCacheline(bitValues.index, firstCachelineIndex).setData(fetchMemoryData(address));
-            getCacheline(bitValues.index, firstCachelineIndex).setTag(bitValues.tag);
-            getCacheline(bitValues.index, firstCachelineIndex).setValid(true);
+            getCacheline(bitValuesFirstAddress.index, firstCachelineIndex).setData(fetchMemoryData(address));
+            getCacheline(bitValuesFirstAddress.index, firstCachelineIndex).setTag(bitValuesFirstAddress.tag);
+            getCacheline(bitValuesFirstAddress.index, firstCachelineIndex).setValid(true);
         }
-        
-        // If the index is still -1, there was an error (no correct tag found, no free cacheline found, no LRU cacheline found)
-        if (firstCachelineIndex == -1)
-        {
-            std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
-            exit(1);
-        }
-        // Update the LRU counter
-        updateLruIndicesInSet(bitValues.index, firstCachelineIndex);
 
-        // This bool cecks if the data lies in two rows by checking if the offset + 4 is greater than the cachelineSize.
-        // This is done because the data is 4 bytes long and if the offset + 4 is greater than the cachelineSize, the data must lie in two rows.
-        if (bitValues.offset + 4 > cachelineSize)
+        // Update the LRU counter for the set of the first cacheline
+        updateLruIndicesInSet(bitValuesFirstAddress.index, firstCachelineIndex);
+
+        // Check if the second cacheline is present in the cache, if due to the offset second cacheline is needed
+        if (bitValuesFirstAddress.offset + 4 > cachelineSize)
         {
             // The second address is calculated by adding the cachelineSize to the current address.
-            sc_uint<32> secondAdress = (address + cachelineSize);
-
-            extractBitsFromAdress(&bitValuesSecondAdress, bitCounts, secondAdress);
+            sc_uint<32> secondAddress = (address + 4);
+            extractBitsFromAddress(&bitValuesSecondAddress, bitCounts, secondAddress);
 
             // Check if the second cacheline is present in the Cache
-            secondCachelineIndex = searchTagInSet(bitValuesSecondAdress.tag, bitValuesSecondAdress.index);
+            secondCachelineIndex = searchTagInSet(bitValuesSecondAddress.tag, bitValuesSecondAddress.index);
             if (secondCachelineIndex == -1)
             {
                 // Second cacheline is not present
-                std::cout << "[Cache]: Miss in second cacheline" << std::endl;
+                if (printsLevel >= 2)
+                {
+                    std::cout << "[Cache]: Miss in second cacheline" << std::endl;
+                }
                 hit = false;
 
                 // If there is a free cacheline in the set, choose it
-                secondCachelineIndex = searchFreeLineInSet(bitValuesSecondAdress.index);
+                secondCachelineIndex = searchFreeLineInSet(bitValuesSecondAddress.index);
                 if (secondCachelineIndex == -1)
                 {
                     // No free cacheline found in the set, search for the least recently used cacheline
-                    secondCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValuesSecondAdress.index);
+                    secondCachelineIndex = searchLeastRecentlyUsedLineInSet(bitValuesSecondAddress.index);
+                    if (firstCachelineIndex == -1)
+                    {
+                        std::cerr << "[Cache]: Error when trying to find the least recently used cacheline (no correct tag found, no free cacheline found, no LRU cacheline found)" << std::endl;
+                        exit(1);
+                    }
                 }
 
                 // Fetch the cacheline from the memory and write to the cache
-                getCacheline(bitValuesSecondAdress.index, secondCachelineIndex).setData(fetchMemoryData(secondAdress));
-                getCacheline(bitValuesSecondAdress.index, secondCachelineIndex).setTag(bitValuesSecondAdress.tag);
-                getCacheline(bitValuesSecondAdress.index, secondCachelineIndex).setValid(true);
+                getCacheline(bitValuesSecondAddress.index, secondCachelineIndex).setData(fetchMemoryData(secondAddress));
+                getCacheline(bitValuesSecondAddress.index, secondCachelineIndex).setTag(bitValuesSecondAddress.tag);
+                getCacheline(bitValuesSecondAddress.index, secondCachelineIndex).setValid(true);
             }
-            
-            // If the index is still -1, there was an error (no correct tag found, no free cacheline found, no LRU cacheline found)
-            if (secondCachelineIndex == -1)
-            {
-                std::cerr << "[Cache]: Error when trying to find the least recently used cacheline" << std::endl;
-                exit(1);
-            }
-            
-            // Update the LRU counter
-            updateLruIndicesInSet(bitValuesSecondAdress.index, secondCachelineIndex);
+
+            // Update the LRU counter for the set of the second cacheline
+            updateLruIndicesInSet(bitValuesSecondAddress.index, secondCachelineIndex);
         }
         // The needed cacheline(s) are now stored in the cache and valid
 
-        int firstCachelineIndexGlobal = firstCachelineIndex + 4 * bitValues.index;
-        int secondCachelineIndexGlobal = secondCachelineIndex + 4 * bitValuesSecondAdress.index;
+        int firstCachelineIndexGlobal = firstCachelineIndex + 4 * bitValuesFirstAddress.index;
+        int secondCachelineIndexGlobal = secondCachelineIndex + 4 * bitValuesSecondAddress.index;
 
         // Act depending on Write or Read
         if (cacheWriteEnableCACHEIn.read() == 0)
@@ -128,7 +142,7 @@ void FourwayMappedCache::cacheAccess()
             this->statistics.reads++;
 
             // Read data from the cache and send it to the CPU
-            cacheReadDataCACHEOut.write(readCacheData(bitValues.offset, firstCachelineIndexGlobal, secondCachelineIndexGlobal));
+            cacheReadDataCACHEOut.write(readCacheData(bitValuesFirstAddress.offset, firstCachelineIndexGlobal, secondCachelineIndexGlobal));
         }
         else if (cacheWriteEnableCACHEIn.read() == 1)
         {
@@ -136,12 +150,13 @@ void FourwayMappedCache::cacheAccess()
             this->statistics.writes++;
 
             // Write given data to the cache
-            writeCacheData(bitValues.offset, firstCachelineIndexGlobal, secondCachelineIndexGlobal, cacheWriteDataCACHEIn.read());
+            writeCacheData(bitValuesFirstAddress.offset, firstCachelineIndexGlobal, secondCachelineIndexGlobal, cacheWriteDataCACHEIn.read());
 
             // Write given data to the memory
             writeMemoryData(address, cacheWriteDataCACHEIn.read());
         }
 
+        // Access Done
         if (hit)
         {
             this->statistics.hits++;
@@ -151,39 +166,58 @@ void FourwayMappedCache::cacheAccess()
             this->statistics.misses++;
         }
 
+        // Disable the memory
         memoryEnableCACHEOut.write(false);
+
+        // Communicate that the cache is done via the output port
         cacheDoneCACHEOut.write(true);
+
+        // Debug info of the cache state
         printCache();
+
+        // Wait for the next clock cycle
         wait();
     }
 }
 
 void FourwayMappedCache::printCache()
 {
+    if (printsLevel == 0)
+    {
+        return;
+    }
+
     std::cout << "Cache State:" << std::endl;
-    std::cout << "-----------------------------------------------------" << std::endl;
-    std::cout << "Set\tWay\tTag\t\tValid\tLRU\tData (Hex/Binary)" << std::endl;
-    std::cout << "-----------------------------------------------------" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << "Set\tWay\tTag\t\tValid\tLRU\tData" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
 
     for (unsigned i = 0; i < cachelinesArray.size(); i += 4)
     {
-        unsigned set = i / 4; // Berechnet die Set-Nummer
+        unsigned set = i / 4;
         for (unsigned way = 0; way < 4; ++way)
         {
-            CacheLine line = cachelinesArray[i + way];
+            if (cachelinesArray[i + way].getValid() == 1)
+            {
+                std::cout << highlightDataColor; // Highlight valid cache lines
+            }
+
+            Cacheline line = cachelinesArray[i + way];
             std::cout << set << "\t" << way << "\t"
-                      << line.getTag().to_string(SC_HEX) << "\t"
+                      << "0x" << std::setw(8) << std::setfill('0') << std::hex << (0xFFFFFFFF & line.getTag()) << "\t" << std::dec
                       << line.getValid() << "\t"
-                      << static_cast<unsigned>(line.getLru() & 0x03) << "\t"; // Korrekte Darstellung der 2-Bit LRU-Zahl
+                      << static_cast<unsigned>(line.getLru() & 0x03) << "\t";
+
+            // Data
             for (const auto &byte : line.getData())
             {
-                std::cout << "("
-                          << byte.to_string(SC_HEX) << " / "
-                          << byte.to_string(SC_BIN) << ") ";
+                std::cout << "0x" << std::setw(2) << std::setfill('0') << std::hex << (0xFF & byte) << std::dec << " ";
             }
+
+            std::cout << resetColor; // Reset the color
             std::cout << std::endl;
         }
-        std::cout << "-----------------------------------------------------" << std::endl;
+        std::cout << "------------------------------------------------" << std::endl;
     }
 
     std::cout << "Statistics:" << std::endl;
@@ -192,10 +226,10 @@ void FourwayMappedCache::printCache()
     std::cout << "Accesses: " << statistics.accesses << std::endl;
     std::cout << "Writes: " << statistics.writes << std::endl;
     std::cout << "Reads: " << statistics.reads << std::endl;
-    std::cout << "-----------------------------------------------------" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
 }
 
-void FourwayMappedCache::calculateBits(unsigned cachelines, unsigned cachelineSize)
+void FourwayMappedCache::calculateBitCounts(unsigned cachelines, unsigned cachelineSize)
 {
     bitCounts.offset = static_cast<unsigned int>(std::ceil(std::log2(static_cast<double>(cachelineSize))));
 
@@ -211,7 +245,7 @@ void FourwayMappedCache::calculateBits(unsigned cachelines, unsigned cachelineSi
     }
 }
 
-CacheLine& FourwayMappedCache::getCacheline(unsigned setIndex, unsigned cachelineIndex)
+Cacheline &FourwayMappedCache::getCacheline(unsigned setIndex, unsigned cachelineIndex)
 {
     return cachelinesArray[4 * setIndex + cachelineIndex];
 }

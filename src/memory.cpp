@@ -1,6 +1,11 @@
-#include "memory.h"
-#include <iomanip>
 #include <bitset>
+#include <iomanip>
+#include "memory.h"
+
+// Global variables provided by the rahmenprogramm (cache_simulaton option), specifies how the debug information is printed
+extern int printsLevel;
+extern char *highlightDataColor;
+extern char *resetColor;
 
 // Default constructor
 Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cachelineSize)
@@ -9,11 +14,51 @@ Memory::Memory(sc_module_name name, unsigned memoryLatency, unsigned cachelineSi
     SC_THREAD(memoryAccess);
     sensitive << clkMEMORYIn.pos();
     dont_initialize();
+
     printMemory();
 }
 
-// Write data to memory starting at the given address
-// If the address of the byte to be written is not present in the memory, it is added
+// Main method for all memory usage
+void Memory::memoryAccess()
+{
+    while (true)
+    {
+        doneMEMORYOut.write(false);
+        if (enableMEMORYIn.read() == true)
+        {
+            // Await the memory latency
+            for (unsigned i = 0; i < memoryLatency - 1; ++i)
+            {
+                wait();
+            }
+
+            // If the request is a write request, write the data to the memory
+            if (writeEnableMEMORYIn.read() == true)
+            {
+                write(addressMEMORYIn.read().to_uint(), writeDataMEMORYIn.read());
+            }
+
+            else
+            {
+                std::vector<sc_uint<8>> dataWord = readBlock(addressMEMORYIn.read().to_uint());
+                // write to the output ports
+                for (unsigned i = 0; i < dataWord.size(); ++i)
+                {
+                    if (i < readDataMEMORYOut.size()) // Ensure we do not go out of bounds
+                    {
+                        readDataMEMORYOut[i].write(dataWord[i]);
+                    }
+                }
+            }
+
+            doneMEMORYOut.write(true);
+            printMemory();
+        }
+        wait();
+    }
+}
+
+// Write data to the address, if it is not present in the memory, it is added first and then written to
 void Memory::write(unsigned memoryAddress, sc_uint<32> data)
 {
     // write byte by byte with LSB at the highest address
@@ -45,65 +90,47 @@ std::vector<sc_uint<8>> Memory::readBlock(unsigned memoryAddress)
     return block;
 }
 
-void Memory::memoryAccess()
-{
-    while (true)
-    {
-        doneMEMORYOut.write(false);
-        if (enableMEMORYIn.read() == true)
-        {
-            // Await the memory latency
-            for (unsigned i = 0; i < memoryLatency - 1; ++i)
-            {
-                wait();
-            }
-
-            // If the request is a write request, write the data to the memory
-            if (writeEnableMEMORYIn.read() == true)
-            {
-                write(addressMEMORYIn.read().to_uint(), writeDataMEMORYIn.read());
-            }
-
-            else
-            {
-                std::vector<sc_uint<8>> dataWord = readBlock(addressMEMORYIn.read().to_uint());
-                // write to the output ports
-                for (unsigned i = 0; i < dataWord.size(); ++i)
-                {
-                    readDataMEMORYOut[i].write(dataWord[i]);
-                }
-            }
-
-            doneMEMORYOut.write(true);
-            printMemory();
-        }
-        wait();
-    }
-}
-
 void Memory::printMemory()
 {
-    std::cout << "Memory Content:" << std::endl;
-    std::cout << "Address     Data (Hex)     Data (Binary)" << std::endl;
+    if (printsLevel < 2)
+    {
+        return;
+    }
+
+    std::cout << "[Memory]: Memory Content:" << std::endl;
+    std::cout << "-----------------------------------------" << std::endl;
+    std::cout << "Address      Data(Hex)  Data(Binary)" << std::endl;
     std::cout << "-----------------------------------------" << std::endl;
 
     // Copy memory entries to a vector and sort them by address
     std::vector<std::pair<unsigned, sc_uint<8>>> sorted_memory(memory.begin(), memory.end());
     std::sort(sorted_memory.begin(), sorted_memory.end(),
-              [](const std::pair<unsigned, sc_uint<8>>& a, const std::pair<unsigned, sc_uint<8>>& b)
+              [](const std::pair<unsigned, sc_uint<8>> &a, const std::pair<unsigned, sc_uint<8>> &b)
               {
                   return a.first < b.first;
               });
 
     // Print sorted memory
-    for (const auto& entry : sorted_memory)
+    for (const auto &entry : sorted_memory)
     {
         unsigned address = entry.first;
         sc_uint<8> data = entry.second;
 
-        std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << address
-            << "   0x" << std::setw(2) << std::setfill('0') << std::hex << data.to_uint()
-            << "       " << std::bitset<8>(data.to_uint())
-            << std::dec << std::endl;
+        if (data.to_uint() != 0)
+        {
+            std::cout << highlightDataColor; // Highlight present data
+        }
+
+        // Address
+        std::cout << "0x" << std::setw(8) << std::setfill('0') << std::hex << address;
+        
+        // Data
+        std::cout << "   0x" << std::setw(2) << std::setfill('0') << std::hex << data.to_uint()
+                  << "       " << std::bitset<8>(data.to_uint())
+                  << std::dec << std::endl;
+        if (data.to_uint() != 0)
+        {
+            std::cout << resetColor; // Reset the color
+        }
     }
 }

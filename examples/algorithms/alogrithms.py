@@ -8,18 +8,18 @@ WRITE_CSV = True
 
 PRINT_ARRAYS = True
 
-ARRAY_SIZE = 10
+ARRAY_SIZE = 10000
 ARRAY_MIN = 1
 ARRAY_MAX = 1000
 
 QUICKSORT_ENABLED = False
-QUICKSORT_OUTPUT = 'examples/quicksort_requests.csv'
+QUICKSORT_OUTPUT = 'examples/algorithms/quicksort_requests.csv'
 
 MERGESORT_ENABLED = False
-MERGESORT_OUTPUT = 'examples/mergesort_requests.csv'
+MERGESORT_OUTPUT = 'examples/algorithms/mergesort_requests.csv'
 
-ITERATE_ENABLED = True
-ITERATE_OUTPUT = 'examples/iterate_requests.csv'
+ITERATE_ENABLED = False
+ITERATE_OUTPUT = 'examples/algorithms/iterate_requests.csv'
 
 # endregion Config -----------------------------------------------------------------------------------------------
 
@@ -89,6 +89,9 @@ def partition(arr, low, high, filename):
     global reads, writes
     global WRITE_CSV
     pivot = arr[high]
+    if WRITE_CSV:
+        writeLine(filename, ['R', getAddress(high)])  # Logging read operation
+    
     i = low - 1
     for j in range(low, high):
         reads += 1
@@ -99,13 +102,17 @@ def partition(arr, low, high, filename):
             arr[i], arr[j] = arr[j], arr[i]
             writes += 2
             if WRITE_CSV:
-                writeLine(filename, ['W', getAddress(i), arr[i]])  # Logging write operation
-                writeLine(filename, ['W', getAddress(j), arr[j]])  # Logging write operation
+                writeLine(filename, ['R', getAddress(i)])  # Logging read operation
+                writeLine(filename, ['R', getAddress(j)])  # Logging read operation
+                writeLine(filename, ['W', getAddress(i), arr[j]])  # Logging write operation
+                writeLine(filename, ['W', getAddress(j), arr[i]])  # Logging write operation
     arr[i + 1], arr[high] = arr[high], arr[i + 1]
     writes += 2
     if WRITE_CSV:
-        writeLine(filename, ['W', getAddress(i + 1), arr[i + 1]])  # Logging write operation
-        writeLine(filename, ['W', getAddress(high), arr[high]])  # Logging write operation
+        writeLine(filename, ['R', getAddress(i + 1)])  # Logging read operation
+        writeLine(filename, ['R', getAddress(high)])  # Logging read operation
+        writeLine(filename, ['W', getAddress(i + 1), arr[high]])  # Logging write operation
+        writeLine(filename, ['W', getAddress(high), arr[i + 1]])  # Logging write operation
     return i + 1
 
 def quick_sort_helper(arr, low, high, filename):

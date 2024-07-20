@@ -5,28 +5,25 @@
 # target name
 EXECUTABLE := cache_simulation
 
-# entry point for the program and target name
-MAINC := src/rahmenprogramm.c
-MAINCXX := src/main.cpp
+# entry point for the program
+RAHMENPROGRAMM := src/rahmenprogramm.c
 
-# cpu related files
+# simulation handler in c++
+SIM := src/simulation.cpp
+
+# SystemC:
 CPU := src/cpu.cpp
 
-# cache related files
 CACHE := src/cache.cpp
 DIRECTMAPPEDCACHE := src/directMappedCache.cpp
 FOURWAYMAPPEDCACHE := src/fourwayMappedCache.cpp
 
-# memory related files
 MEMORY := src/memory.cpp
 
 # tracefiles
 TRACEFILES := *.vcd
 
-# simulation handler in c++
-SIM := src/simulation.cpp
-
-# Path to our systemc installation
+# Path to the systemc installation
 SCPATH = $(SYSTEMC_HOME)
 
 # Additional flags for the compiler
@@ -56,9 +53,8 @@ ifneq ($(UNAME_S), Darwin)
 endif
 
 # Source files and object files
-SOURCES_C := $(MAINC)
-#SOURCES_CXX := $(CPU) $(CACHE) $(DIRECTMAPPEDCACHE) $(MEMORY) $(SIM) $(MAINCXX)
-SOURCES_CXX := $(CPU) $(CACHE) $(DIRECTMAPPEDCACHE) $(FOURWAYMAPPEDCACHE) $(MEMORY) $(SIM) $(MAINCXX)
+SOURCES_C := $(RAHMENPROGRAMM)
+SOURCES_CXX := $(CPU) $(CACHE) $(DIRECTMAPPEDCACHE) $(FOURWAYMAPPEDCACHE) $(MEMORY) $(SIM)
 OBJECTS_C := $(SOURCES_C:.c=.o)
 OBJECTS_CXX := $(SOURCES_CXX:.cpp=.o)
 OBJECTS := $(OBJECTS_C) $(OBJECTS_CXX)

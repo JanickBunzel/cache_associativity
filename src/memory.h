@@ -6,7 +6,6 @@
 
 SC_MODULE(Memory)
 {
-
     // --- INPUT PORTS --- //
 
     sc_in<bool> clkMEMORYIn;
@@ -43,5 +42,3 @@ SC_MODULE(Memory)
 };
 
 #endif
-
-

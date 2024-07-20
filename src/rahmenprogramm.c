@@ -1,42 +1,49 @@
 #include <ctype.h>
+#include <getopt.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <getopt.h>
 #include <string.h>
-#include <stdarg.h>
+#include <unistd.h>
+
 #include "request.h"
 #include "result.h"
 
 // Struct to store properties of the cache
-typedef struct
+typedef struct CacheConfig
 {
-    int cycles;        // Number of cycles to simulate
-    int directmapped;  // bool
-    int fourway;       // bool
-    int cachelines;    // Number of cachelines
-    int cachelineSize; // In bytes
-    int cacheLatency;  // In cycles
-    int memoryLatency; // In cycles
-    char *tracefile;
-    char *eingabedatei;
+    int cycles;         // Number of cycles to simulate
+    int directmapped;   // bool
+    int fourway;        // bool
+    int cachelines;     // Number of cachelines
+    int cachelineSize;  // In bytes
+    int cacheLatency;   // In cycles
+    int memoryLatency;  // In cycles
+    char *tracefile;    // Path to a file
+    char *eingabedatei; // Path to the input file
 } CacheConfig;
 
 // Default cache configuration
 CacheConfig cacheConfig = {
-    .cycles = 3000,       // allows the cache to process TODO requests (with a hit rate of TODO%, and average cycles/request TODO as below)
+    .cycles = 34000,      // With a hit rate of 70%, therefore 17 cycles/request on average, this covers roughly 2000 requests
     .directmapped = 1,    // Using direct mapped cache as default
     .fourway = 0,         // Using direct mapped cache as default
-    .cachelines = 8,      // with each line of TODO bytes, this provides an TODOKB cache
-    .cachelineSize = 4,   // Standard size that balances spatial locality and overhead
-    .cacheLatency = 5,    // quick access for first-level cache
-    .memoryLatency = 10,  // realistic gap between cache and main access time
-    .tracefile = "",      // name of the tracefile (optional)
-    .eingabedatei = NULL, // input file needs to be provided
+    .cachelines = 512,    // With 512 cachelines of 32 bytes, this provides an 16KB cache
+    .cachelineSize = 32,  // Standard size that balances spatial locality and overhead
+    .cacheLatency = 5,    // Quick access for first-level cache
+    .memoryLatency = 40,  // Slower access for main memory
+    .tracefile = "",      // By default, no tracefile is generated
+    .eingabedatei = NULL, // Input file needs to be provided
 };
 
 // Macro to handle request lines in the input file
 int MAX_REQUEST_LINE_LENGTH = 256;
+
+// Global variable to enable additional debug prints, controlled by the -p argument and disabled by default
+int printsLevel = 0;
+char *highlightColor = "\033[0;36m";
+char *highlightDataColor = "\033[0;32m";
+char *resetColor = "\033[0m";
 
 // Function declarations
 CacheConfig arguments_to_cacheConfig(int argc, char *argv[]);
@@ -45,7 +52,9 @@ int count_requests_in_file(char *filename);
 Request *read_requests_from_file(int numRequests, char *filename);
 void print_help_and_exit_with_error(char *errorMessage, ...);
 void print_help();
+void print_simulation_result(CacheConfig cacheConfig, Result result, int numRequests);
 int is_integer(char *str);
+unsigned parse_value(char *value);
 
 // Declaration of the extern C++ function
 #ifdef __cplusplus
@@ -68,6 +77,7 @@ extern "C"
 }
 #endif
 
+// Main function, entry point of the program
 int main(int argc, char *argv[])
 {
     // Process the given parameters
@@ -84,23 +94,10 @@ int main(int argc, char *argv[])
 
     // Run the SystemC simulation
     printf("Starting the SystemC Simulation...\n");
-    Result result = run_simulation(
-        cacheConfig.cycles,
-        cacheConfig.directmapped,
-        cacheConfig.cachelines,
-        cacheConfig.cachelineSize,
-        cacheConfig.cacheLatency,
-        cacheConfig.memoryLatency,
-        numRequests,
-        requests,
-        cacheConfig.tracefile);
+    Result result = run_simulation(cacheConfig.cycles, cacheConfig.directmapped, cacheConfig.cachelines, cacheConfig.cachelineSize, cacheConfig.cacheLatency, cacheConfig.memoryLatency, numRequests, requests, cacheConfig.tracefile);
 
     // Print the result
-    printf("\nSimulation Result:\n");
-    printf(" - Cycles: %zu\n", result.cycles);
-    printf(" - Cache misses: %zu\n", result.misses);
-    printf(" - Cache hits: %zu\n", result.hits);
-    printf(" - Primitive gate count: %zu\n", result.primitiveGateCount);
+    print_simulation_result(cacheConfig, result, numRequests);
 
     // Free allocated space
     free(requests);
@@ -120,11 +117,12 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
     // Loop depending on number of arguments (controlled using getopt_long)
     while (1)
     {
-        const char *optstring = "c:dfs:l:a:m:t:h";
+        const char *optstring = "c:dfp:l:s:a:m:t:h";
         static struct option longopts[] = {
             {"cycles", required_argument, NULL, 'c'},
             {"directmapped", no_argument, NULL, 'd'},
             {"fourway", no_argument, NULL, 'f'},
+            {"verbose-prints", required_argument, NULL, 'p'},
             {"cachelines", required_argument, NULL, 'l'},
             {"cacheline-size", required_argument, NULL, 's'},
             {"cache-latency", required_argument, NULL, 'a'},
@@ -168,6 +166,14 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
                 print_help_and_exit_with_error("Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
             }
             cacheConfig.fourway = 1;
+            break;
+        case 'p':
+            // Argument: Verbose prints, Expected: 3 >= int >= 0
+            if (!is_integer(optarg) || atoi(optarg) < 0 || atoi(optarg) > 3)
+            {
+                print_help_and_exit_with_error("Error: Der Wert für verbose-prints muss ein Integer sein und zwischen 0 und 3 liegen\n");
+            }
+            printsLevel = atoi(optarg);
             break;
         case 'l':
             // Argument: Cachelines, Expected: int > 0 and power of two
@@ -257,9 +263,22 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
 // Print the given cache configuration
 void print_cacheConfig(CacheConfig cacheConfig)
 {
+    if (printsLevel >= 1)
+    {
+        printf("%s", highlightColor); // Start highlighted color for the cache configuration
+    }
+
     printf("\nCache Configuration:\n");
     printf("  - Cycles: %d\n", cacheConfig.cycles);
-    printf("  - DirectMapped/Fourway: %s\n", cacheConfig.directmapped ? "DirectMapped" : "Fourway");
+    // Print the cache type pink if additional debug prints are enabled
+    if (printsLevel >= 1)
+    {
+        printf("  - DirectMapped/Fourway: \033[0;95m%s\n%s", cacheConfig.directmapped ? "DirectMapped" : "Fourway", highlightColor);
+    }
+    else
+    {
+        printf("  - DirectMapped/Fourway: %s\n%s", cacheConfig.directmapped ? "DirectMapped" : "Fourway", resetColor);
+    }
     printf("  - Cachelines: %d\n", cacheConfig.cachelines);
     printf("  - Cacheline size: %d\n", cacheConfig.cachelineSize);
     printf("  - Cache latency: %d\n", cacheConfig.cacheLatency);
@@ -267,9 +286,14 @@ void print_cacheConfig(CacheConfig cacheConfig)
     printf("  - Tracefile: %s\n", cacheConfig.tracefile ? cacheConfig.tracefile : "None");
     printf("  - Eingabedatei: %s\n", cacheConfig.eingabedatei);
     printf("\n");
+
+    if (printsLevel >= 1)
+    {
+        printf("%s", resetColor); // Reset color
+    }
 }
 
-// Counts the requests in the given file, throwing an error when encountering a blank line in between requests. Format: <W/R, Adress, Value>
+// Counts the requests in the given file, throwing an error when encountering a blank line in between requests. Format: <W/R, Address, Value>
 int count_requests_in_file(char *filename)
 {
     FILE *file = fopen(filename, "r");
@@ -355,8 +379,8 @@ Request *read_requests_from_file(int numRequests, char *filename)
     while (fgets(line, sizeof(line), file))
     {
         char rw;
-        unsigned int addr;
-        unsigned int data = 0; // Initialize data to 0, as it might not be present for read requests
+        char addr_str[32];
+        char data_str[32] = "0"; // Initialize data to "0", as it might not be present for read requests
 
         // Remove any leading and trailing whitespace from the line
         char *trimmedLine = line;
@@ -378,7 +402,7 @@ Request *read_requests_from_file(int numRequests, char *filename)
         end[1] = '\0';
 
         // Scan the format of the current line and store the entries in the local variables
-        int numEntries = sscanf(trimmedLine, "%c , %x , %x", &rw, &addr, &data);
+        int numEntries = sscanf(trimmedLine, "%c , %31[^,] , %31s", &rw, addr_str, data_str);
 
         // Check if the line is in the correct format
         if (numEntries == 2)
@@ -392,7 +416,7 @@ Request *read_requests_from_file(int numRequests, char *filename)
             {
                 // Read request
                 requests[index].we = 0;
-                requests[index].addr = addr;
+                requests[index].addr = parse_value(addr_str);
                 requests[index].data = 0; // No data for read requests
             }
         }
@@ -407,8 +431,8 @@ Request *read_requests_from_file(int numRequests, char *filename)
             {
                 // Write request
                 requests[index].we = 1;
-                requests[index].addr = addr;
-                requests[index].data = data;
+                requests[index].addr = parse_value(addr_str);
+                requests[index].data = parse_value(data_str);
             }
         }
         else
@@ -447,18 +471,57 @@ void print_help()
 {
     printf("Usage: cache_simulation [OPTIONS] <Eingabedatei>\n");
     printf("Options:\n");
-    printf("  -c, --cycles <Zahl>         Die Anzahl der Zyklen, die simuliert werden sollen.\n");
-    printf("  --directmapped              Simuliert einen direkt assoziativen Cache.\n");
-    printf("  --fourway                   Simuliert einen vierfach assoziativen Cache.\n");
-    printf("  --cachelines <Zahl>         Die Anzahl der Cachezeilen.\n");
-    printf("  --cacheline-size <Zahl>     Die Größe einer Cachezeile in Byte.\n");
-    printf("  --cache-latency <Zahl>      Die Latenzzeit eines Caches in Zyklen.\n");
-    printf("  --memory-latency <Zahl>     Die Latenzzeit des Hauptspeichers in Zyklen.\n");
-    printf("  --tf <Dateiname>            Ausgabedatei für ein Tracefile mit allen Signalen.\n");
-    printf("  -h, --help                  Eine Beschreibung aller Optionen der Cachesimulation und Verwendung ausgeben und das Programm danach beendet.\n");
-    printf("  Positional Arguments:\n");
-    printf("  <Eingabedatei>              Die .csv Eingabedatei, die die zu verarbeitenden Daten enthält. Zeilenformat: <W, Adresse, Wert> oder <R, Adresse>\n");
+    printf("  -c, --cycles <Zahl>           Die Anzahl der Zyklen, die simuliert werden sollen.\n");
+    printf("  --directmapped                Simuliert einen direkt assoziativen Cache.\n");
+    printf("  --fourway                     Simuliert einen vierfach assoziativen Cache.\n");
+    printf("  --cachelines <Zahl>           Die Anzahl der Cachezeilen.\n");
+    printf("  --cacheline-size <Zahl>       Die Größe einer Cachezeile in Byte.\n");
+    printf("  --cache-latency <Zahl>        Die Latenzzeit eines Caches in Zyklen.\n");
+    printf("  --memory-latency <Zahl>       Die Latenzzeit des Hauptspeichers in Zyklen.\n");
+    printf("  --tf <Dateiname>              Ausgabedatei für ein Tracefile mit allen Signalen.\n");
+    printf("  -h, --help                    Eine Beschreibung aller Optionen der Cachesimulation und Verwendung ausgeben und das Programm danach beendet.\n");
+    printf("  <Eingabedatei>                Positional Argument mit der .csv Eingabedatei, die die zu verarbeitenden Daten enthält. Zeilenformat: <W, Adresse, Wert> oder <R, Adresse>\n");
     printf("\n");
+    printf("  -p, --verbose-prints <Zahl>   Aktiviert zusätzliches Feedback der Simulation. 3 Level für ausführliche Debug Informationen:\n");
+    printf("                                    - 0: Standardrückgabe\n");
+    printf("                                    - 1: + Cache States\n");
+    printf("                                    - 2: + Memory States & Cachline Misses/Hits\n");
+    printf("                                    - 3: + Cycles Count\n");
+    printf("\n");
+}
+
+// Prints a summary of the simulation
+void print_simulation_result(CacheConfig cacheConfig, Result result, int numRequests)
+{
+    if (printsLevel >= 1)
+    {
+        printf("%s", highlightColor); // Start highlighted color for the summary of the simulation
+    }
+
+    // Print the standard simulation result
+    printf("\nSimulation Result:\n");
+    printf(" - Cycles: %zu\n", result.cycles);
+    printf(" - Cache misses: %zu\n", result.misses);
+    printf(" - Cache hits: %zu\n", result.hits);
+    printf(" - Primitive gate count: %zu\n", result.primitiveGateCount);
+
+    if (printsLevel >= 1)
+    {
+        // Print additional debug info
+        printf("\nAdditional Debug Info:");
+
+        double hitRate = (double)result.hits / (result.hits + result.misses);
+        double missRate = (double)result.misses / (result.hits + result.misses);
+        double avgCyclesPerRequest = (double)result.cycles / numRequests;
+        printf("\n - Hit Rate: %.2f%%", hitRate * 100);
+        printf("\n - Miss Rate: %.2f%%", missRate * 100);
+        printf("\n - Average Cycles per Request: %.2f\n", avgCyclesPerRequest);
+
+        // Print the cacheConfig again because of large amount of debug info was printed
+        print_cacheConfig(cacheConfig);
+
+        printf("%s", resetColor); // Reset color
+    }
 }
 
 // Checks if a string is an integer
@@ -473,4 +536,19 @@ int is_integer(char *str)
         str++;
     }
     return 1;
+}
+
+// Parses the value from the given string, supporting both decimal and hexadecimal values depending on the prefix "" or "0x"/"0X"
+unsigned parse_value(char *value)
+{
+    if (strstr(value, "0x") != NULL || strstr(value, "0X") != NULL)
+    {
+        // Hexadecimal value
+        return strtoul(value, NULL, 16);
+    }
+    else
+    {
+        // Decimal value
+        return strtoul(value, NULL, 10);
+    }
 }
