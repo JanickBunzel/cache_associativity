@@ -1,7 +1,7 @@
-#include "fourwayMappedCache.h"
-#include "cache.h"
-#include <iostream>
 #include <cmath>
+#include <iostream>
+#include "cache.h"
+#include "fourwayMappedCache.h"
 
 // Global variables provided by the rahmenprogramm (cache_simulaton option), specifies how the debug information is printed
 extern int printsLevel;
@@ -202,7 +202,7 @@ void FourwayMappedCache::printCache()
                 std::cout << highlightDataColor; // Highlight valid cache lines
             }
 
-            CacheLine line = cachelinesArray[i + way];
+            Cacheline line = cachelinesArray[i + way];
             std::cout << set << "\t" << way << "\t"
                       << "0x" << std::setw(8) << std::setfill('0') << std::hex << (0xFFFFFFFF & line.getTag()) << "\t" << std::dec
                       << line.getValid() << "\t"
@@ -245,7 +245,7 @@ void FourwayMappedCache::calculateBitCounts(unsigned cachelines, unsigned cachel
     }
 }
 
-CacheLine &FourwayMappedCache::getCacheline(unsigned setIndex, unsigned cachelineIndex)
+Cacheline &FourwayMappedCache::getCacheline(unsigned setIndex, unsigned cachelineIndex)
 {
     return cachelinesArray[4 * setIndex + cachelineIndex];
 }

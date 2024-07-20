@@ -1,12 +1,13 @@
 #ifndef CACHELINE_H
 #define CACHELINE_H
+
 #include <systemc.h>
 #include <vector>
 
-class CacheLine
+class Cacheline
 {
 public:
-    CacheLine(unsigned const cachelineSize) : cachelineSize(cachelineSize) { data = std::vector<sc_uint<8>>(cachelineSize); }
+    Cacheline(unsigned const cachelineSize) : cachelineSize(cachelineSize) { data = std::vector<sc_uint<8>>(cachelineSize); }
 
     void setData(std::vector<sc_uint<8>> data) { this->data = data; }
     std::vector<sc_uint<8>> getData() { return data; }

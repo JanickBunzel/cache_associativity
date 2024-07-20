@@ -1,7 +1,7 @@
-#include "directMappedCache.h"
-#include "cache.h"
-#include <iostream>
 #include <cmath>
+#include <iostream>
+#include "cache.h"
+#include "directMappedCache.h"
 
 // Global variables provided by the rahmenprogramm (cache_simulaton option), specifies how the debug information is printed
 extern int printsLevel;

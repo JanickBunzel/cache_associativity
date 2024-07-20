@@ -1,6 +1,6 @@
-#include "memory.h"
-#include <iomanip>
 #include <bitset>
+#include <iomanip>
+#include "memory.h"
 
 // Global variables provided by the rahmenprogramm (cache_simulaton option), specifies how the debug information is printed
 extern int printsLevel;
@@ -58,8 +58,7 @@ void Memory::memoryAccess()
     }
 }
 
-// Write data to memory starting at the given address
-// If the address of the byte to be written is not present in the memory, it is added
+// Write data to the address, if it is not present in the memory, it is added first and then written to
 void Memory::write(unsigned memoryAddress, sc_uint<32> data)
 {
     // write byte by byte with LSB at the highest address

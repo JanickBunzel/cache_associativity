@@ -9,15 +9,6 @@ Systemdesign Gruppe 157, Projektaufgabe A11:
 
 ## TODO
 
-### Recherche (3.1, s.3):
-- [x] übliche Größen
-- [x] PrimitiveGateCount berechnen
-- [ ] direkt vs 4-fach
-- [ ] Speicherzugriffsverhalten eines speicherintensiven Algorithmus -> .csv Dateien mit Beispielen
-- [ ] Mit eigener Simulation Verhalten in Bezug auf Zugriffszeiten beobachten
-- [ ] Mind. ein Fallbeispiel für das Speicherzugriffsmuster unseres ausgewählten Algorithmus
-- [ ] Ergebnisse in Readme dokumentieren
-
 ### C Rahmenprogramm (3.2, s.4):
 - [x] Parameter aus Konsole lesen
 - [x] Fehlerhafte Optionen korrekt abfangen und entsp. `stderr` ausgeben
@@ -36,21 +27,22 @@ Systemdesign Gruppe 157, Projektaufgabe A11:
 - [x] **Tracefile** während der Simulation erstellen
 - [x] **Cache** implementieren: directmapped
 - [x] **Cache** implementieren: fourway
-- [ ] Caches weiter testen
+- [x] Caches weiter testen
+
 
 ### Sonstiges
 - [x] SystemC Path aus _evironment variable_ lesen (statt zurzeit workspace folder) -> Zulip
 - [x] Cycles richtig handlen (Aufgabenstellung)
 - [x] Auf _Rechnerhalle_ compilieren!
 - [x] "Bei Lesezugriffen soll der gelesene Wert in das data-Feld der Anfrage geschrieben werden" -> Seite 7 & [Zulip](https://zulip.in.tum.de/#narrow/stream/2434-GRA-24S-Projektphase---Systemdesign/topic/Cache.20Request.20Data/near/1588151)
+- [x] MemoryLeaks checken
+- [x] First Version of cache is on commit id 4ee88a7d983fe1f3d00a131a1b19ec17bffec1ec
 - [ ] Erklärung schreiben, wie latencies zustande kommen und wie wir write hits/misses handlen
-- [ ] MemoryLeaks checken
 - [ ] NiceToHave: Conflict misses tracken?
-- [ ] First Version of cache is on commit id 4ee88a7d983fe1f3d00a131a1b19ec17bffec1ec
 
 ### Finish Up:
-- [ ] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments
-- [ ] Alle TODO's im Code aufräumen
+- [x] Consistency: Code Design/Format, Sprache (Janez Rotman: Bevorzugt Englischer Code), Comments
+- [x] Alle TODO's im Code aufräumen
 
 ### Abzugebende Dateien (4, s.7):
 - `Readme.md` : Dokumentation/Bericht + persönliche Abschnitte

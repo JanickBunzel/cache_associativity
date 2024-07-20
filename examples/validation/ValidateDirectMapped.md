@@ -1,7 +1,7 @@
 # test.csv
 --directmapped
 --cachelines = 8
---cacheline_size = 4
+--cacheline-size = 4
 
 Bits:
 tag = 27
