@@ -1,4 +1,4 @@
-# Ceck if cache handles hit / miss
+# Check if cache handles hit / miss
 
 ### cache data:
 - cachline-size = 16 Byte
@@ -15,8 +15,8 @@
 1) test if write and read miss is detected correctly and if cycles have right amount: one write miss and two read misses because of different tags but same index. 
 ````
 W,0xF0000000,0xabababab
-R,0x0F000000,0xabababab
-R,0x00F00000,0xabababab
+R,0x0F000000,
+R,0x00F00000,
 ````
 - Cycles = 3 * cache latency (accessing the cache) + 3  * memory latency (fetching from mem) + 1 * memory latency (writing to mem)
 - Cycles = 190
@@ -60,12 +60,12 @@ W,0xFFFF0043,0xfafafafa
 
 5) test write / read hits spanning two lines 
 ````
-W,0xDDDDDDDE
-W,0xDDDDDDDD
+W,0xDDDDDDDE,0xfafafafa
+W,0xDDDDDDDD,0xfafafafa
 R,0xDDDDDDDF
 ````
 - Cycles = 3 * cache latency (accessing the cache) + 2 * mem latency (fetching two lines in the cache) + 2 * mem latency (writing two values to memory)
-- Cycles =  360
+- Cycles =  190
 - Miss = 1
 - Hit = 2
 
