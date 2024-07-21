@@ -40,4 +40,4 @@ Ich habe mich mit der SystemC-Bibliothek auseinandergesetzt, die Architektur von
 
 ### Janick
 Umgesetzt habe ich als erstes das Rahmenprogramm, da dies der Einstiegspunkt des Programms ist.
-Im Verlauf des Projektes habe ich mich die Simulationsmodule implementiert und die Analyse (Algorithmen & Verifikation) und Struktur des Projektes vorangetrieben (Git, Ordnerstruktur, Format, etc.)
+Im Verlauf des Projektes habe ich die Simulationsmodule implementiert und die Analyse (Algorithmen & Verifikation) und Struktur des Projektes vorangetrieben (Git, Ordnerstruktur, Format, etc.)
