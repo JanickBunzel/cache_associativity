@@ -5,8 +5,9 @@
 # ignore compiled object file
 *.o
 
-# ignore compiled executable
+# ignore compiled executables
 cache_simulation
+matrix_multiplication
 
 # ignore local vscode settings
 .vscode

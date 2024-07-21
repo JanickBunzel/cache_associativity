@@ -4,22 +4,19 @@ import random
 
 # region Config --------------------------------------------------------------------------------------------------
 
-WRITE_CSV = True
+WRITE_CSV = False
 
 PRINT_ARRAYS = True
 
-ARRAY_SIZE = 10000
+ARRAY_SIZE = 1000
 ARRAY_MIN = 1
 ARRAY_MAX = 1000
 
-QUICKSORT_ENABLED = False
-QUICKSORT_OUTPUT = 'examples/algorithms/quicksort_requests.csv'
-
-MERGESORT_ENABLED = False
-MERGESORT_OUTPUT = 'examples/algorithms/mergesort_requests.csv'
+QUICKSORT_ENABLED = True
+QUICKSORT_OUTPUT = 'examples/algorithms/quicksort_n.csv'
 
 ITERATE_ENABLED = False
-ITERATE_OUTPUT = 'examples/algorithms/iterate_requests.csv'
+ITERATE_OUTPUT = 'examples/algorithms/iterate_n.csv'
 
 # endregion Config -----------------------------------------------------------------------------------------------
 
@@ -49,19 +46,6 @@ def main():
             print("Quick Sort array is:", arraySorted, "\n")
         print("Quick Sort Reads:", reads)
         print("Quick Sort Writes:", writes, "\n")
-
-
-    # Merge Sort
-    if MERGESORT_ENABLED:
-        reads = 0
-        writes = 0
-        arraySorted = array.copy()
-        merge_sort(array, MERGESORT_OUTPUT)
-        if PRINT_ARRAYS:
-            print("Original array is:", array, "\n")
-            print("Merge Sort array is:", arraySorted, "\n")
-        print("Merge Sort Reads:", reads)
-        print("Merge Sort Writes:", writes, "\n")
     
     # Iterate
     if ITERATE_ENABLED:
@@ -127,67 +111,6 @@ def quick_sort(arr, filename):
         file.write('')  # Truncate the file to make sure it starts empty
     quick_sort_helper(arr, 0, len(arr) - 1, filename)
 # endregion Quick Sort
-
-
-
-# region Merge Sort
-def merge(arr, l, m, r, filename):
-    global reads, writes
-    n1 = m - l + 1
-    n2 = r - m
-    L = [0] * n1
-    R = [0] * n2
-
-    for i in range(0, n1):
-        L[i] = arr[l + i]
-        reads += 1
-    for j in range(0, n2):
-        R[j] = arr[m + 1 + j]
-        reads += 1
-
-    i = 0
-    j = 0
-    k = l
-    while i < n1 and j < n2:
-        if L[i] <= R[j]:
-            arr[k] = L[i]
-            i += 1
-        else:
-            arr[k] = R[j]
-            j += 1
-        writes += 1
-        if WRITE_CSV:
-            writeLine(filename, ['W', getAddress(k), arr[k]])
-        k += 1
-
-    while i < n1:
-        arr[k] = L[i]
-        i += 1
-        k += 1
-        writes += 1
-        if WRITE_CSV:
-            writeLine(filename, ['W', getAddress(k - 1), arr[k - 1]])
-
-    while j < n2:
-        arr[k] = R[j]
-        j += 1
-        k += 1
-        writes += 1
-        if WRITE_CSV:
-            writeLine(filename, ['W', getAddress(k - 1), arr[k - 1]])
-
-def merge_sort_helper(arr, l, r, filename):
-    if l < r:
-        m = l + (r - l) // 2
-        merge_sort_helper(arr, l, m, filename)
-        merge_sort_helper(arr, m + 1, r, filename)
-        merge(arr, l, m, r, filename)
-
-def merge_sort(arr, filename):
-    with open(filename, mode='w', newline='') as file:
-        file.write('')  # Truncate the file to make sure it starts empty
-    merge_sort_helper(arr, 0, len(arr) - 1, filename)
-# endregion Merge Sort
 
 
 
