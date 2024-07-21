@@ -31,10 +31,24 @@ CacheConfig cacheConfig = {
     .cachelines = 512,    // With 512 cachelines of 32 bytes, this provides an 16KB cache, typical size of a L1 cache
     .cachelineSize = 32,  // Standard size that balances spatial locality and overhead
     .cacheLatency = 4,    // Quick access for first-level cache
-    .memoryLatency = 30,  // Slower access for main memory
+    .memoryLatency = 100, // Slower access for main memory
     .tracefile = "",      // By default, no tracefile is generated
     .eingabedatei = NULL, // Input file needs to be provided
 };
+
+// Flags to check if the values are passed by the user
+CacheConfig configPassed = {
+    .cycles = 0,
+    .directmapped = 0,
+    .fourway = 0,
+    .cachelines = 0,
+    .cachelineSize = 0,
+    .cacheLatency = 0,
+    .memoryLatency = 0,
+    .tracefile = NULL,
+    .eingabedatei = NULL,
+};
+int configPassed_printsLevel = 0;
 
 // Macro to handle request lines in the input file
 int MAX_REQUEST_LINE_LENGTH = 256;
@@ -114,24 +128,34 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
     cacheConfig.directmapped = 0;
     cacheConfig.fourway = 0;
 
+    // Parameters for getopt_long
+    const char *optstring = "c:dfp:l:s:a:m:t:h";
+    static struct option longopts[] = {
+        {"cycles", required_argument, NULL, 'c'},
+        {"directmapped", no_argument, NULL, 'd'},
+        {"fourway", no_argument, NULL, 'f'},
+        {"verbose-prints", required_argument, NULL, 'p'},
+        {"cachelines", required_argument, NULL, 'l'},
+        {"cacheline-size", required_argument, NULL, 's'},
+        {"cache-latency", required_argument, NULL, 'a'},
+        {"memory-latency", required_argument, NULL, 'm'},
+        {"tf", required_argument, NULL, 't'},
+        {"help", no_argument, NULL, 'h'},
+        {0, 0, 0, 0} // End of arguments
+    };
+
+    // Check for invalid short options that might be misinterpreted as long options
+    for (int i = 1; i < argc; i++)
+    {
+        if (argv[i][0] == '-' && argv[i][1] != '-' && strlen(argv[i]) > 2)
+        {
+            print_help_and_exit_with_error("Error: Unbekanntes Argument %s\n", argv[i]);
+        }
+    }
+
     // Loop depending on number of arguments (controlled using getopt_long)
     while (1)
     {
-        const char *optstring = "c:dfp:l:s:a:m:t:h";
-        static struct option longopts[] = {
-            {"cycles", required_argument, NULL, 'c'},
-            {"directmapped", no_argument, NULL, 'd'},
-            {"fourway", no_argument, NULL, 'f'},
-            {"verbose-prints", required_argument, NULL, 'p'},
-            {"cachelines", required_argument, NULL, 'l'},
-            {"cacheline-size", required_argument, NULL, 's'},
-            {"cache-latency", required_argument, NULL, 'a'},
-            {"memory-latency", required_argument, NULL, 'm'},
-            {"tf", required_argument, NULL, 't'},
-            {"help", no_argument, NULL, 'h'},
-            {0, 0, 0, 0} // End of arguments
-        };
-
         int nextOption = getopt_long(argc, argv, optstring, longopts, NULL);
 
         if (nextOption == -1)
@@ -144,6 +168,13 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
         switch (nextOption)
         {
         case 'c':
+            // Check if the user has already set the cycles
+            if (configPassed.cycles)
+            {
+                print_help_and_exit_with_error("Error: Die Anzahl der Zyklen wurde mehrmals übergeben\n");
+            }
+            configPassed.cycles = 1;
+
             // Argument: Cycles, Expected: int > 0
             if (!is_integer(optarg) || atoi(optarg) <= 0)
             {
@@ -152,22 +183,33 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
             cacheConfig.cycles = atoi(optarg);
             break;
         case 'd':
-            // Argument: foruway, Expected: bool (Can't be used with directmapped)
-            if (cacheConfig.fourway)
+            // Argument: foruway, Expected: bool (Can't be used with directmapped or set twice)
+            if (cacheConfig.fourway || configPassed.directmapped || configPassed.fourway)
             {
                 print_help_and_exit_with_error("Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
             }
+            configPassed.directmapped = 1;
+
             cacheConfig.directmapped = 1;
             break;
         case 'f':
-            // Argument: fourway, Expected: bool (Can't be used with directmapped)
-            if (cacheConfig.directmapped)
+            // Argument: fourway, Expected: bool (Can't be used with directmapped or set twice)
+            if (cacheConfig.directmapped || configPassed.fourway || configPassed.directmapped)
             {
                 print_help_and_exit_with_error("Error: Es kann nur ein Cache Typ ausgewählt werden (directmapped oder fourway)\n");
             }
+            configPassed.fourway = 1;
+
             cacheConfig.fourway = 1;
             break;
         case 'p':
+            // Check if the user has already set the prints level
+            if (configPassed_printsLevel)
+            {
+                print_help_and_exit_with_error("Error: Der Wert für verbose-prints wurde mehrmals übergeben\n");
+            }
+            configPassed_printsLevel = 1;
+
             // Argument: Verbose prints, Expected: 3 >= int >= 0
             if (!is_integer(optarg) || atoi(optarg) < 0 || atoi(optarg) > 3)
             {
@@ -176,6 +218,12 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
             printsLevel = atoi(optarg);
             break;
         case 'l':
+            if (configPassed.cachelines)
+            {
+                print_help_and_exit_with_error("Error: Die Anzahl der Cachelines wurde mehrmals übergeben\n");
+            }
+            configPassed.cachelines = 1;
+
             // Argument: Cachelines, Expected: int > 0 and power of two
             if (!is_integer(optarg) || atoi(optarg) <= 0 || (atoi(optarg) & (atoi(optarg) - 1)) != 0)
             {
@@ -184,6 +232,13 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
             cacheConfig.cachelines = atoi(optarg);
             break;
         case 's':
+            // Check if the user has already set the cacheline size
+            if (configPassed.cachelineSize)
+            {
+                print_help_and_exit_with_error("Error: Die Größe einer Cachezeile wurde mehrmals übergeben\n");
+            }
+            configPassed.cachelineSize = 1;
+
             // Argument: Cacheline size, Expected: int >= 4
             if (!is_integer(optarg) || atoi(optarg) < 4)
             {
@@ -192,6 +247,13 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
             cacheConfig.cachelineSize = atoi(optarg);
             break;
         case 'a':
+            // Check if the user has already set the cache latency
+            if (configPassed.cacheLatency)
+            {
+                print_help_and_exit_with_error("Error: Die Cache Latency wurde mehrmals übergeben\n");
+            }
+            configPassed.cacheLatency = 1;
+
             // Argument: Cache Latency, Expected: int > 0
             if (!is_integer(optarg) || atoi(optarg) <= 0)
             {
@@ -200,6 +262,13 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
             cacheConfig.cacheLatency = atoi(optarg);
             break;
         case 'm':
+            // Check if the user has already set the memory latency
+            if (configPassed.memoryLatency)
+            {
+                print_help_and_exit_with_error("Error: Die Memory Latency wurde mehrmals übergeben\n");
+            }
+            configPassed.memoryLatency = 1;
+
             // Argument: Memory Latency, Expected: int > 0 && > cacheLatency
             if (!is_integer(optarg) || atoi(optarg) <= 0)
             {
@@ -208,6 +277,13 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
             cacheConfig.memoryLatency = atoi(optarg);
             break;
         case 't':
+            // Check if the user has already set the tracefile
+            if (configPassed.tracefile)
+            {
+                print_help_and_exit_with_error("Error: Der Dateiname für das Tracefile wurde mehrmals übergeben\n");
+            }
+            configPassed.tracefile = "1";
+
             // Argument: Tracefile, Expected: char* with length < 255
             if (strlen(optarg) > 255)
             {
@@ -254,6 +330,12 @@ CacheConfig arguments_to_cacheConfig(int argc, char *argv[])
             print_help_and_exit_with_error("Error: Die Eingabedatei wurde nicht gefunden.\n");
         }
         cacheConfig.eingabedatei = argv[optind];
+    }
+
+    // Check for any extra positional arguments
+    if (optind < argc - 1)
+    {
+        print_help_and_exit_with_error("Error: Zu viele Positionsargumente angegeben. (Wurde die Eingabedatei mehrmals gesetzt?)\n");
     }
 
     // All Invalid cases checked
@@ -455,7 +537,7 @@ void print_help_and_exit_with_error(char *errorMessage, ...)
     va_list args;
     va_start(args, errorMessage);
 
-    fprintf(stderr, "\033[1;31mError: ");
+    fprintf(stderr, "\033[1;31m");
     vfprintf(stderr, errorMessage, args);
     fprintf(stderr, "\033[0m");
 
