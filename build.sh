@@ -11,6 +11,6 @@ echo "(1) Compilation done into ./cache_simulation"
 echo "(2) Executing..."
 
 # Executing our fourwayGeneral validation requests with a 32 byte sized cache
-./cache_simulation examples/validation/validateGeneral.csv -p 1 --cachelines 8 --cacheline-size 4 --fourway
+./cache_simulation examples/validation/validateGeneral.csv --cachelines 8 --cacheline-size 4 --fourway
 
 echo "(2) Execution done"
