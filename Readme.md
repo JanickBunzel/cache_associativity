@@ -4,41 +4,40 @@
 ## Aufgabenstellung
 Im Rahmen des Moduls Grundlagenpraktikum "Rechnerarchitektur" haben wir uns mit der Simulation und Analyse von Caches beschäftigt.
 
-Ziel des Projekts war es, übliche Größen und Speicherzugriffszeiten zu recherchieren und ein Programm zu entwickeln, dass die Zugriffe auf einen Direct-Mapped-Cache und einen 4-fach assoziativen Cache simuliert, welche wir auswerten. Die Implementierung des Rahmenprogrammes sollte in C erfolgen, die Simulation mit SystemC in C++.
+Ziel des Projekts war es, übliche Größen und Speicherzugriffszeiten von Caches zu recherchieren und ein Programm zu entwickeln, das Zugriffe auf einen Direct-Mapped-Cache und einen 4-fach assoziativen Cache simuliert. Die Ergebnisse wurden ausgewertet. Die Implementierung des Rahmenprogrammes erfolgte in C, die Simulation mit SystemC in C++.
 
 
 ## Zusammenfassung der Erkenntnisse der Literaturrecherche
-Es gibt verschiedene Levels von Caches, die sich in Größe und Latenz abwägen. (L1, L2, L3) Die Größen variieren dabei von einem kleinen, schnellen Cache (L1: 8KB - 64KB) bis größeren wie dem L3-Cache (2MB - 8MB).
+Es gibt verschiedene Levels von Caches, die sich in Größe und Latenz unterscheiden (typisch: L1, L2, L3). Die Größen variieren von kleinen, schnellen Caches (L1: 8KB - 64KB) bis zu größeren wie dem L3-Cache (2MB - 8MB).
 
-Sie reduzieren die Speicherzugriffszeiten signifikant, da sie Daten zwischenspeichern. Die Latenzen variieren dabei von 1-4 Takten für L1-Caches bis hin zu 30-40 Takten für L3-Caches.
+Sie reduzieren die Speicherzugriffszeiten signifikant, da sie Daten zwischenspeichern. Die Latenzen variieren dabei von 1-4 Taktzyklen für L1-Caches bis zu 30-40 Takten für L3-Caches. Die Latenz für den Hauptspeicher (RAM) beträgt ca. 100-200 Taktzyklen.
 
-Es gibt verschiedene Assoziativitätsgrade von Caches, währen wir den direkt abgebildeten Cache (1-fach assoziativ) dem 4-fach assoziativen Cache gegenüberstellen.
+Es gibt verschiedene Assoziativitätsgrade von Caches. Wir haben den direkt-mapped Cache (1-fach assoziativ) dem 4-fach assoziativen Cache gegenübergestellt.
 
+Die Caches haben wir nach dem _Write-Allocate_ Verhalten implementiert.
+Bei einem Cache-Miss wird die entsprechende Cacheline in den Cache geladen (bei einem übergreifenden Offset entspricht dies zusätzlich einer zweiten Cacheline).
 
-## Methodik und Messumgebung der verwendeten Analysemethoden
-Für die Analyse haben wir Speicherzugriffsmuster mit Skripten generiert und so realitätsnahe Simulationen durchgeführt. Dabei zeigen ua. die Iteration oder Sortierung von Arrays, Matrixmultiplikationen und Extrembeispiele die Stärken der Cache-arten.
-Außerdem haben wir Validierungsläufe durchgeführt, um die Korrektheit der Simulation zu überprüfen.
-Alle Fallbeispiele sind im Ordner `examples/` zu finden.
+## Messumgebung und Ergebnisse der Analyse des Projekts
+Für die Analyse haben wir Speicherzugriffsmuster mit Skripten generiert und so einerseits Validierungsdurchläufe zum Testen und realitätsnahe Simulationen durchgeführt. (Fallbeispiele im Ordner `examples/`)
 
-Das Abstraktionslevel in SystemC haben wir gewählt, um die Kommunikation zwischen den Modulen dessen Latenzen zu simulieren. Die Caches haben wir nach dem _Write-Allocate_ Verhalten implementiert.
-Bei dem bei einem Schreibzugriff wird die gesamte Cacheline, teilweise auch die zweite Cacheline bei einem übergreifenden Offset, in den Cache geladen.
+Diese umfassen ua. die Iteration und Sortierung von Arrays, Matrixmultiplikationen und Extrembeispiele welche die Stärken der beiden Cache-Arten zeigen.
 
+Die Analyse ergab folgende Ergebnisse:
 
-## Ergebnisse des Gesamtprojekts
-Die Ergebnisse haben zwei Richtungen gezeigt: Die Performanz der Caches hinsichtlich der Hitrate und die Speicherzugriffszeiten.
+Die 4-fach assoziativen Caches erzielen bei großen Iterationsbereichen und häufigen wiederholten Zugriffen eine deutlich höhere Hit-Rate, da sie durch die Assoziativität weniger Verdrängungen durchführen müssen. Dies erfordert jedoch eine komplexere Architektur und kann zu längeren Zugriffszeiten führen.
 
-Die 4-fach assoziativen Caches erzielen bei großen Iterationsbereichen und häufigen wiederholten Zugriffen eine deutlich höhere Hitrate, da sie durch die Assoziativität weniger Verdrängungen durchführen müssen. Die Assotiativität führt jedoch zu einer höheren Komplexität und damit zu längeren Zugriffszeiten.
-
-Dahingegen sind Direct-Mapped Caches einfach zu implementieren und bieten schnelle Zugriffszeiten. Sie sind besonders bei räumlich verteilten Zugriffen effizient. Aufgrund ihres einfachen Designs benötigen sie außerdem weniger Hardware-Ressourcen.
+Dahingegen sind Direct-Mapped Caches einfach zu implementieren und bieten schnelle Zugriffszeiten. Sie sind besonders bei räumlich verteilten Zugriffen effizient. Aufgrund ihres einfachen Designs benötigen sie weniger Hardware-Ressourcen.
 
 
 ## Persönliche Beiträge
 
-### Michi
-moin
+### Michael
+Hauptsächlich habe ich theoretische Informationen über Caches anhand von realen Beispielen recherchiert und dazu Grafiken erstellt. Weiterhin habe ich die Berechnung der Gatteranzahl implementiert, Verifikationsarbeiten am Cache durchgeführt und die LRU-Strategie umgesetzt.
+
 
 ### Julian
-servus
+Ich habe mich mit der SystemC-Bibliothek auseinandergesetzt, die Architektur von Cache, CPU und Speicher konzipiert und Prototypen erstellt. Ich habe die Speicherverwaltung sowie die Cache-Implementierung realisiert. Zudem habe ich zur Entwicklung von Tests und Zugriffsmustern beigetragen.
 
 ### Janick
-hallo
+Umgesetzt habe ich als erstes das Rahmenprogramm, da dies der Einstiegspunkt des Programms ist.
+Im Verlauf des Projektes habe ich mich bei der Implementierung der Simulationsmodule beteiligt und die Analyse (Algorithmen) und Struktur des Projektes vorangetrieben (Git, Ordnerstruktur, Format, etc.)
