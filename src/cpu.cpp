@@ -90,8 +90,14 @@ void Cpu::printProccessingOfRequest(unsigned requestIndex)
     }
 
     std::cout << highlightColor; // Start highlight color
-    std::cout << "[Cpu]: Now processing request[" << requestIndex << "]: " << (requests[requestIndex].we ? "W," : "R,") << std::hex << "0x" << requests[requestIndex].addr << std::dec << "," << (requests[requestIndex].we ? std::to_string(requests[requestIndex].data) : "") << std::endl;
-    std::cout << resetColor << std::endl; // Reset color back to white
+    std::cout << "[Cpu]: request[" << requestIndex << "]: "
+        << (requests[requestIndex].we ? "W," : "R,")
+        << std::hex << "0x" << requests[requestIndex].addr;
+    if (requests[requestIndex].we)
+    {
+        std::cout << ", 0x" << requests[requestIndex].data;
+    }
+    std::cout << "\n" << std::dec << resetColor << std::endl; // Reset color back to white
 }
 
 void Cpu::printResultOfRequest(unsigned requestIndex)
