@@ -1,11 +1,21 @@
 # Cache Simulation und Analyse (A11) - Projektbericht
 
-
 ## Aufgabenstellung
 Im Rahmen des Moduls Grundlagenpraktikum "Rechnerarchitektur" haben wir uns mit der Simulation und Analyse von Caches beschäftigt.
 
 Ziel des Projekts war es, übliche Größen und Speicherzugriffszeiten von Caches zu recherchieren und ein Programm zu entwickeln, das Zugriffe auf einen Direct-Mapped-Cache und einen 4-fach assoziativen Cache simuliert. Die Ergebnisse wurden ausgewertet. Die Implementierung des Rahmenprogrammes erfolgte in C, die Simulation mit SystemC in C++.
 
+<p align="center">
+    <br>
+    <br>
+    <img src="logisim/AufbauCleanBG.jpg" width="95%">
+    <br>
+    <br>
+    Aufbau der SystemC Simulation in Logisim Evolution
+    <br>
+    <br>
+    <br>
+</p>
 
 ## Zusammenfassung der Erkenntnisse der Literaturrecherche
 Es gibt verschiedene Levels von Caches, die sich in Größe und Latenz unterscheiden (typisch: L1, L2, L3). Die Größen variieren von kleinen, schnellen Caches (L1: 8KB - 64KB) bis zu größeren wie dem L3-Cache (2MB - 8MB).
